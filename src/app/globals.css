@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-bg-base: #0a0a0c;
+  --color-bg-elevated: #111113;
+  --color-bg-surface: #161618;
+
+  --color-primary: #4da3ff;
+  --color-primary-hover: #6bb4ff;
+  --color-secondary: #e9b949;
+  --color-secondary-hover: #f0ca6a;
+  --color-navy: #1f303e;
+
+  --color-text-primary: #f5f6fa;
+  --color-text-secondary: #9aa0ac;
+
+  --color-border: #1f1f23;
+  --color-border-glass: rgb(255 255 255 / 0.1);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-fade-in: fade-in 0.6s var(--ease-out-expo) both;
+  --animate-fade-up: fade-up 0.8s var(--ease-out-expo) both;
+  --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter-tight-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+:root {
+  --text-fluid-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-fluid-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+  --text-fluid-base: clamp(1rem, 0.925rem + 0.375vw, 1.125rem);
+  --text-fluid-lg: clamp(1.125rem, 1rem + 0.625vw, 1.375rem);
+  --text-fluid-xl: clamp(1.25rem, 1.05rem + 1vw, 1.75rem);
+  --text-fluid-2xl: clamp(1.5rem, 1.15rem + 1.75vw, 2.25rem);
+  --text-fluid-3xl: clamp(1.875rem, 1.35rem + 2.625vw, 3rem);
+  --text-fluid-4xl: clamp(2.25rem, 1.5rem + 3.75vw, 3.75rem);
+  --text-fluid-5xl: clamp(3rem, 2rem + 5vw, 5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 1rem 1.5rem;
+  background: var(--color-primary);
+  color: var(--color-bg-base);
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0;
+}
+
+.skip-to-content:focus {
+  left: 0;
 }
