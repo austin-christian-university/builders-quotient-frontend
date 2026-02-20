@@ -1,63 +1,109 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { motion, type Variants } from "motion/react";
 
 function Hero() {
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delayChildren: 0.3,
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
+
   return (
     <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6">
-      {/* Layered background gradients */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden="true"
-      >
+      {/* Epic Apple-style background gradients */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="absolute inset-0 bg-bg-base" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgb(77_163_255/0.15),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_100%,rgb(233_185_73/0.06),transparent)]" />
+
+        {/* Animated glowing orbs for high-end feel */}
+        <motion.div
+          animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.4, 0.3] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] blur-3xl mix-blend-screen"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] blur-3xl mix-blend-screen"
+        />
+
         {/* Dot grid texture */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
-            backgroundImage:
-              "radial-gradient(circle, rgb(255 255 255) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(circle, rgb(255 255 255) 1px, transparent 1px)",
             backgroundSize: "32px 32px",
           }}
         />
+
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-bg-base/50 to-bg-base" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-3xl text-center">
-        <p
-          className="animate-fade-up text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-text-secondary"
-          style={{ animationDelay: "0ms" }}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 mx-auto max-w-4xl text-center"
+      >
+        <motion.p
+          variants={itemVariants}
+          className="mb-8 font-medium uppercase tracking-[0.4em] text-[length:var(--text-fluid-xs)] text-text-secondary/80 mix-blend-plus-lighter"
         >
-          Austin Christian University
-        </p>
+          Presented by Austin Christian University
+        </motion.p>
 
-        <h1
-          className="animate-fade-up mt-6 font-display text-[length:var(--text-fluid-4xl)] font-bold leading-[1.1] tracking-[-0.01em] text-text-primary"
-          style={{ animationDelay: "100ms" }}
+        <motion.h1
+          variants={itemVariants}
+          className="bg-gradient-to-br from-white via-neutral-200 to-neutral-500 bg-clip-text font-display text-[clamp(3.5rem,8vw,6.5rem)] font-bold leading-[0.95] tracking-[-0.03em] text-transparent drop-shadow-sm pb-2"
         >
-          Discover how you think like an&nbsp;entrepreneur
-        </h1>
+          Builder&apos;s <br /> Quotient
+        </motion.h1>
 
-        <p
-          className="animate-fade-up mx-auto mt-6 max-w-xl text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary"
-          style={{ animationDelay: "200ms" }}
+        <motion.p
+          variants={itemVariants}
+          className="mx-auto mt-8 max-w-2xl text-[clamp(1.125rem,2vw,1.5rem)] leading-relaxed text-text-secondary font-light tracking-wide"
         >
           A psychometric assessment that maps your practical intelligence,
-          creative reasoning, and&nbsp;entrepreneurial personality.
-        </p>
+          creative reasoning, and entrepreneurial topology.
+        </motion.p>
 
-        <div
-          className="animate-fade-up mt-10 flex flex-col items-center gap-4"
-          style={{ animationDelay: "300ms" }}
+        <motion.div
+          variants={itemVariants}
+          className="mt-14 flex flex-col items-center gap-6"
         >
-          <Button as={Link} href="/assess/setup" size="lg">
-            Begin Assessment
-          </Button>
-          <p className="text-[length:var(--text-fluid-xs)] text-text-secondary">
+          {/* Glassmorphic/Premium Button */}
+          <div className="relative group">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-500/30 to-yellow-500/30 blur opacity-75 group-hover:opacity-100 transition duration-500" />
+            <Button
+              as={Link}
+              href="/assess/setup"
+              size="lg"
+              className="relative rounded-full border border-white/10 bg-white/5 px-10 py-7 text-lg uppercase tracking-widest backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+            >
+              Begin Assessment
+            </Button>
+          </div>
+          <p className="text-[length:var(--text-fluid-xs)] text-neutral-500 tracking-wider font-light">
             ~20&nbsp;min &middot; Camera required &middot; No&nbsp;retakes
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
