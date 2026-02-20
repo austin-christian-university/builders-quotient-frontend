@@ -47,6 +47,7 @@ export function VignetteExperience({
   const [state, dispatch] = useReducer(reducer, {
     phase: "narrating",
     errorMessage: null,
+    retryCount: 0,
   });
 
   const { stream, streamRef, status: streamStatus, error: streamError, retry: retryStream } = useMediaStream();
@@ -195,12 +196,13 @@ export function VignetteExperience({
 
         uploadAttemptRef.current += 1;
         if (uploadAttemptRef.current < MAX_UPLOAD_RETRIES) {
-          // Retry with exponential backoff
+          // Retry with exponential backoff — call upload() directly
+          // instead of dispatching, since phase is already "uploading"
           const delay = Math.pow(2, uploadAttemptRef.current) * 1000;
           setTimeout(() => {
             if (!cancelled) {
               setUploadProgress(0);
-              dispatch({ type: "RETRY" });
+              upload();
             }
           }, delay);
         } else {
@@ -220,7 +222,7 @@ export function VignetteExperience({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase]);
+  }, [state.phase, state.retryCount]);
 
   const handleNarrationComplete = useCallback(() => {
     dispatch({ type: "NARRATION_COMPLETE" });

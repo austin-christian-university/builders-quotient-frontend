@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { reducer, type State } from "./vignette-reducer";
 
-function makeState(phase: State["phase"], errorMessage: string | null = null): State {
-  return { phase, errorMessage };
+function makeState(phase: State["phase"], errorMessage: string | null = null, retryCount = 0): State {
+  return { phase, errorMessage, retryCount };
 }
 
 describe("vignette reducer", () => {
@@ -59,9 +59,18 @@ describe("vignette reducer", () => {
     }
   });
 
-  it("error + RETRY → uploading with errorMessage cleared", () => {
-    const result = reducer(makeState("error", "Previous error"), { type: "RETRY" });
+  it("error + RETRY → uploading with errorMessage cleared and retryCount incremented", () => {
+    const result = reducer(makeState("error", "Previous error", 0), { type: "RETRY" });
     expect(result.phase).toBe("uploading");
     expect(result.errorMessage).toBeNull();
+    expect(result.retryCount).toBe(1);
+  });
+
+  it("RETRY increments retryCount each time", () => {
+    const first = reducer(makeState("error", "fail", 0), { type: "RETRY" });
+    expect(first.retryCount).toBe(1);
+    const errAgain = reducer(first, { type: "ERROR", message: "fail again" });
+    const second = reducer(errAgain, { type: "RETRY" });
+    expect(second.retryCount).toBe(2);
   });
 });

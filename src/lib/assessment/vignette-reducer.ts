@@ -17,6 +17,7 @@ export type Action =
 export type State = {
   phase: Phase;
   errorMessage: string | null;
+  retryCount: number;
 };
 
 export function reducer(state: State, action: Action): State {
@@ -38,9 +39,9 @@ export function reducer(state: State, action: Action): State {
         ? { ...state, phase: "transitioning" }
         : state;
     case "ERROR":
-      return { phase: "error", errorMessage: action.message };
+      return { ...state, phase: "error", errorMessage: action.message };
     case "RETRY":
-      return { phase: "uploading", errorMessage: null };
+      return { phase: "uploading", errorMessage: null, retryCount: state.retryCount + 1 };
     default:
       return state;
   }

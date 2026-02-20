@@ -1,0 +1,46 @@
+import { NextRequest, NextResponse } from "next/server";
+import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import { getActiveSession } from "@/lib/queries/session";
+import { createSignedUploadUrl } from "@/lib/supabase/storage";
+
+export async function POST(request: NextRequest) {
+  const sessionId = await readSessionCookie();
+  if (!sessionId) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const session = await getActiveSession(sessionId);
+  if (!session) {
+    return NextResponse.json({ error: "No active session" }, { status: 401 });
+  }
+
+  let body: { vignetteType: string; step: number };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const { vignetteType, step } = body;
+  if (
+    !vignetteType ||
+    !["practical", "creative"].includes(vignetteType) ||
+    typeof step !== "number" ||
+    step < 1 ||
+    step > 4
+  ) {
+    return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
+  }
+
+  const storagePath = `${sessionId}/${vignetteType}_${step}.webm`;
+
+  try {
+    const { signedUrl, token } = await createSignedUploadUrl(storagePath);
+    return NextResponse.json({ uploadUrl: signedUrl, storagePath, token });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to create upload URL" },
+      { status: 500 }
+    );
+  }
+}
