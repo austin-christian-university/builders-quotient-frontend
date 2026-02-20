@@ -20,7 +20,7 @@ function getPreferredMimeType(): string {
 export function useVideoRecorder(stream: MediaStream | null) {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const startTimeRef = useRef<string | null>(null);
+  const [startTime, setStartTime] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [status, setStatus] = useState<RecorderStatus>("idle");
@@ -83,7 +83,7 @@ export function useVideoRecorder(stream: MediaStream | null) {
 
       recorder.start(1000); // 1-second chunks
       recorderRef.current = recorder;
-      startTimeRef.current = new Date().toISOString();
+      setStartTime(new Date().toISOString());
       setStatus("recording");
 
       // Duration timer
@@ -114,6 +114,6 @@ export function useVideoRecorder(stream: MediaStream | null) {
     status,
     duration,
     error,
-    startTime: startTimeRef.current,
+    startTime,
   };
 }
