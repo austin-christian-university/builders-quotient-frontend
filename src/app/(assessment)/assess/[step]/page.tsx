@@ -4,6 +4,7 @@ import { getActiveSession } from "@/lib/queries/session";
 import { getVignetteForStep, getCompletedSteps } from "@/lib/queries/vignettes";
 import { recordVignetteServed } from "@/lib/actions/response";
 import { createServiceClient } from "@/lib/supabase/server";
+import { createSignedDownloadUrl } from "@/lib/supabase/storage";
 import { VignetteExperience } from "@/components/assessment/VignetteExperience";
 
 export const dynamic = "force-dynamic";
@@ -83,6 +84,11 @@ export default async function StepPage({
       .eq("id", sessionId);
   }
 
+  // 8. Generate signed audio URL if audio has been generated
+  const audioUrl = vignette.audio_storage_path
+    ? await createSignedDownloadUrl("vignette-audio", vignette.audio_storage_path)
+    : null;
+
   return (
     <VignetteExperience
       step={step}
@@ -93,7 +99,8 @@ export default async function StepPage({
       vignetteText={vignette.vignette_text}
       vignettePrompt={vignette.vignette_prompt}
       servedAt={servedAt}
-      audioUrl={null}
+      audioUrl={audioUrl}
+      audioTiming={vignette.audio_timing}
       estimatedNarrationSeconds={vignette.estimated_narration_seconds}
     />
   );

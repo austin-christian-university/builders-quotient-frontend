@@ -2,6 +2,7 @@ import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/server";
 import type { SessionRow } from "@/lib/schemas/session";
+import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
 
 /** Safe columns to expose to the client — never include scoring anchors, moves, or exemplars. */
 const PI_SAFE_COLUMNS =
@@ -16,7 +17,7 @@ export type VignetteData = {
   type_label: string;
   vignette_type: "practical" | "creative";
   audio_storage_path: string | null;
-  audio_timing: unknown[] | null;
+  audio_timing: AudioWordTiming[] | null;
   estimated_narration_seconds: number | null;
 };
 

@@ -1,3 +1,10 @@
+/** Per-word timing from ElevenLabs TTS alignment, stored in the DB. */
+export type AudioWordTiming = {
+  word: string;
+  start: number; // seconds
+  end: number;   // seconds
+};
+
 /**
  * Splits text into sentences and calculates reveal timing.
  * Target pace: ~150 WPM (2.5 words/second).

@@ -13,6 +13,7 @@ import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
 import { submitVideoResponse } from "@/lib/actions/response";
 import { Button } from "@/components/ui/button";
 import { reducer } from "@/lib/assessment/vignette-reducer";
+import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
 
 // --- Constants ---
 const BUFFER_SECONDS = 30;
@@ -31,6 +32,7 @@ type VignetteExperienceProps = {
   vignettePrompt: string;
   servedAt: string;
   audioUrl: string | null;
+  audioTiming: AudioWordTiming[] | null;
   estimatedNarrationSeconds: number | null;
 };
 
@@ -42,7 +44,9 @@ export function VignetteExperience({
   vignetteType,
   vignetteText,
   vignettePrompt,
-  servedAt,
+  servedAt: _servedAt,
+  audioUrl,
+  audioTiming,
   estimatedNarrationSeconds,
 }: VignetteExperienceProps) {
   const router = useRouter();
@@ -283,6 +287,8 @@ export function VignetteExperience({
                     vignetteText={vignetteText}
                     vignettePrompt={vignettePrompt}
                     estimatedNarrationSeconds={estimatedNarrationSeconds}
+                    audioUrl={audioUrl}
+                    audioTiming={audioTiming}
                     showPrompt={false}
                     onComplete={handleNarrationComplete}
                     isActive={true}
@@ -312,6 +318,8 @@ export function VignetteExperience({
                         vignetteText={vignetteText}
                         vignettePrompt={vignettePrompt}
                         estimatedNarrationSeconds={estimatedNarrationSeconds}
+                        audioUrl={audioUrl}
+                        audioTiming={audioTiming}
                         showPrompt={true}
                         onComplete={handleNarrationComplete}
                         isActive={false}

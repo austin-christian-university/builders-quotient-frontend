@@ -23,3 +23,23 @@ export async function createSignedUploadUrl(storagePath: string) {
     token: data.token,
   };
 }
+
+/**
+ * Creates a signed download URL for reading files from a storage bucket.
+ * Returns null if the URL cannot be created (missing file, permissions, etc.).
+ */
+export async function createSignedDownloadUrl(
+  bucket: string,
+  path: string,
+  expiresInSeconds = 3600
+): Promise<string | null> {
+  const supabase = createServiceClient();
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(path, expiresInSeconds);
+
+  if (error || !data) return null;
+
+  return data.signedUrl;
+}
