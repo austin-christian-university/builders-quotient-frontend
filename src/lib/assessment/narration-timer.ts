@@ -9,6 +9,14 @@ export type NarrationSegment = {
   duration: number;
 };
 
+export type WordTiming = {
+  text: string;
+  startTime: number;
+  sentenceIndex: number;
+  isFirstInSentence: boolean;
+  isLastInSentence: boolean;
+};
+
 export function calculateNarrationTiming(
   text: string,
   overrideDurationSeconds?: number | null
@@ -43,6 +51,57 @@ export function calculateNarrationTiming(
   });
 
   return { segments, totalDuration };
+}
+
+/**
+ * Calculates per-word timing as a continuous stream with no pauses between
+ * sentences. Words are evenly spaced across the total duration.
+ * Target pace: ~1.6 words/second (~96 WPM) for a calm reading cadence.
+ */
+const WORDS_PER_SECOND = 1.6;
+
+export function calculateWordTiming(
+  text: string,
+  overrideDurationSeconds?: number | null
+): { words: WordTiming[]; totalDuration: number; sentenceCount: number } {
+  const sentences = splitIntoSentences(text);
+  if (sentences.length === 0) {
+    return { words: [], totalDuration: 0, sentenceCount: 0 };
+  }
+
+  const sentenceWords = sentences.map((s) => splitIntoWords(s));
+  const totalWords = sentenceWords.reduce((sum, ws) => sum + ws.length, 0);
+
+  const totalDuration =
+    overrideDurationSeconds != null && overrideDurationSeconds > 0
+      ? overrideDurationSeconds
+      : totalWords / WORDS_PER_SECOND;
+
+  // Flatten all words into one continuous sequence
+  const words: WordTiming[] = [];
+  let globalIndex = 0;
+
+  sentenceWords.forEach((ws, sentenceIndex) => {
+    ws.forEach((word, wordIndex) => {
+      words.push({
+        text: word,
+        startTime: totalWords > 1 ? (globalIndex / (totalWords - 1)) * totalDuration : 0,
+        sentenceIndex,
+        isFirstInSentence: wordIndex === 0,
+        isLastInSentence: wordIndex === ws.length - 1,
+      });
+      globalIndex++;
+    });
+  });
+
+  return { words, totalDuration, sentenceCount: sentences.length };
+}
+
+/**
+ * Splits a sentence into words, preserving punctuation attached to words.
+ */
+function splitIntoWords(sentence: string): string[] {
+  return sentence.split(/\s+/).filter(Boolean);
 }
 
 /**

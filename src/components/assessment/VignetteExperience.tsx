@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { VignetteNarrator } from "./VignetteNarrator";
 import { ProcessingBuffer } from "./ProcessingBuffer";
 import { VideoRecorder } from "./VideoRecorder";
+import { CameraPip } from "./CameraPip";
 import { useMediaStream } from "@/lib/assessment/use-media-stream";
 import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
 import { submitVideoResponse } from "@/lib/actions/response";
@@ -106,7 +108,6 @@ export function VignetteExperience({
       recorder.blob &&
       state.phase === "recording"
     ) {
-      // Partial recording — upload what we have
       blobRef.current = recorder.blob;
       dispatch({ type: "RECORDING_STOPPED" });
     }
@@ -123,7 +124,6 @@ export function VignetteExperience({
       if (!blob) return;
 
       try {
-        // Get presigned URL
         const presignRes = await fetch("/api/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -136,7 +136,6 @@ export function VignetteExperience({
 
         const { uploadUrl, storagePath, token } = await presignRes.json();
 
-        // Upload via XHR for progress tracking
         await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
 
@@ -156,7 +155,7 @@ export function VignetteExperience({
 
           xhr.onerror = () => reject(new Error("Upload network error"));
           xhr.ontimeout = () => reject(new Error("Upload timed out"));
-          xhr.timeout = 120000; // 2 minutes
+          xhr.timeout = 120000;
 
           xhr.open("PUT", uploadUrl, true);
           xhr.setRequestHeader("Content-Type", blob.type || "video/webm");
@@ -168,7 +167,6 @@ export function VignetteExperience({
 
         if (cancelled) return;
 
-        // Submit to server action
         const result = await submitVideoResponse({
           sessionId,
           vignetteId,
@@ -183,7 +181,6 @@ export function VignetteExperience({
 
         dispatch({ type: "UPLOAD_COMPLETE" });
 
-        // Navigate
         setTimeout(() => {
           if (result.complete) {
             router.push("/assess/complete");
@@ -196,8 +193,6 @@ export function VignetteExperience({
 
         uploadAttemptRef.current += 1;
         if (uploadAttemptRef.current < MAX_UPLOAD_RETRIES) {
-          // Retry with exponential backoff — call upload() directly
-          // instead of dispatching, since phase is already "uploading"
           const delay = Math.pow(2, uploadAttemptRef.current) * 1000;
           setTimeout(() => {
             if (!cancelled) {
@@ -238,92 +233,188 @@ export function VignetteExperience({
     dispatch({ type: "RETRY" });
   }, []);
 
-  const showCamera =
+  const isNarrating = state.phase === "narrating";
+  const isTwoColumn =
     state.phase === "buffer" ||
     state.phase === "recording" ||
     state.phase === "uploading";
+  const showNarrator =
+    state.phase === "narrating" ||
+    state.phase === "buffer" ||
+    state.phase === "recording";
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <ProgressIndicator
-        step={step}
-        totalSteps={totalSteps}
-        vignetteType={vignetteType}
-      />
+    <LayoutGroup>
+      <div className="relative flex min-h-dvh flex-col">
+        {/* Ambient background orbs */}
+        <AmbientBackground phase={state.phase} />
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 pb-8">
-        {/* Camera error at the top level */}
-        {streamStatus === "error" && state.phase !== "uploading" && state.phase !== "transitioning" && (
-          <div className="w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center">
-            <p className="text-sm text-red-400">{streamError}</p>
-            <button
-              type="button"
-              onClick={retryStream}
-              className="mt-2 text-sm text-primary underline underline-offset-2"
-            >
-              Retry camera access
-            </button>
-          </div>
-        )}
+        <ProgressIndicator step={step} totalSteps={totalSteps} />
 
-        {/* Narrator — visible during narrating, buffer, recording */}
-        {(state.phase === "narrating" ||
-          state.phase === "buffer" ||
-          state.phase === "recording") && (
-          <VignetteNarrator
-            vignetteText={vignetteText}
-            vignettePrompt={vignettePrompt}
-            estimatedNarrationSeconds={estimatedNarrationSeconds}
-            showPrompt={state.phase !== "narrating"}
-            onComplete={handleNarrationComplete}
-            isActive={state.phase === "narrating"}
-          />
-        )}
+        <div className="relative z-10 flex flex-1 flex-col px-4 pb-8">
+          {/* Camera error banner */}
+          {streamStatus === "error" && state.phase !== "uploading" && state.phase !== "transitioning" && (
+            <div className="mx-auto mb-4 w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center">
+              <p className="text-sm text-red-400">{streamError}</p>
+              <button
+                type="button"
+                onClick={retryStream}
+                className="mt-2 text-sm text-primary underline underline-offset-2"
+              >
+                Retry camera access
+              </button>
+            </div>
+          )}
 
-        {/* Buffer countdown */}
-        {state.phase === "buffer" && (
-          <ProcessingBuffer
-            secondsRemaining={bufferRemaining}
-            totalSeconds={BUFFER_SECONDS}
-          />
-        )}
+          {/* Main content area */}
+          <AnimatePresence mode="wait">
+            {/* Narrating phase — full-width centered */}
+            {isNarrating && (
+              <motion.div
+                key="narrating"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-1 flex-col items-center justify-center"
+              >
+                <div className="w-full max-w-2xl">
+                  <VignetteNarrator
+                    vignetteText={vignetteText}
+                    vignettePrompt={vignettePrompt}
+                    estimatedNarrationSeconds={estimatedNarrationSeconds}
+                    showPrompt={false}
+                    onComplete={handleNarrationComplete}
+                    isActive={true}
+                  />
+                </div>
 
-        {/* Camera preview + recorder */}
-        {showCamera && (
-          <VideoRecorder
-            stream={streamRef.current}
-            isRecording={state.phase === "recording"}
-            isUploading={state.phase === "uploading"}
-            duration={recorder.duration}
-            uploadProgress={uploadProgress}
-            onStop={handleRecordingStop}
-            minRecordingSeconds={MIN_RECORDING_SECONDS}
-          />
-        )}
+                {/* Camera PiP during narration */}
+                <CameraPip stream={streamRef.current} />
+              </motion.div>
+            )}
 
-        {/* Transitioning state */}
-        {state.phase === "transitioning" && (
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-text-secondary">
-              {step < totalSteps ? "Loading next scenario\u2026" : "Finishing up\u2026"}
-            </p>
-          </div>
-        )}
+            {/* Two-column phase — buffer, recording, uploading */}
+            {isTwoColumn && (
+              <motion.div
+                key="two-column"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mx-auto flex w-full max-w-5xl flex-1 items-start pt-4"
+              >
+                <div className="grid w-full grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_380px]">
+                  {/* Left panel — Vignette text + prompt */}
+                  <div className="min-w-0">
+                    {showNarrator && (
+                      <VignetteNarrator
+                        vignetteText={vignetteText}
+                        vignettePrompt={vignettePrompt}
+                        estimatedNarrationSeconds={estimatedNarrationSeconds}
+                        showPrompt={true}
+                        onComplete={handleNarrationComplete}
+                        isActive={false}
+                      />
+                    )}
+                  </div>
 
-        {/* Error state */}
-        {state.phase === "error" && (
-          <div className="w-full max-w-md space-y-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center">
-            <p className="text-text-primary">{state.errorMessage}</p>
-            <p className="text-sm text-text-secondary">
-              Your recording is saved locally. You can try uploading again.
-            </p>
-            <Button variant="primary" onClick={handleRetry}>
-              Try Again
-            </Button>
-          </div>
-        )}
+                  {/* Right panel — Camera + countdown */}
+                  <div className="space-y-4">
+                    {state.phase === "buffer" && (
+                      <ProcessingBuffer
+                        secondsRemaining={bufferRemaining}
+                        totalSeconds={BUFFER_SECONDS}
+                      />
+                    )}
+
+                    <VideoRecorder
+                      stream={streamRef.current}
+                      isRecording={state.phase === "recording"}
+                      isUploading={state.phase === "uploading"}
+                      duration={recorder.duration}
+                      uploadProgress={uploadProgress}
+                      onStop={handleRecordingStop}
+                      minRecordingSeconds={MIN_RECORDING_SECONDS}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Transitioning state */}
+            {state.phase === "transitioning" && (
+              <motion.div
+                key="transitioning"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-1 flex-col items-center justify-center gap-4"
+              >
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <p className="text-text-secondary">
+                  {step < totalSteps ? "Loading next scenario\u2026" : "Finishing up\u2026"}
+                </p>
+              </motion.div>
+            )}
+
+            {/* Error state */}
+            {state.phase === "error" && (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-1 flex-col items-center justify-center"
+              >
+                <div className="w-full max-w-md space-y-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center">
+                  <p className="text-text-primary">{state.errorMessage}</p>
+                  <p className="text-sm text-text-secondary">
+                    Your recording is saved locally. You can try uploading again.
+                  </p>
+                  <Button variant="primary" onClick={handleRetry}>
+                    Try Again
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
+    </LayoutGroup>
+  );
+}
+
+// --- Ambient gradient orbs behind the glass panels ---
+function AmbientBackground({ phase }: { phase: string }) {
+  const isActive = phase === "narrating" || phase === "buffer" || phase === "recording";
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <motion.div
+        animate={{
+          x: isActive ? 0 : -40,
+          y: isActive ? 0 : 30,
+        }}
+        transition={{ duration: 3, ease: "easeInOut" }}
+        className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]"
+      />
+      <motion.div
+        animate={{
+          x: isActive ? 0 : 30,
+          y: isActive ? 0 : -20,
+        }}
+        transition={{ duration: 3.5, ease: "easeInOut" }}
+        className="absolute -right-24 top-1/3 h-[400px] w-[400px] rounded-full bg-secondary/[0.08] blur-[100px]"
+      />
+      <motion.div
+        animate={{
+          x: isActive ? 0 : 20,
+          y: isActive ? 0 : 40,
+        }}
+        transition={{ duration: 4, ease: "easeInOut" }}
+        className="absolute -bottom-20 left-1/3 h-[350px] w-[350px] rounded-full bg-primary/[0.06] blur-[100px]"
+      />
     </div>
   );
 }

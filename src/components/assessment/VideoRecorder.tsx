@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -44,9 +45,16 @@ export function VideoRecorder({
   const canStop = isRecording && duration >= minRecordingSeconds;
 
   return (
-    <div className="mx-auto w-full max-w-md">
+    <motion.div layoutId="camera" className="w-full">
       {/* Camera preview */}
-      <div className="relative overflow-hidden rounded-2xl border border-border-glass bg-bg-base">
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-2xl border bg-bg-base transition-shadow duration-300",
+          isRecording
+            ? "border-red-500/30 ring-2 ring-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+            : "border-border-glass"
+        )}
+      >
         <video
           ref={callbackRef}
           autoPlay
@@ -106,7 +114,7 @@ export function VideoRecorder({
           </Button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

@@ -5,21 +5,12 @@ import { cn } from "@/lib/utils";
 type ProgressIndicatorProps = {
   step: number;
   totalSteps: number;
-  vignetteType: "practical" | "creative";
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  practical: "Practical Intelligence",
-  creative: "Creative Intelligence",
 };
 
 export function ProgressIndicator({
   step,
   totalSteps,
-  vignetteType,
 }: ProgressIndicatorProps) {
-  const progress = ((step - 1) / totalSteps) * 100;
-
   return (
     <div className="w-full px-4 py-3">
       <div className="mx-auto flex max-w-2xl items-center gap-3">
@@ -50,15 +41,10 @@ export function ProgressIndicator({
           })}
         </div>
 
-        {/* Label */}
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="text-[length:var(--text-fluid-xs)] tabular-nums text-text-secondary">
-            {step}/{totalSteps}
-          </span>
-          <span className="rounded-full border border-border-glass px-2.5 py-0.5 text-[length:var(--text-fluid-xs)] font-medium text-text-secondary">
-            {TYPE_LABELS[vignetteType]}
-          </span>
-        </div>
+        {/* Step counter */}
+        <span className="shrink-0 text-[length:var(--text-fluid-xs)] tabular-nums text-text-secondary">
+          {step}/{totalSteps}
+        </span>
       </div>
     </div>
   );
