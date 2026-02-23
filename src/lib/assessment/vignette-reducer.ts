@@ -1,4 +1,5 @@
 export type Phase =
+  | "ready"
   | "narrating"
   | "buffer"
   | "recording"
@@ -7,6 +8,7 @@ export type Phase =
   | "error";
 
 export type Action =
+  | { type: "BEGIN" }
   | { type: "NARRATION_COMPLETE" }
   | { type: "BUFFER_COMPLETE" }
   | { type: "RECORDING_STOPPED" }
@@ -23,6 +25,10 @@ export type State = {
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case "BEGIN":
+      return state.phase === "ready"
+        ? { ...state, phase: "narrating" }
+        : state;
     case "NARRATION_COMPLETE":
       return state.phase === "narrating"
         ? { ...state, phase: "buffer" }

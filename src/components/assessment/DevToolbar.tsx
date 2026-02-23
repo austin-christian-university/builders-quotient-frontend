@@ -1,9 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Action, Phase, State } from "@/lib/assessment/vignette-reducer";
+import { devSkipToComplete } from "@/lib/actions/dev";
 
 const PHASES: Phase[] = [
+  "ready",
   "narrating",
   "buffer",
   "recording",
@@ -13,6 +16,7 @@ const PHASES: Phase[] = [
 ];
 
 const PHASE_LABELS: Record<Phase, string> = {
+  ready: "Ready",
   narrating: "Narrating",
   buffer: "Buffer",
   recording: "Recording",
@@ -28,6 +32,7 @@ type DevToolbarProps = {
   recorderDuration: number;
   recorderStatus: string;
   streamStatus: string;
+  sessionId: string;
 };
 
 export function DevToolbar({
@@ -37,8 +42,11 @@ export function DevToolbar({
   recorderDuration,
   recorderStatus,
   streamStatus,
+  sessionId,
 }: DevToolbarProps) {
+  const router = useRouter();
   const [visible, setVisible] = useState(true);
+  const [skipping, setSkipping] = useState(false);
 
   const toggle = useCallback(() => setVisible((v) => !v), []);
 
@@ -99,7 +107,7 @@ export function DevToolbar({
           {state.phase === "buffer" && `${bufferRemaining}s remaining`}
           {state.phase === "recording" && `${recorderDuration}s recorded`}
           {state.phase === "error" && state.errorMessage}
-          {(state.phase === "narrating" || state.phase === "uploading" || state.phase === "transitioning") && (
+          {(state.phase === "ready" || state.phase === "narrating" || state.phase === "uploading" || state.phase === "transitioning") && (
             <span>
               stream: {streamStatus} | rec: {recorderStatus}
             </span>
@@ -149,6 +157,28 @@ export function DevToolbar({
             Skip Buffer
           </button>
         </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="mt-2 border-t border-green-500/20 pt-2">
+        <div className="mb-1 text-[10px] text-green-500/60">Navigation</div>
+        <button
+          type="button"
+          disabled={skipping}
+          onClick={async () => {
+            setSkipping(true);
+            const result = await devSkipToComplete();
+            if (result.success) {
+              router.push("/assess/complete");
+            } else {
+              setSkipping(false);
+              console.error("[DEV] Skip failed:", result.error);
+            }
+          }}
+          className="w-full rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-50"
+        >
+          {skipping ? "Skipping\u2026" : "Skip to Complete"}
+        </button>
       </div>
 
       {/* Keyboard shortcut hint */}

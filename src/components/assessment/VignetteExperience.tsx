@@ -13,6 +13,7 @@ import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
 import { submitVideoResponse } from "@/lib/actions/response";
 import { Button } from "@/components/ui/button";
 import { reducer } from "@/lib/assessment/vignette-reducer";
+import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
 import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
 import dynamic from "next/dynamic";
 
@@ -28,6 +29,7 @@ const BUFFER_SECONDS = 30;
 const MIN_RECORDING_SECONDS = 10;
 const MAX_RECORDING_SECONDS = 180;
 const MAX_UPLOAD_RETRIES = 3;
+const MAX_BLOB_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB Supabase bucket limit
 
 // --- Props ---
 type VignetteExperienceProps = {
@@ -59,10 +61,14 @@ export function VignetteExperience({
 }: VignetteExperienceProps) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, {
-    phase: "narrating",
+    phase: "ready",
     errorMessage: null,
     retryCount: 0,
   });
+
+  // Audio narrator lives here (not in VignetteNarrator) so the Audio element
+  // survives the ready→narrating phase transition without being destroyed.
+  const audio = useAudioNarrator(audioUrl, audioTiming);
 
   const { stream, streamRef, status: streamStatus, error: streamError, retry: retryStream } = useMediaStream();
   const recorder = useVideoRecorder(stream);
@@ -70,6 +76,7 @@ export function VignetteExperience({
   const [uploadProgress, setUploadProgress] = useState(0);
   const blobRef = useRef<Blob | null>(null);
   const uploadAttemptRef = useRef(0);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   // --- Buffer countdown ---
   useEffect(() => {
@@ -135,7 +142,22 @@ export function VignetteExperience({
       const blob = blobRef.current;
       if (!blob) return;
 
+      const blobSizeMB = (blob.size / (1024 * 1024)).toFixed(2);
+      console.log(`[BQ Upload] Starting upload — blob: ${blobSizeMB} MB, type: ${blob.type}, attempt: ${uploadAttemptRef.current + 1}/${MAX_UPLOAD_RETRIES}`);
+
+      // Validate blob size before attempting upload
+      if (blob.size > MAX_BLOB_SIZE_BYTES) {
+        console.error(`[BQ Upload] Blob too large: ${blobSizeMB} MB (limit: 50 MB)`);
+        dispatch({
+          type: "ERROR",
+          message: `Recording too large (${blobSizeMB} MB). Try a shorter response.`,
+        });
+        return;
+      }
+
       try {
+        // --- Step 1: Get presigned URL ---
+        console.log("[BQ Upload] Fetching presigned URL...");
         const presignRes = await fetch("/api/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -143,34 +165,69 @@ export function VignetteExperience({
         });
 
         if (!presignRes.ok) {
-          throw new Error("Failed to get upload URL");
+          const errorText = await presignRes.text().catch(() => "no body");
+          console.error(`[BQ Upload] Presign failed: ${presignRes.status} — ${errorText}`);
+          throw new Error(`Failed to get upload URL (${presignRes.status})`);
         }
 
         const { uploadUrl, storagePath, token } = await presignRes.json();
+        console.log(`[BQ Upload] Presigned URL received — path: ${storagePath}`);
+
+        if (cancelled) return;
+
+        // --- Step 2: XHR upload to Supabase Storage ---
+        // Dynamic timeout: assume worst-case 1 Mbps, add 30s buffer, min 120s
+        const dynamicTimeoutSec = Math.max(120, Math.ceil(blob.size / (125 * 1024)) + 30);
+        console.log(`[BQ Upload] Starting XHR PUT — timeout: ${dynamicTimeoutSec}s`);
 
         await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
+          xhrRef.current = xhr;
 
           xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable && !cancelled) {
-              setUploadProgress((e.loaded / e.total) * 100);
-            }
+            if (cancelled) return;
+            // Use e.total when computable, fall back to blob.size (always known)
+            const total = e.lengthComputable ? e.total : blob.size;
+            const pct = total > 0 ? (e.loaded / total) * 100 : 0;
+            setUploadProgress(pct);
+            console.log(`[BQ Upload] Progress: ${pct.toFixed(1)}% (${e.loaded}/${total}, lengthComputable: ${e.lengthComputable})`);
           };
 
           xhr.onload = () => {
+            xhrRef.current = null;
+            console.log(`[BQ Upload] XHR onload — status: ${xhr.status}, response: ${xhr.responseText.slice(0, 200)}`);
             if (xhr.status >= 200 && xhr.status < 300) {
               resolve();
             } else {
-              reject(new Error(`Upload failed: ${xhr.status}`));
+              reject(new Error(`Upload failed: ${xhr.status} — ${xhr.responseText.slice(0, 200)}`));
             }
           };
 
-          xhr.onerror = () => reject(new Error("Upload network error"));
-          xhr.ontimeout = () => reject(new Error("Upload timed out"));
-          xhr.timeout = 120000;
+          xhr.onerror = () => {
+            xhrRef.current = null;
+            console.error("[BQ Upload] XHR onerror — network error");
+            reject(new Error("Upload network error"));
+          };
+
+          xhr.ontimeout = () => {
+            xhrRef.current = null;
+            console.error(`[BQ Upload] XHR timeout after ${dynamicTimeoutSec}s`);
+            reject(new Error("Upload timed out"));
+          };
+
+          xhr.onabort = () => {
+            xhrRef.current = null;
+            console.log("[BQ Upload] XHR aborted (cleanup)");
+            reject(new Error("Upload aborted"));
+          };
+
+          xhr.timeout = dynamicTimeoutSec * 1000;
 
           xhr.open("PUT", uploadUrl, true);
-          xhr.setRequestHeader("Content-Type", blob.type || "video/webm");
+          // Strip codec params (e.g. "video/webm;codecs=vp9,opus" → "video/webm")
+          // Supabase Storage rejects MIME types with codec suffixes
+          const contentType = (blob.type || "video/webm").split(";")[0];
+          xhr.setRequestHeader("Content-Type", contentType);
           if (token) {
             xhr.setRequestHeader("x-upsert", "true");
           }
@@ -179,6 +236,8 @@ export function VignetteExperience({
 
         if (cancelled) return;
 
+        // --- Step 3: Record metadata via server action ---
+        console.log("[BQ Upload] Calling submitVideoResponse...");
         const result = await submitVideoResponse({
           sessionId,
           vignetteId,
@@ -188,6 +247,7 @@ export function VignetteExperience({
           videoDurationSeconds: recorder.duration,
           recordingStartedAt: recorder.startTime ?? new Date().toISOString(),
         });
+        console.log("[BQ Upload] submitVideoResponse result:", result);
 
         if (cancelled) return;
 
@@ -203,9 +263,13 @@ export function VignetteExperience({
       } catch (err) {
         if (cancelled) return;
 
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.error(`[BQ Upload] Error: ${errMsg}`);
+
         uploadAttemptRef.current += 1;
         if (uploadAttemptRef.current < MAX_UPLOAD_RETRIES) {
           const delay = Math.pow(2, uploadAttemptRef.current) * 1000;
+          console.log(`[BQ Upload] Retrying in ${delay}ms (attempt ${uploadAttemptRef.current + 1}/${MAX_UPLOAD_RETRIES})`);
           setTimeout(() => {
             if (!cancelled) {
               setUploadProgress(0);
@@ -213,12 +277,10 @@ export function VignetteExperience({
             }
           }, delay);
         } else {
+          console.error("[BQ Upload] All retries exhausted");
           dispatch({
             type: "ERROR",
-            message:
-              err instanceof Error
-                ? err.message
-                : "Upload failed after multiple attempts",
+            message: errMsg || "Upload failed after multiple attempts",
           });
         }
       }
@@ -227,9 +289,21 @@ export function VignetteExperience({
     upload();
     return () => {
       cancelled = true;
+      if (xhrRef.current) {
+        console.log("[BQ Upload] Cleanup — aborting active XHR");
+        xhrRef.current.abort();
+        xhrRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase, state.retryCount]);
+
+  const handleBegin = useCallback(() => {
+    // Call play() directly inside the click handler so the browser
+    // recognises the user gesture and allows audio playback.
+    audio.play();
+    dispatch({ type: "BEGIN" });
+  }, [audio]);
 
   const handleNarrationComplete = useCallback(() => {
     dispatch({ type: "NARRATION_COMPLETE" });
@@ -245,6 +319,7 @@ export function VignetteExperience({
     dispatch({ type: "RETRY" });
   }, []);
 
+  const isReady = state.phase === "ready";
   const isNarrating = state.phase === "narrating";
   const isTwoColumn =
     state.phase === "buffer" ||
@@ -281,6 +356,40 @@ export function VignetteExperience({
 
           {/* Main content area */}
           <AnimatePresence mode="wait">
+            {/* Ready phase — brief intro before narration begins */}
+            {isReady && (
+              <motion.div
+                key="ready"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-1 flex-col items-center justify-center"
+              >
+                <div className="w-full max-w-md space-y-8 text-center">
+                  <div className="space-y-3">
+                    <p className="text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-text-secondary">
+                      Scenario {step} of {totalSteps}
+                    </p>
+                    <h1 className="text-[length:var(--text-fluid-lg)] font-semibold tracking-tight text-text-primary">
+                      {vignetteType === "practical" ? "Practical Intelligence" : "Creative Intelligence"}
+                    </h1>
+                    <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+                      You&rsquo;ll hear a real-world scenario narrated to you.
+                      Listen carefully&nbsp;&mdash; afterward, you&rsquo;ll respond on camera.
+                    </p>
+                  </div>
+
+                  <Button variant="primary" size="lg" onClick={handleBegin}>
+                    Begin Scenario
+                  </Button>
+                </div>
+
+                {/* Camera PiP during ready */}
+                <CameraPip stream={streamRef.current} />
+              </motion.div>
+            )}
+
             {/* Narrating phase — full-width centered */}
             {isNarrating && (
               <motion.div
@@ -296,7 +405,7 @@ export function VignetteExperience({
                     vignetteText={vignetteText}
                     vignettePrompt={vignettePrompt}
                     estimatedNarrationSeconds={estimatedNarrationSeconds}
-                    audioUrl={audioUrl}
+                    audio={audio}
                     audioTiming={audioTiming}
                     showPrompt={false}
                     onComplete={handleNarrationComplete}
@@ -327,7 +436,7 @@ export function VignetteExperience({
                         vignetteText={vignetteText}
                         vignettePrompt={vignettePrompt}
                         estimatedNarrationSeconds={estimatedNarrationSeconds}
-                        audioUrl={audioUrl}
+                        audio={audio}
                         audioTiming={audioTiming}
                         showPrompt={true}
                         onComplete={handleNarrationComplete}
@@ -408,6 +517,7 @@ export function VignetteExperience({
         recorderDuration={recorder.duration}
         recorderStatus={recorder.status}
         streamStatus={streamStatus}
+        sessionId={sessionId}
       />
     )}
   </>
@@ -416,7 +526,7 @@ export function VignetteExperience({
 
 // --- Ambient gradient orbs behind the glass panels ---
 function AmbientBackground({ phase }: { phase: string }) {
-  const isActive = phase === "narrating" || phase === "buffer" || phase === "recording";
+  const isActive = phase === "ready" || phase === "narrating" || phase === "buffer" || phase === "recording";
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">

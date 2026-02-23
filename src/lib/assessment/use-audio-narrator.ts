@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AudioWordTiming } from "./narration-timer";
+import { findRevealedCount, type AudioWordTiming } from "./narration-timer";
 
 type AudioNarratorState = {
   revealedCount: number;
@@ -10,9 +10,16 @@ type AudioNarratorState = {
   hasFailed: boolean;
 };
 
+/** Return type of useAudioNarrator — discriminated union on `hasAudio`. */
+export type AudioNarratorResult = ReturnType<typeof useAudioNarrator>;
+
 /**
  * Manages <audio> playback and derives the current revealed word count
  * from ElevenLabs word-level timing data.
+ *
+ * Uses requestAnimationFrame (~60fps) instead of the timeupdate event (~4Hz)
+ * for sub-frame word sync accuracy. Exposes a currentTimeRef for character-level
+ * interpolation without triggering re-renders.
  *
  * Returns `hasAudio: false` when audioUrl is null OR when playback fails,
  * so the caller can fall back to timer-based narration.
@@ -22,6 +29,7 @@ export function useAudioNarrator(
   audioTiming: AudioWordTiming[] | null
 ) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentTimeRef = useRef(0);
   const [state, setState] = useState<AudioNarratorState>({
     revealedCount: 0,
     isPlaying: false,
@@ -38,40 +46,54 @@ export function useAudioNarrator(
 
     // Reset state for the new audio source
     setState({ revealedCount: 0, isPlaying: false, isComplete: false, hasFailed: false });
+    currentTimeRef.current = 0;
 
     const audio = new Audio(audioUrl);
     audio.preload = "auto";
     audioRef.current = audio;
 
-    const handleTimeUpdate = () => {
-      const t = audio.currentTime;
-      // Binary search for the latest word with start <= t
-      let lo = 0;
-      let hi = audioTiming.length - 1;
-      let count = 0;
-      while (lo <= hi) {
-        const mid = (lo + hi) >>> 1;
-        if (audioTiming[mid].start <= t) {
-          count = mid + 1;
-          lo = mid + 1;
-        } else {
-          hi = mid - 1;
-        }
+    // rAF loop state
+    let rafId: number | null = null;
+    let lastCount = 0;
+
+    const tick = () => {
+      currentTimeRef.current = audio.currentTime;
+      const count = findRevealedCount(audioTiming, audio.currentTime);
+      if (count !== lastCount) {
+        lastCount = count;
+        setState((prev) =>
+          prev.revealedCount === count ? prev : { ...prev, revealedCount: count }
+        );
       }
-      setState((prev) =>
-        prev.revealedCount === count ? prev : { ...prev, revealedCount: count }
-      );
+      rafId = requestAnimationFrame(tick);
+    };
+
+    const startLoop = () => {
+      if (rafId === null) {
+        lastCount = 0;
+        rafId = requestAnimationFrame(tick);
+      }
+    };
+
+    const stopLoop = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
     };
 
     const handlePlay = () => {
       setState((prev) => ({ ...prev, isPlaying: true }));
+      startLoop();
     };
 
     const handlePause = () => {
       setState((prev) => ({ ...prev, isPlaying: false }));
+      stopLoop();
     };
 
     const handleEnded = () => {
+      stopLoop();
       setState({
         revealedCount: audioTiming.length,
         isPlaying: false,
@@ -81,18 +103,29 @@ export function useAudioNarrator(
     };
 
     const handleError = () => {
-      // Audio failed to load/decode — signal caller to fall back to timer
+      stopLoop();
+      // Log detailed error info before falling back to timer
+      const err = audio.error;
+      console.error("[useAudioNarrator] Audio element error:", {
+        code: err?.code,
+        message: err?.message,
+        // MediaError codes: 1=ABORTED, 2=NETWORK, 3=DECODE, 4=SRC_NOT_SUPPORTED
+        codeName: err ? ["", "ABORTED", "NETWORK", "DECODE", "SRC_NOT_SUPPORTED"][err.code] : "unknown",
+        networkState: audio.networkState,
+        readyState: audio.readyState,
+        src: audio.src,
+        currentSrc: audio.currentSrc,
+      });
       setState((prev) => ({ ...prev, hasFailed: true, isPlaying: false }));
     };
 
-    audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
 
     return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      stopLoop();
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("ended", handleEnded);
@@ -107,8 +140,14 @@ export function useAudioNarrator(
   const play = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.play().catch(() => {
-      // Autoplay blocked or playback failed — fall back to timer mode
+    audio.play().catch((err) => {
+      console.error("[useAudioNarrator] play() rejected:", {
+        name: err?.name,
+        message: err?.message,
+        audioSrc: audio.src?.substring(0, 120) + "…",
+        networkState: audio.networkState,
+        readyState: audio.readyState,
+      });
       setState((prev) => ({ ...prev, hasFailed: true, isPlaying: false }));
     });
   }, []);
@@ -119,16 +158,20 @@ export function useAudioNarrator(
       revealedCount: 0,
       isPlaying: false,
       isComplete: false,
+      hasFailed: state.hasFailed,
       play,
       audioRef,
+      currentTimeRef,
       hasAudio: false as const,
     };
   }
 
   return {
     ...state,
+    hasFailed: false as const,
     play,
     audioRef,
+    currentTimeRef,
     hasAudio: true as const,
   };
 }
