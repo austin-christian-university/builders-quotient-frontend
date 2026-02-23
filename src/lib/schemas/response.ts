@@ -6,7 +6,7 @@ export const responseSubmissionSchema = z.object({
   vignetteType: z.enum(["practical", "creative"]),
   step: z.number().int().min(1).max(4),
   storagePath: z.string().min(1),
-  videoDurationSeconds: z.number().int().min(1).max(300),
+  videoDurationSeconds: z.number().int().min(10).max(180),
   recordingStartedAt: z.string().datetime(),
 });
 

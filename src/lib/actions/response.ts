@@ -31,7 +31,7 @@ export async function recordVignetteServed(
       response_text: "",
       needs_scoring: false,
     },
-    { onConflict: "session_id,vignette_id" }
+    { onConflict: "session_id,vignette_id", ignoreDuplicates: true }
   );
 
   if (error) {

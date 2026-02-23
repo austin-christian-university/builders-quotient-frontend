@@ -109,3 +109,19 @@ export async function getCompletedSteps(
 
   return steps;
 }
+
+const DEFAULT_TOTAL_STEPS = 4;
+
+/**
+ * Returns the first step number (1-based) that is not in the completedSteps set,
+ * or null if all steps are complete.
+ */
+export function findNextIncomplete(
+  completedSteps: Set<number>,
+  totalSteps: number = DEFAULT_TOTAL_STEPS
+): number | null {
+  for (let i = 1; i <= totalSteps; i++) {
+    if (!completedSteps.has(i)) return i;
+  }
+  return null;
+}

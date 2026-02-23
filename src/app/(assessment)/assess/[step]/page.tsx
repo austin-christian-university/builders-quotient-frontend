@@ -1,7 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { readSessionCookie } from "@/lib/assessment/session-cookie";
 import { getActiveSession } from "@/lib/queries/session";
-import { getVignetteForStep, getCompletedSteps } from "@/lib/queries/vignettes";
+import {
+  getVignetteForStep,
+  getCompletedSteps,
+  findNextIncomplete,
+} from "@/lib/queries/vignettes";
 import { recordVignetteServed } from "@/lib/actions/response";
 import { createServiceClient } from "@/lib/supabase/server";
 import { createSignedDownloadUrl } from "@/lib/supabase/storage";
@@ -106,9 +110,3 @@ export default async function StepPage({
   );
 }
 
-function findNextIncomplete(completedSteps: Set<number>): number | null {
-  for (let i = 1; i <= TOTAL_STEPS; i++) {
-    if (!completedSteps.has(i)) return i;
-  }
-  return null;
-}
