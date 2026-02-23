@@ -7,48 +7,59 @@ function makeState(phase: State["phase"], errorMessage: string | null = null, re
 
 describe("vignette reducer", () => {
   // --- Happy-path transitions ---
-  it("narrating + NARRATION_COMPLETE → buffer", () => {
+  it("ready + BEGIN -> narrating", () => {
+    const result = reducer(makeState("ready"), { type: "BEGIN" });
+    expect(result.phase).toBe("narrating");
+  });
+
+  it("narrating + NARRATION_COMPLETE -> buffer", () => {
     const result = reducer(makeState("narrating"), { type: "NARRATION_COMPLETE" });
     expect(result.phase).toBe("buffer");
   });
 
-  it("buffer + BUFFER_COMPLETE → recording", () => {
+  it("buffer + BUFFER_COMPLETE -> recording", () => {
     const result = reducer(makeState("buffer"), { type: "BUFFER_COMPLETE" });
     expect(result.phase).toBe("recording");
   });
 
-  it("recording + RECORDING_STOPPED → uploading", () => {
+  it("recording + RECORDING_STOPPED -> submitting", () => {
     const result = reducer(makeState("recording"), { type: "RECORDING_STOPPED" });
-    expect(result.phase).toBe("uploading");
+    expect(result.phase).toBe("submitting");
   });
 
-  it("uploading + UPLOAD_COMPLETE → transitioning", () => {
-    const result = reducer(makeState("uploading"), { type: "UPLOAD_COMPLETE" });
+  it("submitting + SUBMIT_COMPLETE -> transitioning", () => {
+    const result = reducer(makeState("submitting"), { type: "SUBMIT_COMPLETE" });
     expect(result.phase).toBe("transitioning");
   });
 
-  // --- Guard tests (wrong phase → no change) ---
-  it("buffer + NARRATION_COMPLETE → stays buffer", () => {
+  // --- Guard tests (wrong phase -> no change) ---
+  it("narrating + BEGIN -> stays narrating", () => {
+    const state = makeState("narrating");
+    const result = reducer(state, { type: "BEGIN" });
+    expect(result).toBe(state);
+  });
+
+  it("buffer + NARRATION_COMPLETE -> stays buffer", () => {
     const state = makeState("buffer");
     const result = reducer(state, { type: "NARRATION_COMPLETE" });
     expect(result).toBe(state);
   });
 
-  it("narrating + BUFFER_COMPLETE → stays narrating", () => {
+  it("narrating + BUFFER_COMPLETE -> stays narrating", () => {
     const state = makeState("narrating");
     const result = reducer(state, { type: "BUFFER_COMPLETE" });
     expect(result).toBe(state);
   });
 
-  it("uploading + RECORDING_STOPPED → stays uploading", () => {
-    const state = makeState("uploading");
+  it("submitting + RECORDING_STOPPED -> stays submitting", () => {
+    const state = makeState("submitting");
     const result = reducer(state, { type: "RECORDING_STOPPED" });
     expect(result).toBe(state);
   });
 
-  // --- Error + retry ---
-  it("any phase + ERROR → error with message", () => {
-    const phases = ["narrating", "buffer", "recording", "uploading", "transitioning"] as const;
+  // --- Error ---
+  it("any phase + ERROR -> error with message", () => {
+    const phases = ["ready", "narrating", "buffer", "recording", "submitting", "transitioning"] as const;
     for (const phase of phases) {
       const result = reducer(makeState(phase), {
         type: "ERROR",
@@ -59,18 +70,31 @@ describe("vignette reducer", () => {
     }
   });
 
-  it("error + RETRY → uploading with errorMessage cleared and retryCount incremented", () => {
-    const result = reducer(makeState("error", "Previous error", 0), { type: "RETRY" });
-    expect(result.phase).toBe("uploading");
+  // --- DEV_SET_PHASE ---
+  it("DEV_SET_PHASE sets phase in development", () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "development";
+    const result = reducer(makeState("ready"), { type: "DEV_SET_PHASE", phase: "recording" });
+    expect(result.phase).toBe("recording");
     expect(result.errorMessage).toBeNull();
-    expect(result.retryCount).toBe(1);
+    process.env.NODE_ENV = originalEnv;
   });
 
-  it("RETRY increments retryCount each time", () => {
-    const first = reducer(makeState("error", "fail", 0), { type: "RETRY" });
-    expect(first.retryCount).toBe(1);
-    const errAgain = reducer(first, { type: "ERROR", message: "fail again" });
-    const second = reducer(errAgain, { type: "RETRY" });
-    expect(second.retryCount).toBe(2);
+  it("DEV_SET_PHASE is a no-op in production", () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    const state = makeState("ready");
+    const result = reducer(state, { type: "DEV_SET_PHASE", phase: "recording" });
+    expect(result).toBe(state);
+    process.env.NODE_ENV = originalEnv;
+  });
+
+  it("DEV_SET_PHASE to error sets default error message", () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "development";
+    const result = reducer(makeState("ready"), { type: "DEV_SET_PHASE", phase: "error" });
+    expect(result.phase).toBe("error");
+    expect(result.errorMessage).toBe("Dev test error");
+    process.env.NODE_ENV = originalEnv;
   });
 });

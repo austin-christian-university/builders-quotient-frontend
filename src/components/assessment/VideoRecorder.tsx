@@ -8,9 +8,7 @@ import { Button } from "@/components/ui/button";
 type VideoRecorderProps = {
   stream: MediaStream | null;
   isRecording: boolean;
-  isUploading: boolean;
   duration: number;
-  uploadProgress: number;
   onStop: () => void;
   minRecordingSeconds: number;
 };
@@ -24,9 +22,7 @@ function formatTime(seconds: number): string {
 export function VideoRecorder({
   stream,
   isRecording,
-  isUploading,
   duration,
-  uploadProgress,
   onStop,
   minRecordingSeconds,
 }: VideoRecorderProps) {
@@ -60,10 +56,7 @@ export function VideoRecorder({
           autoPlay
           playsInline
           muted
-          className={cn(
-            "aspect-video w-full object-cover [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]",
-            isUploading && "brightness-50"
-          )}
+          className="aspect-video w-full object-cover [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]"
         />
 
         {/* Recording indicator */}
@@ -75,17 +68,6 @@ export function VideoRecorder({
             </span>
             <span className="text-sm font-medium tabular-nums text-white">
               {formatTime(duration)}
-            </span>
-          </div>
-        )}
-
-        {/* Upload overlay */}
-        {isUploading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-            <UploadSpinner />
-            <span className="text-sm font-medium text-white">
-              Uploading{" "}
-              <span className="tabular-nums">{Math.round(uploadProgress)}%</span>
             </span>
           </div>
         )}
@@ -115,30 +97,5 @@ export function VideoRecorder({
         </div>
       )}
     </motion.div>
-  );
-}
-
-function UploadSpinner() {
-  return (
-    <svg
-      className="h-8 w-8 animate-spin text-white"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
-    </svg>
   );
 }

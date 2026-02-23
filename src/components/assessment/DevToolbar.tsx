@@ -10,7 +10,7 @@ const PHASES: Phase[] = [
   "narrating",
   "buffer",
   "recording",
-  "uploading",
+  "submitting",
   "transitioning",
   "error",
 ];
@@ -20,7 +20,7 @@ const PHASE_LABELS: Record<Phase, string> = {
   narrating: "Narrating",
   buffer: "Buffer",
   recording: "Recording",
-  uploading: "Uploading",
+  submitting: "Submitting",
   transitioning: "Transitioning",
   error: "Error",
 };
@@ -107,7 +107,7 @@ export function DevToolbar({
           {state.phase === "buffer" && `${bufferRemaining}s remaining`}
           {state.phase === "recording" && `${recorderDuration}s recorded`}
           {state.phase === "error" && state.errorMessage}
-          {(state.phase === "ready" || state.phase === "narrating" || state.phase === "uploading" || state.phase === "transitioning") && (
+          {(state.phase === "ready" || state.phase === "narrating" || state.phase === "submitting" || state.phase === "transitioning") && (
             <span>
               stream: {streamStatus} | rec: {recorderStatus}
             </span>

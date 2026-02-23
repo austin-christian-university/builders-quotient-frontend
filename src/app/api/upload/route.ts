@@ -4,13 +4,17 @@ import { getActiveSession } from "@/lib/queries/session";
 import { createSignedUploadUrl } from "@/lib/supabase/storage";
 
 export async function POST(request: NextRequest) {
+  console.log("[BQ Upload API] POST /api/upload — request received");
+
   const sessionId = await readSessionCookie();
   if (!sessionId) {
+    console.warn("[BQ Upload API] No session cookie");
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
   const session = await getActiveSession(sessionId);
   if (!session) {
+    console.warn(`[BQ Upload API] No active session for id: ${sessionId.slice(0, 8)}...`);
     return NextResponse.json({ error: "No active session" }, { status: 401 });
   }
 
@@ -18,6 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
+    console.error("[BQ Upload API] Invalid JSON body");
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
@@ -29,15 +34,19 @@ export async function POST(request: NextRequest) {
     step < 1 ||
     step > 4
   ) {
+    console.error(`[BQ Upload API] Invalid params — vignetteType: ${vignetteType}, step: ${step}`);
     return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
   }
 
   const storagePath = `${sessionId}/${vignetteType}_${step}.webm`;
+  console.log(`[BQ Upload API] Creating signed URL for: ${storagePath}`);
 
   try {
     const { signedUrl, token } = await createSignedUploadUrl(storagePath);
+    console.log(`[BQ Upload API] Signed URL created — token present: ${!!token}`);
     return NextResponse.json({ uploadUrl: signedUrl, storagePath, token });
-  } catch {
+  } catch (err) {
+    console.error("[BQ Upload API] createSignedUploadUrl failed:", err);
     return NextResponse.json(
       { error: "Failed to create upload URL" },
       { status: 500 }

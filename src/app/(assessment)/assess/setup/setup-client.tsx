@@ -6,6 +6,18 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MobileWarningDialog } from "@/components/assessment/MobileWarningDialog";
 import { isMobileDevice } from "@/lib/assessment/detect-mobile";
 import { createAssessmentSession } from "@/lib/actions/session";
+import dynamic from "next/dynamic";
+
+const DevSkipButton =
+  process.env.NODE_ENV === "development"
+    ? dynamic(
+        () =>
+          import("@/components/assessment/DevSkipButton").then((m) => ({
+            default: m.DevSkipButton,
+          })),
+        { ssr: false }
+      )
+    : null;
 
 type DeviceStatus = "pending" | "granted" | "denied" | "error";
 
@@ -228,6 +240,12 @@ export function SetupClient() {
               "I\u2019m Ready"
             )}
           </Button>
+
+          {DevSkipButton && (
+            <div className="mt-3 flex justify-center">
+              <DevSkipButton />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

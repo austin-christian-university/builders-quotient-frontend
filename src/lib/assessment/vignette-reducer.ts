@@ -3,7 +3,7 @@ export type Phase =
   | "narrating"
   | "buffer"
   | "recording"
-  | "uploading"
+  | "submitting"
   | "transitioning"
   | "error";
 
@@ -12,9 +12,8 @@ export type Action =
   | { type: "NARRATION_COMPLETE" }
   | { type: "BUFFER_COMPLETE" }
   | { type: "RECORDING_STOPPED" }
-  | { type: "UPLOAD_COMPLETE" }
+  | { type: "SUBMIT_COMPLETE" }
   | { type: "ERROR"; message: string }
-  | { type: "RETRY" }
   | { type: "DEV_SET_PHASE"; phase: Phase; errorMessage?: string };
 
 export type State = {
@@ -39,16 +38,14 @@ export function reducer(state: State, action: Action): State {
         : state;
     case "RECORDING_STOPPED":
       return state.phase === "recording"
-        ? { ...state, phase: "uploading" }
+        ? { ...state, phase: "submitting" }
         : state;
-    case "UPLOAD_COMPLETE":
-      return state.phase === "uploading"
+    case "SUBMIT_COMPLETE":
+      return state.phase === "submitting"
         ? { ...state, phase: "transitioning" }
         : state;
     case "ERROR":
       return { ...state, phase: "error", errorMessage: action.message };
-    case "RETRY":
-      return { phase: "uploading", errorMessage: null, retryCount: state.retryCount + 1 };
     case "DEV_SET_PHASE":
       if (process.env.NODE_ENV !== "development") return state;
       return {

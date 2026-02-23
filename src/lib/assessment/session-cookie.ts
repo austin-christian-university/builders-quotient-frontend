@@ -31,7 +31,7 @@ export async function createSessionCookie(sessionId: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    path: "/assess",
+    path: "/",
     maxAge: MAX_AGE_SECONDS,
   });
 }
@@ -58,6 +58,6 @@ export async function clearSessionCookie() {
   const jar = await cookies();
   jar.delete({
     name: COOKIE_NAME,
-    path: "/assess",
+    path: "/",
   });
 }

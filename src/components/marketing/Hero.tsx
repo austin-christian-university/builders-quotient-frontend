@@ -89,7 +89,7 @@ function Hero() {
         >
           {/* Glassmorphic/Premium Button */}
           <div className="relative group">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-500/30 to-yellow-500/30 blur opacity-75 group-hover:opacity-100 transition duration-500" />
+            <div className="absolute -inset-1 rounded-full bg-white/20 blur opacity-75 group-hover:opacity-100 transition duration-500" />
             <Button
               as={Link}
               href="/assess/setup"

@@ -11,3 +11,22 @@ export const responseSubmissionSchema = z.object({
 });
 
 export type ResponseSubmission = z.infer<typeof responseSubmissionSchema>;
+
+export const reserveResponseSchema = z.object({
+  sessionId: z.string().uuid(),
+  vignetteId: z.string().uuid(),
+  vignetteType: z.enum(["practical", "creative"]),
+  step: z.number().int().min(1).max(4),
+  videoDurationSeconds: z.number().int().min(10).max(180),
+  recordingStartedAt: z.string().datetime(),
+});
+
+export type ReserveResponse = z.infer<typeof reserveResponseSchema>;
+
+export const confirmUploadSchema = z.object({
+  sessionId: z.string().uuid(),
+  vignetteId: z.string().uuid(),
+  storagePath: z.string().min(1),
+});
+
+export type ConfirmUpload = z.infer<typeof confirmUploadSchema>;

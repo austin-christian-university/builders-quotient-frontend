@@ -39,7 +39,7 @@ describe("session-cookie", () => {
       expect(options).toMatchObject({
         httpOnly: true,
         sameSite: "lax",
-        path: "/assess",
+        path: "/",
         maxAge: 7200,
       });
     });
@@ -179,7 +179,7 @@ describe("session-cookie", () => {
 
       expect(mockCookieStore.delete).toHaveBeenCalledWith({
         name: "bq-session",
-        path: "/assess",
+        path: "/",
       });
     });
   });

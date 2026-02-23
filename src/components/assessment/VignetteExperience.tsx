@@ -10,7 +10,8 @@ import { VideoRecorder } from "./VideoRecorder";
 import { CameraPip } from "./CameraPip";
 import { useMediaStream } from "@/lib/assessment/use-media-stream";
 import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
-import { submitVideoResponse } from "@/lib/actions/response";
+import { reserveResponse } from "@/lib/actions/response-upload";
+import { useUploadQueue } from "@/lib/assessment/upload-queue";
 import { Button } from "@/components/ui/button";
 import { reducer } from "@/lib/assessment/vignette-reducer";
 import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
@@ -28,7 +29,6 @@ const DevToolbar =
 const BUFFER_SECONDS = 30;
 const MIN_RECORDING_SECONDS = 10;
 const MAX_RECORDING_SECONDS = 180;
-const MAX_UPLOAD_RETRIES = 3;
 const MAX_BLOB_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB Supabase bucket limit
 
 // --- Props ---
@@ -60,6 +60,7 @@ export function VignetteExperience({
   estimatedNarrationSeconds,
 }: VignetteExperienceProps) {
   const router = useRouter();
+  const uploadQueue = useUploadQueue();
   const [state, dispatch] = useReducer(reducer, {
     phase: "ready",
     errorMessage: null,
@@ -67,16 +68,13 @@ export function VignetteExperience({
   });
 
   // Audio narrator lives here (not in VignetteNarrator) so the Audio element
-  // survives the ready→narrating phase transition without being destroyed.
+  // survives the ready->narrating phase transition without being destroyed.
   const audio = useAudioNarrator(audioUrl, audioTiming);
 
   const { stream, streamRef, status: streamStatus, error: streamError, retry: retryStream } = useMediaStream();
   const recorder = useVideoRecorder(stream);
   const [bufferRemaining, setBufferRemaining] = useState(BUFFER_SECONDS);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const blobRef = useRef<Blob | null>(null);
-  const uploadAttemptRef = useRef(0);
-  const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   // --- Buffer countdown ---
   useEffect(() => {
@@ -112,7 +110,7 @@ export function VignetteExperience({
     }
   }, [state.phase, recorder.duration, recorder]);
 
-  // --- Handle recording stop → upload transition ---
+  // --- Handle recording stop -> submit transition ---
   useEffect(() => {
     if (recorder.status === "done" && recorder.blob && state.phase === "recording") {
       blobRef.current = recorder.blob;
@@ -132,22 +130,19 @@ export function VignetteExperience({
     }
   }, [recorder.status, recorder.blob, state.phase]);
 
-  // --- Upload flow ---
+  // --- Submit flow: reserve + enqueue background upload ---
   useEffect(() => {
-    if (state.phase !== "uploading" || !blobRef.current) return;
+    if (state.phase !== "submitting" || !blobRef.current) return;
 
     let cancelled = false;
 
-    async function upload() {
+    async function submit() {
       const blob = blobRef.current;
       if (!blob) return;
 
-      const blobSizeMB = (blob.size / (1024 * 1024)).toFixed(2);
-      console.log(`[BQ Upload] Starting upload — blob: ${blobSizeMB} MB, type: ${blob.type}, attempt: ${uploadAttemptRef.current + 1}/${MAX_UPLOAD_RETRIES}`);
-
-      // Validate blob size before attempting upload
+      // Validate blob size
       if (blob.size > MAX_BLOB_SIZE_BYTES) {
-        console.error(`[BQ Upload] Blob too large: ${blobSizeMB} MB (limit: 50 MB)`);
+        const blobSizeMB = (blob.size / (1024 * 1024)).toFixed(2);
         dispatch({
           type: "ERROR",
           message: `Recording too large (${blobSizeMB} MB). Try a shorter response.`,
@@ -156,103 +151,33 @@ export function VignetteExperience({
       }
 
       try {
-        // --- Step 1: Get presigned URL ---
-        console.log("[BQ Upload] Fetching presigned URL...");
-        const presignRes = await fetch("/api/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ vignetteType, step }),
-        });
-
-        if (!presignRes.ok) {
-          const errorText = await presignRes.text().catch(() => "no body");
-          console.error(`[BQ Upload] Presign failed: ${presignRes.status} — ${errorText}`);
-          throw new Error(`Failed to get upload URL (${presignRes.status})`);
-        }
-
-        const { uploadUrl, storagePath, token } = await presignRes.json();
-        console.log(`[BQ Upload] Presigned URL received — path: ${storagePath}`);
-
-        if (cancelled) return;
-
-        // --- Step 2: XHR upload to Supabase Storage ---
-        // Dynamic timeout: assume worst-case 1 Mbps, add 30s buffer, min 120s
-        const dynamicTimeoutSec = Math.max(120, Math.ceil(blob.size / (125 * 1024)) + 30);
-        console.log(`[BQ Upload] Starting XHR PUT — timeout: ${dynamicTimeoutSec}s`);
-
-        await new Promise<void>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhrRef.current = xhr;
-
-          xhr.upload.onprogress = (e) => {
-            if (cancelled) return;
-            // Use e.total when computable, fall back to blob.size (always known)
-            const total = e.lengthComputable ? e.total : blob.size;
-            const pct = total > 0 ? (e.loaded / total) * 100 : 0;
-            setUploadProgress(pct);
-            console.log(`[BQ Upload] Progress: ${pct.toFixed(1)}% (${e.loaded}/${total}, lengthComputable: ${e.lengthComputable})`);
-          };
-
-          xhr.onload = () => {
-            xhrRef.current = null;
-            console.log(`[BQ Upload] XHR onload — status: ${xhr.status}, response: ${xhr.responseText.slice(0, 200)}`);
-            if (xhr.status >= 200 && xhr.status < 300) {
-              resolve();
-            } else {
-              reject(new Error(`Upload failed: ${xhr.status} — ${xhr.responseText.slice(0, 200)}`));
-            }
-          };
-
-          xhr.onerror = () => {
-            xhrRef.current = null;
-            console.error("[BQ Upload] XHR onerror — network error");
-            reject(new Error("Upload network error"));
-          };
-
-          xhr.ontimeout = () => {
-            xhrRef.current = null;
-            console.error(`[BQ Upload] XHR timeout after ${dynamicTimeoutSec}s`);
-            reject(new Error("Upload timed out"));
-          };
-
-          xhr.onabort = () => {
-            xhrRef.current = null;
-            console.log("[BQ Upload] XHR aborted (cleanup)");
-            reject(new Error("Upload aborted"));
-          };
-
-          xhr.timeout = dynamicTimeoutSec * 1000;
-
-          xhr.open("PUT", uploadUrl, true);
-          // Strip codec params (e.g. "video/webm;codecs=vp9,opus" → "video/webm")
-          // Supabase Storage rejects MIME types with codec suffixes
-          const contentType = (blob.type || "video/webm").split(";")[0];
-          xhr.setRequestHeader("Content-Type", contentType);
-          if (token) {
-            xhr.setRequestHeader("x-upsert", "true");
-          }
-          xhr.send(blob);
-        });
-
-        if (cancelled) return;
-
-        // --- Step 3: Record metadata via server action ---
-        console.log("[BQ Upload] Calling submitVideoResponse...");
-        const result = await submitVideoResponse({
+        // Phase 1: Reserve the response (instant, unblocks progression)
+        const result = await reserveResponse({
           sessionId,
           vignetteId,
           vignetteType,
           step,
-          storagePath,
           videoDurationSeconds: recorder.duration,
           recordingStartedAt: recorder.startTime ?? new Date().toISOString(),
         });
-        console.log("[BQ Upload] submitVideoResponse result:", result);
 
         if (cancelled) return;
 
-        dispatch({ type: "UPLOAD_COMPLETE" });
+        // Enqueue background upload (Phase 2)
+        uploadQueue.enqueue({
+          blob,
+          sessionId,
+          vignetteId,
+          vignetteType,
+          step,
+        });
 
+        // Release blob ref from this component (queue holds it now)
+        blobRef.current = null;
+
+        dispatch({ type: "SUBMIT_COMPLETE" });
+
+        // Navigate after brief transition
         setTimeout(() => {
           if (result.complete) {
             router.push("/assess/complete");
@@ -262,41 +187,17 @@ export function VignetteExperience({
         }, 800);
       } catch (err) {
         if (cancelled) return;
-
         const errMsg = err instanceof Error ? err.message : String(err);
-        console.error(`[BQ Upload] Error: ${errMsg}`);
-
-        uploadAttemptRef.current += 1;
-        if (uploadAttemptRef.current < MAX_UPLOAD_RETRIES) {
-          const delay = Math.pow(2, uploadAttemptRef.current) * 1000;
-          console.log(`[BQ Upload] Retrying in ${delay}ms (attempt ${uploadAttemptRef.current + 1}/${MAX_UPLOAD_RETRIES})`);
-          setTimeout(() => {
-            if (!cancelled) {
-              setUploadProgress(0);
-              upload();
-            }
-          }, delay);
-        } else {
-          console.error("[BQ Upload] All retries exhausted");
-          dispatch({
-            type: "ERROR",
-            message: errMsg || "Upload failed after multiple attempts",
-          });
-        }
+        dispatch({ type: "ERROR", message: errMsg || "Failed to save response" });
       }
     }
 
-    upload();
+    submit();
     return () => {
       cancelled = true;
-      if (xhrRef.current) {
-        console.log("[BQ Upload] Cleanup — aborting active XHR");
-        xhrRef.current.abort();
-        xhrRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase, state.retryCount]);
+  }, [state.phase]);
 
   const handleBegin = useCallback(() => {
     // Call play() directly inside the click handler so the browser
@@ -313,18 +214,10 @@ export function VignetteExperience({
     recorder.stop();
   }, [recorder]);
 
-  const handleRetry = useCallback(() => {
-    uploadAttemptRef.current = 0;
-    setUploadProgress(0);
-    dispatch({ type: "RETRY" });
-  }, []);
-
   const isReady = state.phase === "ready";
   const isNarrating = state.phase === "narrating";
   const isTwoColumn =
-    state.phase === "buffer" ||
-    state.phase === "recording" ||
-    state.phase === "uploading";
+    state.phase === "buffer" || state.phase === "recording";
   const showNarrator =
     state.phase === "narrating" ||
     state.phase === "buffer" ||
@@ -341,7 +234,7 @@ export function VignetteExperience({
 
         <div className="relative z-10 flex flex-1 flex-col px-4 pb-8">
           {/* Camera error banner */}
-          {streamStatus === "error" && state.phase !== "uploading" && state.phase !== "transitioning" && (
+          {streamStatus === "error" && state.phase !== "submitting" && state.phase !== "transitioning" && (
             <div className="mx-auto mb-4 w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center">
               <p className="text-sm text-red-400">{streamError}</p>
               <button
@@ -356,7 +249,7 @@ export function VignetteExperience({
 
           {/* Main content area */}
           <AnimatePresence mode="wait">
-            {/* Ready phase — brief intro before narration begins */}
+            {/* Ready phase */}
             {isReady && (
               <motion.div
                 key="ready"
@@ -390,7 +283,7 @@ export function VignetteExperience({
               </motion.div>
             )}
 
-            {/* Narrating phase — full-width centered */}
+            {/* Narrating phase */}
             {isNarrating && (
               <motion.div
                 key="narrating"
@@ -418,7 +311,7 @@ export function VignetteExperience({
               </motion.div>
             )}
 
-            {/* Two-column phase — buffer, recording, uploading */}
+            {/* Two-column phase — buffer, recording */}
             {isTwoColumn && (
               <motion.div
                 key="two-column"
@@ -457,14 +350,26 @@ export function VignetteExperience({
                     <VideoRecorder
                       stream={streamRef.current}
                       isRecording={state.phase === "recording"}
-                      isUploading={state.phase === "uploading"}
                       duration={recorder.duration}
-                      uploadProgress={uploadProgress}
                       onStop={handleRecordingStop}
                       minRecordingSeconds={MIN_RECORDING_SECONDS}
                     />
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {/* Submitting state (brief, <1s) */}
+            {state.phase === "submitting" && (
+              <motion.div
+                key="submitting"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-1 flex-col items-center justify-center gap-4"
+              >
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <p className="text-text-secondary">Saving your response&#8230;</p>
               </motion.div>
             )}
 
@@ -496,11 +401,8 @@ export function VignetteExperience({
                 <div className="w-full max-w-md space-y-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center">
                   <p className="text-text-primary">{state.errorMessage}</p>
                   <p className="text-sm text-text-secondary">
-                    Your recording is saved locally. You can try uploading again.
+                    Please try again or contact support if the problem persists.
                   </p>
-                  <Button variant="primary" onClick={handleRetry}>
-                    Try Again
-                  </Button>
                 </div>
               </motion.div>
             )}

@@ -44,6 +44,7 @@ export function useVideoRecorder(stream: MediaStream | null) {
     try {
       const recorder = new MediaRecorder(stream, {
         mimeType: mimeType || undefined,
+        videoBitsPerSecond: 1_500_000, // 1.5 Mbps — 3 min ≈ 34 MB
       });
 
       recorder.ondataavailable = (e) => {
