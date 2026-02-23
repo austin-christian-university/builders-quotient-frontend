@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MobileWarningDialog } from "@/components/assessment/MobileWarningDialog";
 import { isMobileDevice } from "@/lib/assessment/detect-mobile";
 import { createAssessmentSession } from "@/lib/actions/session";
+import { useConnectionProbe, type SpeedTier } from "@/lib/assessment/use-connection-probe";
 import dynamic from "next/dynamic";
 
 const DevSkipButton =
@@ -35,6 +36,7 @@ export function SetupClient() {
   const [showMobileWarning, setShowMobileWarning] = useState<boolean | null>(
     null
   );
+  const { result: probeResult, runProbe } = useConnectionProbe();
 
   // Callback ref: attaches stream to <video> when it mounts into the DOM
   const videoCallbackRef = useCallback(
@@ -81,6 +83,11 @@ export function SetupClient() {
 
         setCameraStatus(hasVideo ? "granted" : "denied");
         setMicStatus(hasAudio ? "granted" : "denied");
+
+        // Run connection probe once camera+mic are granted
+        if (hasVideo && hasAudio) {
+          runProbe();
+        }
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -93,6 +100,7 @@ export function SetupClient() {
       cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showMobileWarning]);
 
   async function retryPermissions() {
@@ -179,6 +187,11 @@ export function SetupClient() {
             <StatusIndicator label="Camera" status={cameraStatus} />
             <StatusIndicator label="Microphone" status={micStatus} />
           </div>
+
+          {/* Connection speed warning */}
+          {probeResult && (probeResult.tier === "slow" || probeResult.tier === "very-slow") && (
+            <ConnectionWarning tier={probeResult.tier} />
+          )}
 
           {/* Requirements */}
           <ul className="space-y-2 text-[length:var(--text-fluid-sm)] text-text-secondary">
@@ -282,6 +295,25 @@ function StatusIndicator({
       <span className="text-text-secondary">
         {label}: <span className="text-text-primary">{labels[status]}</span>
       </span>
+    </div>
+  );
+}
+
+function ConnectionWarning({ tier }: { tier: SpeedTier }) {
+  const isVerySlow = tier === "very-slow";
+
+  return (
+    <div
+      role="alert"
+      className={`rounded-xl border px-4 py-3 text-[length:var(--text-fluid-sm)] ${
+        isVerySlow
+          ? "border-red-500/30 bg-red-500/10 text-red-300"
+          : "border-amber-500/30 bg-amber-500/10 text-amber-300"
+      }`}
+    >
+      {isVerySlow
+        ? "Slow connection detected. Consider switching to a faster network for the best experience."
+        : "Your connection is a bit slow. Videos will upload in the background \u2014 just don\u2019t close your browser."}
     </div>
   );
 }

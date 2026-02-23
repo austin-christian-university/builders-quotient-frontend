@@ -7,6 +7,7 @@ import {
 } from "@/lib/queries/vignettes";
 import { createServiceClient } from "@/lib/supabase/server";
 import { EmailCapture } from "@/components/assessment/EmailCapture";
+import { UploadGate } from "@/components/assessment/UploadGate";
 
 export const metadata = {
   title: "Assessment Complete — Builders Quotient",
@@ -40,7 +41,7 @@ export default async function CompletePage() {
     redirect(nextStep ? `/assess/${nextStep}` : "/assess/setup");
   }
 
-  // 4. Check if email already captured → redirect to thank-you
+  // 4. Check if email already captured -> redirect to thank-you
   const supabase = createServiceClient();
   const { data: applicant } = await supabase
     .from("applicants")
@@ -54,6 +55,9 @@ export default async function CompletePage() {
     redirect(`/assess/thank-you?path=${path}`);
   }
 
-  return <EmailCapture />;
+  return (
+    <UploadGate>
+      <EmailCapture />
+    </UploadGate>
+  );
 }
-

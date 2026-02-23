@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { UploadQueueProvider } from "@/lib/assessment/upload-queue";
+import { UploadStatusBar } from "@/components/assessment/UploadStatusBar";
 
 export const metadata: Metadata = {
   title: "Assessment",
@@ -10,5 +12,12 @@ export default function AssessmentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <main id="main-content">{children}</main>;
+  return (
+    <UploadQueueProvider>
+      <main id="main-content">
+        <UploadStatusBar />
+        {children}
+      </main>
+    </UploadQueueProvider>
+  );
 }
