@@ -253,10 +253,10 @@ export function EmailCapture() {
             {isPending ? (
               <>
                 <Spinner />
-                Send My Results
+                Request My Results
               </>
             ) : (
-              "Send My Results"
+              "Request My Results"
             )}
           </Button>
         </form>
