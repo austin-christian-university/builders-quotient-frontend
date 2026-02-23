@@ -14,6 +14,14 @@ import { submitVideoResponse } from "@/lib/actions/response";
 import { Button } from "@/components/ui/button";
 import { reducer } from "@/lib/assessment/vignette-reducer";
 import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
+import dynamic from "next/dynamic";
+
+const DevToolbar =
+  process.env.NODE_ENV === "development"
+    ? dynamic(() => import("./DevToolbar").then((m) => ({ default: m.DevToolbar })), {
+        ssr: false,
+      })
+    : null;
 
 // --- Constants ---
 const BUFFER_SECONDS = 30;
@@ -248,6 +256,7 @@ export function VignetteExperience({
     state.phase === "recording";
 
   return (
+    <>
     <LayoutGroup>
       <div className="relative flex min-h-dvh flex-col">
         {/* Ambient background orbs */}
@@ -390,6 +399,18 @@ export function VignetteExperience({
         </div>
       </div>
     </LayoutGroup>
+
+    {DevToolbar && (
+      <DevToolbar
+        state={state}
+        dispatch={dispatch}
+        bufferRemaining={bufferRemaining}
+        recorderDuration={recorder.duration}
+        recorderStatus={recorder.status}
+        streamStatus={streamStatus}
+      />
+    )}
+  </>
   );
 }
 

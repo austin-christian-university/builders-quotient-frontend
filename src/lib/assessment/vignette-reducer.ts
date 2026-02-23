@@ -12,7 +12,8 @@ export type Action =
   | { type: "RECORDING_STOPPED" }
   | { type: "UPLOAD_COMPLETE" }
   | { type: "ERROR"; message: string }
-  | { type: "RETRY" };
+  | { type: "RETRY" }
+  | { type: "DEV_SET_PHASE"; phase: Phase; errorMessage?: string };
 
 export type State = {
   phase: Phase;
@@ -42,6 +43,13 @@ export function reducer(state: State, action: Action): State {
       return { ...state, phase: "error", errorMessage: action.message };
     case "RETRY":
       return { phase: "uploading", errorMessage: null, retryCount: state.retryCount + 1 };
+    case "DEV_SET_PHASE":
+      if (process.env.NODE_ENV !== "development") return state;
+      return {
+        phase: action.phase,
+        errorMessage: action.phase === "error" ? (action.errorMessage ?? "Dev test error") : null,
+        retryCount: 0,
+      };
     default:
       return state;
   }
