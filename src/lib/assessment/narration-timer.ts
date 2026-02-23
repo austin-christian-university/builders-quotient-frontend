@@ -105,6 +105,33 @@ export function calculateWordTiming(
 }
 
 /**
+ * Binary search: given sorted AudioWordTiming[], returns how many words
+ * have a `start` time <= `currentTime`.  O(log n).
+ */
+export function findRevealedCount(
+  timings: AudioWordTiming[],
+  currentTime: number
+): number {
+  if (timings.length === 0 || currentTime < 0) return 0;
+
+  let lo = 0;
+  let hi = timings.length - 1;
+  let count = 0;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >>> 1;
+    if (timings[mid].start <= currentTime) {
+      count = mid + 1;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+
+  return count;
+}
+
+/**
  * Splits a sentence into words, preserving punctuation attached to words.
  */
 function splitIntoWords(sentence: string): string[] {
@@ -114,9 +141,38 @@ function splitIntoWords(sentence: string): string[] {
 /**
  * Splits text into sentences on period, question mark, or exclamation mark
  * followed by a space or end of string. Preserves the punctuation with the sentence.
+ *
+ * Handles edge cases where a period is NOT a sentence boundary:
+ * - Decimal numbers: $1.4, 3.5%, 0.8s
+ * - Abbreviations: U.S., e.g., i.e., Dr., Mr., etc.
+ * - Quoted endings: "back to basics." keeps the closing quote with the sentence
  */
 function splitIntoSentences(text: string): string[] {
-  const raw = text.match(/[^.!?]*[.!?]+[\s]?|[^.!?]+$/g);
-  if (!raw) return [text.trim()].filter(Boolean);
-  return raw.map((s) => s.trim()).filter(Boolean);
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+
+  // Protect patterns where a period is NOT a sentence boundary
+  const PLACEHOLDER = "\u0000";
+  const protected_ = trimmed
+    // Decimal numbers: digit.digit
+    .replace(/(\d)\.(\d)/g, `$1${PLACEHOLDER}$2`)
+    // Common abbreviations: single uppercase letter followed by period (U.S., U.K.)
+    .replace(/\b([A-Z])\.([A-Z])\./g, `$1${PLACEHOLDER}$2${PLACEHOLDER}`)
+    // Common short abbreviations: e.g., i.e., vs., etc., Dr., Mr., Mrs., Ms., Jr., Sr.
+    .replace(
+      /\b(e\.g|i\.e|vs|etc|[DdMm]rs?|[Jj]r|[Ss]r)\./g,
+      (match) => match.replace(/\./g, PLACEHOLDER)
+    );
+
+  // Split on sentence-ending punctuation, consuming any trailing closing
+  // quotes/brackets (e.g. "basics." or 'basics!') so they stay with the sentence.
+  const CLOSING_QUOTES = `["'\u201D\u2019)\\]]*`;
+  const raw = protected_.match(
+    new RegExp(`[^.!?]*[.!?]+${CLOSING_QUOTES}[\\s]?|[^.!?]+$`, "g")
+  );
+  if (!raw) return [trimmed].filter(Boolean);
+
+  return raw
+    .map((s) => s.replace(/\u0000/g, ".").trim())
+    .filter(Boolean);
 }

@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import {
   calculateWordTiming,
@@ -8,6 +16,7 @@ import {
   type WordTiming,
 } from "@/lib/assessment/narration-timer";
 import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
+import { cn } from "@/lib/utils";
 
 type VignetteNarratorProps = {
   vignetteText: string;
@@ -70,19 +79,15 @@ export function VignetteNarrator({
       : timerRevealedCount;
 
   // The actual count used for rendering
-  const revealedCount = useAudioMode ? audio.revealedCount : effectiveTimerCount;
+  // When inactive (post-narration reference view), reveal everything
+  const totalWords = useAudioMode ? (audioTiming?.length ?? 0) : words.length;
+  const revealedCount = !isActive ? totalWords : useAudioMode ? audio.revealedCount : effectiveTimerCount;
 
   // --- Audio mode: auto-play when active ---
   useEffect(() => {
     if (!useAudioMode || !isActive) return;
-
-    if (prefersReducedMotion) {
-      // Show all words immediately; audio still plays
-      // onComplete fires immediately for text, audio plays in background
-    }
-
     audio.play();
-  }, [useAudioMode, isActive, audio, prefersReducedMotion]);
+  }, [useAudioMode, isActive, audio]);
 
   // --- Audio mode: fire onComplete when audio ends ---
   useEffect(() => {
@@ -144,62 +149,92 @@ export function VignetteNarrator({
     return () => cancelAnimationFrame(id);
   }, [revealedCount]);
 
+  // --- Debug panel (dev only, portaled to body) ---
+  const debugPanel =
+    process.env.NODE_ENV === "development" && useAudioMode && audioTiming ? (
+      <NarrationSyncDebug
+        audioRef={audio.audioRef}
+        audioTiming={audioTiming}
+        revealedCount={revealedCount}
+      />
+    ) : null;
+
   // --- Render ---
 
-  // In audio mode we render a flat word list from audioTiming.
-  // In timer mode we render grouped by sentence for <p> tags.
+  // Inactive mode: static text with sentence-grouped paragraphs (no animation)
+  if (!isActive) {
+    return (
+      <>
+        {debugPanel}
+        <div className="w-full space-y-6">
+          <ScrollableTextBox scrollContainerRef={scrollContainerRef}>
+            {sentenceGroups.map((group, sentenceIdx) => (
+              <p key={sentenceIdx}>
+                {group.map((word, wordIdx) => (
+                  <span key={wordIdx} className="inline">
+                    {word.text}
+                    {wordIdx < group.length - 1 ? " " : ""}
+                  </span>
+                ))}
+              </p>
+            ))}
+          </ScrollableTextBox>
+
+          <PromptSection showPrompt={showPrompt} vignettePrompt={vignettePrompt} />
+        </div>
+      </>
+    );
+  }
+
+  // Audio mode: flat word list from audioTiming
   if (useAudioMode && audioTiming) {
     const showAll = prefersReducedMotion;
     const count = showAll ? audioTiming.length : revealedCount;
 
     return (
-      <div className="w-full space-y-6">
-        <div
-          className="rounded-2xl border border-border-glass ring-1 ring-inset ring-white/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl"
-          aria-live="polite"
-        >
-          <div
-            ref={scrollContainerRef}
-            className="max-h-[50vh] space-y-3 overflow-y-auto text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
-          >
+      <>
+        {debugPanel}
+        <div className="w-full space-y-6">
+          <ScrollableTextBox scrollContainerRef={scrollContainerRef} ariaLive="polite">
             <p>
               {audioTiming.map((timing, i) => {
-                const isRevealed = i < count;
-                const isLatest = i === count - 1;
+                if (i >= count) return null;
 
-                if (!isRevealed) return null;
+                const isActive = i === count - 1 && !showAll;
+                const isLast = i === audioTiming.length - 1;
 
+                // Complete words: plain static span
+                if (!isActive) {
+                  return (
+                    <span key={i} className="inline">
+                      {timing.word}
+                      {!isLast ? " " : ""}
+                    </span>
+                  );
+                }
+
+                // Active word: per-character animated reveal
                 return (
-                  <motion.span
+                  <ActiveWord
                     key={i}
-                    ref={isLatest ? latestWordRef : undefined}
-                    initial={
-                      prefersReducedMotion
-                        ? false
-                        : { opacity: 0, y: 6, filter: "blur(4px)" }
-                    }
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    transition={
-                      prefersReducedMotion
-                        ? { duration: 0 }
-                        : { duration: 0.4, ease: [0.16, 1, 0.3, 1] }
-                    }
-                    className="inline"
-                  >
-                    {timing.word}
-                    {i < audioTiming.length - 1 ? " " : ""}
-                  </motion.span>
+                    ref={latestWordRef}
+                    word={timing.word}
+                    wordStart={timing.start}
+                    wordEnd={timing.end}
+                    currentTimeRef={audio.currentTimeRef}
+                    trailingSpace={!isLast}
+                  />
                 );
               })}
             </p>
-          </div>
-        </div>
+          </ScrollableTextBox>
 
-        <PromptSection
-          showPrompt={showPrompt}
-          vignettePrompt={vignettePrompt}
-        />
-      </div>
+          <PromptSection
+            showPrompt={showPrompt}
+            vignettePrompt={vignettePrompt}
+          />
+        </div>
+      </>
     );
   }
 
@@ -207,74 +242,317 @@ export function VignetteNarrator({
   let globalWordIndex = 0;
 
   return (
+    <>
+    {debugPanel}
     <div className="w-full space-y-6">
-      <div
-        className="rounded-2xl border border-border-glass ring-1 ring-inset ring-white/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl"
-        aria-live="polite"
-      >
-        <div
-          ref={scrollContainerRef}
-          className="max-h-[50vh] space-y-3 overflow-y-auto text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
-        >
-          {sentenceGroups.map((group, sentenceIdx) => {
-            const sentenceStartIdx = globalWordIndex;
-            globalWordIndex += group.length;
-            const sentenceHasAnyRevealed = revealedCount > sentenceStartIdx;
+      <ScrollableTextBox scrollContainerRef={scrollContainerRef} ariaLive="polite">
+        {sentenceGroups.map((group, sentenceIdx) => {
+          const sentenceStartIdx = globalWordIndex;
+          globalWordIndex += group.length;
+          const sentenceHasAnyRevealed = revealedCount > sentenceStartIdx;
 
-            return (
-              <p
-                key={sentenceIdx}
-                className={
-                  !sentenceHasAnyRevealed && !prefersReducedMotion
-                    ? "opacity-0"
-                    : undefined
-                }
-              >
-                {group.map((word, wordIdx) => {
-                  const absIdx = sentenceStartIdx + wordIdx;
-                  const isRevealed = absIdx < revealedCount;
-                  const isLatest = absIdx === revealedCount - 1;
+          return (
+            <p
+              key={sentenceIdx}
+              className={
+                !sentenceHasAnyRevealed && !prefersReducedMotion
+                  ? "opacity-0"
+                  : undefined
+              }
+            >
+              {group.map((word, wordIdx) => {
+                const absIdx = sentenceStartIdx + wordIdx;
+                if (absIdx >= revealedCount) return null;
 
-                  if (!isRevealed) return null;
+                const isActiveWord =
+                  absIdx === revealedCount - 1 && !prefersReducedMotion;
+                const isLastInGroup = wordIdx === group.length - 1;
 
+                // Complete words: plain static span
+                if (!isActiveWord) {
                   return (
-                    <motion.span
-                      key={`${sentenceIdx}-${wordIdx}`}
-                      ref={isLatest ? latestWordRef : undefined}
-                      initial={
-                        prefersReducedMotion
-                          ? false
-                          : { opacity: 0, y: 6, filter: "blur(4px)" }
-                      }
-                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      transition={
-                        prefersReducedMotion
-                          ? { duration: 0 }
-                          : {
-                              duration: 0.4,
-                              ease: [0.16, 1, 0.3, 1],
-                            }
-                      }
-                      className="inline"
-                    >
+                    <span key={`${sentenceIdx}-${wordIdx}`} className="inline">
                       {word.text}
-                      {wordIdx < group.length - 1 ? " " : ""}
-                    </motion.span>
+                      {!isLastInGroup ? " " : ""}
+                    </span>
                   );
-                })}
-              </p>
-            );
-          })}
-          {sentenceGroups.length === 0 && (
-            <p className="opacity-0">{vignetteText}</p>
-          )}
-        </div>
-      </div>
+                }
+
+                // Active word in timer mode: interpolate timing from word startTimes
+                const nextWord = words[absIdx + 1];
+                const wordEndTime = nextWord
+                  ? nextWord.startTime
+                  : totalDuration;
+
+                return (
+                  <ActiveWord
+                    key={`${sentenceIdx}-${wordIdx}`}
+                    ref={latestWordRef}
+                    word={word.text}
+                    wordStart={word.startTime}
+                    wordEnd={wordEndTime}
+                    trailingSpace={!isLastInGroup}
+                  />
+                );
+              })}
+            </p>
+          );
+        })}
+        {sentenceGroups.length === 0 && (
+          <p className="opacity-0">{vignetteText}</p>
+        )}
+      </ScrollableTextBox>
 
       <PromptSection showPrompt={showPrompt} vignettePrompt={vignettePrompt} />
     </div>
+    </>
   );
 }
+
+// --- ActiveWord: per-character fade-in reveal ---
+
+import { forwardRef } from "react";
+
+type ActiveWordProps = {
+  word: string;
+  wordStart: number;
+  wordEnd: number;
+  currentTimeRef?: RefObject<number>;
+  trailingSpace: boolean;
+};
+
+const ActiveWord = forwardRef<HTMLSpanElement, ActiveWordProps>(
+  function ActiveWord({ word, wordStart, wordEnd, trailingSpace }, ref) {
+    const chars = [...word]; // handles Unicode
+    const wordDuration = Math.max(wordEnd - wordStart, 0.05);
+    const charAnimDuration = 0.12; // 120ms per character
+
+    return (
+      <span ref={ref} className="inline whitespace-nowrap">
+        {chars.map((char, i) => {
+          const delay = (i / chars.length) * wordDuration;
+          return (
+            <span
+              key={i}
+              className="inline-block opacity-0"
+              style={{
+                animation: `char-reveal ${charAnimDuration}s ease-out both`,
+                animationDelay: `${delay}s`,
+              }}
+            >
+              {char}
+            </span>
+          );
+        })}
+        {trailingSpace && <span className="inline"> </span>}
+      </span>
+    );
+  }
+);
+
+// --- Narration Sync Debug Panel (dev only) ---
+
+type NarrationSyncDebugProps = {
+  audioRef: RefObject<HTMLAudioElement | null>;
+  audioTiming: AudioWordTiming[];
+  revealedCount: number;
+};
+
+function NarrationSyncDebug({
+  audioRef,
+  audioTiming,
+  revealedCount,
+}: NarrationSyncDebugProps) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
+  const toggle = useCallback(() => setVisible((v) => !v), []);
+
+  // Keep latest values in refs so the rAF loop always reads current data
+  // without needing React state deps to re-trigger the effect
+  const revealedCountRef = useRef(revealedCount);
+  revealedCountRef.current = revealedCount;
+  const audioTimingRef = useRef(audioTiming);
+  audioTimingRef.current = audioTiming;
+
+  const lastWordEnd =
+    audioTiming.length > 0 ? audioTiming[audioTiming.length - 1].end : 0;
+  const lastWordEndRef = useRef(lastWordEnd);
+  lastWordEndRef.current = lastWordEnd;
+
+  // Self-sustaining rAF loop — starts on mount, polls audioRef each frame.
+  // Doesn't depend on React re-renders to restart.
+  useEffect(() => {
+    if (!visible) return;
+
+    let rafId: number;
+    const tick = () => {
+      const el = canvasRef.current;
+      const audio = audioRef.current;
+      const timing = audioTimingRef.current;
+      const count = revealedCountRef.current;
+      const lwEnd = lastWordEndRef.current;
+
+      if (!el) {
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+
+      if (!audio || !timing || timing.length === 0) {
+        el.innerHTML = `<span style="color:#fbbf24">Waiting for audio\u2026</span>`;
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+
+      const ct = audio.currentTime;
+      const dur = audio.duration;
+      const durMismatch = Number.isFinite(dur) ? dur - lwEnd : NaN;
+
+      // Find expected word at current time
+      let expectedWord = "-";
+      let expectedIdx = -1;
+      for (let i = 0; i < timing.length; i++) {
+        if (timing[i].start <= ct) {
+          expectedIdx = i;
+          expectedWord = timing[i].word;
+        } else {
+          break;
+        }
+      }
+      const expectedCount = expectedIdx + 1;
+
+      // Drift: positive = words ahead of audio, negative = words behind audio
+      const drift = count - expectedCount;
+
+      // The word that was just revealed
+      const revealedWord =
+        count > 0 ? timing[count - 1]?.word ?? "-" : "-";
+      const revealedStart =
+        count > 0 ? timing[count - 1]?.start?.toFixed(3) ?? "-" : "-";
+
+      el.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;">
+          <span style="color:#6ee7b7">currentTime</span><span>${ct.toFixed(3)}s</span>
+          <span style="color:#6ee7b7">audio.duration</span><span>${Number.isFinite(dur) ? dur.toFixed(3) + "s" : "loading\u2026"}</span>
+          <span style="color:#6ee7b7">lastWord.end</span><span>${lwEnd.toFixed(3)}s</span>
+          <span style="color:${Number.isNaN(durMismatch) ? "#9aa0ac" : Math.abs(durMismatch) > 0.1 ? "#fbbf24" : "#6ee7b7"}">duration \u0394</span>
+          <span style="color:${Number.isNaN(durMismatch) ? "#9aa0ac" : Math.abs(durMismatch) > 0.1 ? "#fbbf24" : "inherit"}">${Number.isNaN(durMismatch) ? "-" : (durMismatch > 0 ? "+" : "") + durMismatch.toFixed(3) + "s"}</span>
+          <span style="color:#6ee7b7">revealed</span><span>${count}/${timing.length} "${revealedWord}" @${revealedStart}</span>
+          <span style="color:#6ee7b7">expected</span><span>${expectedCount}/${timing.length} "${expectedWord}"</span>
+          <span style="color:${drift === 0 ? "#6ee7b7" : Math.abs(drift) <= 1 ? "#fbbf24" : "#f87171"}">word drift</span>
+          <span style="color:${drift === 0 ? "#6ee7b7" : Math.abs(drift) <= 1 ? "#fbbf24" : "#f87171"}">${drift > 0 ? "+" : ""}${drift} words ${drift > 0 ? "(ahead)" : drift < 0 ? "(behind)" : "(synced)"}</span>
+        </div>
+      `;
+
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [visible, audioRef]);
+
+  if (!visible) {
+    return createPortal(
+      <button
+        type="button"
+        onClick={toggle}
+        className="fixed top-4 right-4 z-50 rounded-full border border-cyan-500/40 bg-cyan-950/80 px-3 py-1.5 font-mono text-xs text-cyan-400 backdrop-blur-sm"
+      >
+        SYNC
+      </button>,
+      document.body
+    );
+  }
+
+  return createPortal(
+    <div className="fixed top-4 right-4 z-50 w-80 rounded-xl border border-cyan-500/30 bg-cyan-950/90 p-3 font-mono text-xs text-cyan-200 shadow-lg shadow-cyan-900/20 backdrop-blur-md">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-cyan-500">
+          Narration Sync
+        </span>
+        <button
+          type="button"
+          onClick={toggle}
+          className="text-cyan-500/60 hover:text-cyan-400"
+          aria-label="Hide sync debug"
+        >
+          &#x2715;
+        </button>
+      </div>
+      <div ref={canvasRef} />
+    </div>,
+    document.body
+  );
+}
+
+// --- ScrollableTextBox: glass card with Duolingo-style scroll indicators ---
+
+function ScrollableTextBox({
+  scrollContainerRef,
+  ariaLive,
+  children,
+}: {
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  ariaLive?: "polite";
+  children: React.ReactNode;
+}) {
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      setCanScrollUp(scrollTop > 2);
+      setCanScrollDown(scrollTop + clientHeight < scrollHeight - 2);
+    };
+
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    return () => {
+      el.removeEventListener("scroll", update);
+      ro.disconnect();
+    };
+  }, [scrollContainerRef]);
+
+  return (
+    <div
+      className="rounded-2xl border border-border-glass ring-1 ring-inset ring-white/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl"
+      aria-live={ariaLive}
+    >
+      <div className="relative">
+        {/* Top scroll indicator */}
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200",
+            canScrollUp ? "opacity-100" : "opacity-0"
+          )}
+        />
+
+        <div
+          ref={scrollContainerRef}
+          className="max-h-[50vh] space-y-3 overflow-y-auto pr-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
+        >
+          {children}
+        </div>
+
+        {/* Bottom scroll indicator */}
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200",
+            canScrollDown ? "opacity-100" : "opacity-0"
+          )}
+        />
+      </div>
+    </div>
+  );
+}
+
+// --- PromptSection ---
 
 function PromptSection({
   showPrompt,
