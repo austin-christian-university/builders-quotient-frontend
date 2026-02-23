@@ -7,6 +7,7 @@ import { devSkipToComplete } from "@/lib/actions/dev";
 
 const PHASES: Phase[] = [
   "ready",
+  "countdown",
   "narrating",
   "buffer",
   "recording",
@@ -17,6 +18,7 @@ const PHASES: Phase[] = [
 
 const PHASE_LABELS: Record<Phase, string> = {
   ready: "Ready",
+  countdown: "Countdown",
   narrating: "Narrating",
   buffer: "Buffer",
   recording: "Recording",

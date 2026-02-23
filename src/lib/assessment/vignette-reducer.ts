@@ -1,5 +1,6 @@
 export type Phase =
   | "ready"
+  | "countdown"
   | "narrating"
   | "buffer"
   | "recording"
@@ -9,6 +10,8 @@ export type Phase =
 
 export type Action =
   | { type: "BEGIN" }
+  | { type: "BEGIN_COUNTDOWN" }
+  | { type: "COUNTDOWN_COMPLETE" }
   | { type: "NARRATION_COMPLETE" }
   | { type: "BUFFER_COMPLETE" }
   | { type: "RECORDING_STOPPED" }
@@ -26,6 +29,14 @@ export function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "BEGIN":
       return state.phase === "ready"
+        ? { ...state, phase: "narrating" }
+        : state;
+    case "BEGIN_COUNTDOWN":
+      return state.phase === "ready"
+        ? { ...state, phase: "countdown" }
+        : state;
+    case "COUNTDOWN_COMPLETE":
+      return state.phase === "countdown"
         ? { ...state, phase: "narrating" }
         : state;
     case "NARRATION_COMPLETE":

@@ -15,6 +15,7 @@ import { useUploadQueue } from "@/lib/assessment/upload-queue";
 import { Button } from "@/components/ui/button";
 import { reducer } from "@/lib/assessment/vignette-reducer";
 import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
+import { playCountdownTone } from "@/lib/assessment/countdown-tone";
 import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
 import dynamic from "next/dynamic";
 
@@ -74,6 +75,11 @@ export function VignetteExperience({
   const { stream, streamRef, status: streamStatus, error: streamError, retry: retryStream } = useMediaStream();
   const recorder = useVideoRecorder(stream);
   const [bufferRemaining, setBufferRemaining] = useState(BUFFER_SECONDS);
+  const [countdownNumber, setCountdownNumber] = useState(3);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const audioPlayRef = useRef(audio.play);
+  audioPlayRef.current = audio.play;
+  const playedTonesRef = useRef(new Set<number>());
   const blobRef = useRef<Blob | null>(null);
 
   // --- Buffer countdown ---
@@ -94,6 +100,35 @@ export function VignetteExperience({
 
     return () => clearInterval(interval);
   }, [state.phase]);
+
+  // --- 3-2-1 countdown ---
+  useEffect(() => {
+    if (state.phase !== "countdown") return;
+
+    playedTonesRef.current.clear();
+    setCountdownNumber(3);
+
+    const t1 = setTimeout(() => setCountdownNumber(2), 1000);
+    const t2 = setTimeout(() => setCountdownNumber(1), 2000);
+    const t3 = setTimeout(() => {
+      audioPlayRef.current();
+      dispatch({ type: "COUNTDOWN_COMPLETE" });
+    }, 3000);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [state.phase]);
+
+  // Called by CountdownDigit when a number finishes its enter animation
+  const handleCountdownTone = useCallback((n: number) => {
+    if (playedTonesRef.current.has(n)) return; // guard against exit re-fire
+    playedTonesRef.current.add(n);
+    const ctx = audioCtxRef.current;
+    if (ctx) playCountdownTone(ctx, 440); // A4 for all three numbers
+  }, []);
 
   // --- Auto-start recording when buffer completes ---
   useEffect(() => {
@@ -200,10 +235,26 @@ export function VignetteExperience({
   }, [state.phase]);
 
   const handleBegin = useCallback(() => {
-    // Call play() directly inside the click handler so the browser
-    // recognises the user gesture and allows audio playback.
-    audio.play();
-    dispatch({ type: "BEGIN" });
+    // Prime narration audio in the user-gesture handler so the browser
+    // unlocks it for later programmatic playback after the countdown.
+    const el = audio.audioRef.current;
+    if (el) {
+      el.play().then(() => {
+        el.pause();
+        el.currentTime = 0;
+      }).catch(() => {
+        // Audio priming failed — countdown will still work, timer fallback kicks in
+      });
+    }
+
+    // Create AudioContext (also unlocked by the gesture) for countdown tones
+    try {
+      audioCtxRef.current = new AudioContext();
+    } catch {
+      // Web Audio unavailable — countdown will be silent
+    }
+
+    dispatch({ type: "BEGIN_COUNTDOWN" });
   }, [audio]);
 
   const handleNarrationComplete = useCallback(() => {
@@ -280,6 +331,20 @@ export function VignetteExperience({
 
                 {/* Camera PiP during ready */}
                 <CameraPip stream={streamRef.current} />
+              </motion.div>
+            )}
+
+            {/* Countdown phase */}
+            {state.phase === "countdown" && (
+              <motion.div
+                key="countdown"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex flex-1 flex-col items-center justify-center"
+              >
+                <CountdownDigit number={countdownNumber} onEnterComplete={handleCountdownTone} />
               </motion.div>
             )}
 
@@ -426,9 +491,35 @@ export function VignetteExperience({
   );
 }
 
+// --- Countdown digit with scale+fade animation per number ---
+function CountdownDigit({
+  number,
+  onEnterComplete,
+}: {
+  number: number;
+  onEnterComplete?: (n: number) => void;
+}) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.span
+        key={number}
+        initial={{ opacity: 0, scale: 1.3 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.85 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        onAnimationComplete={() => onEnterComplete?.(number)}
+        className="select-none text-[clamp(6rem,20vw,10rem)] font-bold leading-none tracking-tight text-text-primary"
+        style={{ textShadow: "0 0 40px rgba(77, 163, 255, 0.35)" }}
+      >
+        {number}
+      </motion.span>
+    </AnimatePresence>
+  );
+}
+
 // --- Ambient gradient orbs behind the glass panels ---
 function AmbientBackground({ phase }: { phase: string }) {
-  const isActive = phase === "ready" || phase === "narrating" || phase === "buffer" || phase === "recording";
+  const isActive = phase === "ready" || phase === "countdown" || phase === "narrating" || phase === "buffer" || phase === "recording";
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
