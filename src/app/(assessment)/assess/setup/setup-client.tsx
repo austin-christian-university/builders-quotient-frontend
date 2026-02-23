@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { MobileWarningDialog } from "@/components/assessment/MobileWarningDialog";
+import { isMobileDevice } from "@/lib/assessment/detect-mobile";
 import { createAssessmentSession } from "@/lib/actions/session";
 
 type DeviceStatus = "pending" | "granted" | "denied" | "error";
@@ -17,6 +19,10 @@ export function SetupClient() {
   const [cameraStatus, setCameraStatus] = useState<DeviceStatus>("pending");
   const [micStatus, setMicStatus] = useState<DeviceStatus>("pending");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // null = check hasn't run yet, true/false = result of mobile detection
+  const [showMobileWarning, setShowMobileWarning] = useState<boolean | null>(
+    null
+  );
 
   // Callback ref: attaches stream to <video> when it mounts into the DOM
   const videoCallbackRef = useCallback(
@@ -30,8 +36,17 @@ export function SetupClient() {
     [cameraStatus]
   );
 
-  // Synchronize with browser media devices on mount
+  // Detect mobile devices after mount to avoid hydration mismatch
   useEffect(() => {
+    const dismissed = sessionStorage.getItem("bq:mobile-warning-dismissed");
+    setShowMobileWarning(!dismissed && isMobileDevice());
+  }, []);
+
+  // Request camera/mic only after mobile check completes and warning is dismissed
+  useEffect(() => {
+    // Wait for mobile check to finish; stay gated while warning is showing
+    if (showMobileWarning !== false) return;
+
     let cancelled = false;
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -66,7 +81,7 @@ export function SetupClient() {
       cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
-  }, []);
+  }, [showMobileWarning]);
 
   async function retryPermissions() {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -99,6 +114,11 @@ export function SetupClient() {
     }
   }
 
+  function dismissMobileWarning() {
+    sessionStorage.setItem("bq:mobile-warning-dismissed", "1");
+    setShowMobileWarning(false);
+  }
+
   const isReady = cameraStatus === "granted" && micStatus === "granted";
 
   async function handleStart() {
@@ -108,6 +128,10 @@ export function SetupClient() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center px-4 py-12">
+      <MobileWarningDialog
+        open={showMobileWarning === true}
+        onDismiss={dismissMobileWarning}
+      />
       <Card className="w-full max-w-lg">
         <CardHeader>
           <p className="text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-text-secondary">
