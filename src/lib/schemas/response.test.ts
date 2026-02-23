@@ -128,7 +128,7 @@ describe("responseSubmissionSchema", () => {
   });
 
   it("accepts videoDurationSeconds at boundaries", () => {
-    for (const val of [1, 150, 300]) {
+    for (const val of [10, 90, 180]) {
       expect(() =>
         responseSubmissionSchema.parse({
           ...validPayload,
