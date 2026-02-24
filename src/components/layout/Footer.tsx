@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 function Footer() {
   return (
     <footer className="border-t border-border px-6 py-12">
@@ -8,28 +10,28 @@ function Footer() {
         <nav aria-label="Footer">
           <ul className="flex gap-6 text-[length:var(--text-fluid-xs)]">
             <li>
-              <a
+              <Link
                 href="/privacy"
-                className="text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+                className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >
                 Privacy
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="/terms"
-                className="text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+                className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >
                 Terms
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="/contact"
-                className="text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+                className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >
                 Contact
-              </a>
+              </Link>
             </li>
           </ul>
         </nav>
