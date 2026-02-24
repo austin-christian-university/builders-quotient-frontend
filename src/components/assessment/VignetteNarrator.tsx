@@ -100,7 +100,11 @@ export function VignetteNarrator({
   const showAllNarrative = phase !== "narrating";
 
   // Prompt visibility rules
-  const showPhase1Prompt = phase === "buffer_1" || phase === "recording_1" || phase === "buffer_2" || phase === "recording_2";
+  // Phase 1 prompt appears during narrating (word-by-word as audio reaches it) and stays visible after
+  const isPhase1Revealing = phase === "narrating";
+  const showPhase1Prompt =
+    isPhase1Revealing ||
+    phase === "buffer_1" || phase === "recording_1" || phase === "buffer_2" || phase === "recording_2";
   const showPhase2Prompt = phase === "buffer_2" || phase === "recording_2";
   const isPhase2Revealing = phase === "buffer_2" && buffer2SubStage === "prompting";
 
@@ -251,24 +255,43 @@ export function VignetteNarrator({
           />
         </ScrollableTextBox>
 
-        {/* Phase 1 prompt */}
-        {showPhase1Prompt && (
-          <PromptSection label="Prompt 1" text={vignettePrompt}>
-            {phase1PromptTimings.length > 0 && (
-              <div className="mt-2">
-                <p>
-                  {phase1PromptTimings.map((timing, i) => {
-                    if (i >= phase1PromptCount) return null;
-                    const isLast = i === phase1PromptTimings.length - 1;
+        {/* Phase 1 prompt — word-by-word during narrating, static text after */}
+        {showPhase1Prompt && phase1PromptCount > 0 && (
+          <PromptSection
+            label="Prompt 1"
+            text={!isPhase1Revealing ? vignettePrompt : undefined}
+          >
+            {isPhase1Revealing && phase1PromptTimings.length > 0 && (
+              <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
+                {phase1PromptTimings.map((timing, i) => {
+                  if (i >= phase1PromptCount) return null;
+
+                  const globalIdx = phase1PromptStartIdx + i;
+                  const isActiveWord = globalIdx === revealedCount - 1 && !showAll;
+                  const isLast = i === phase1PromptTimings.length - 1;
+
+                  if (!isActiveWord) {
                     return (
                       <span key={i} className="inline">
                         {timing.word}
                         {!isLast ? " " : ""}
                       </span>
                     );
-                  })}
-                </p>
-              </div>
+                  }
+
+                  return (
+                    <ActiveWord
+                      key={i}
+                      ref={latestWordRef}
+                      word={timing.word}
+                      wordStart={timing.start}
+                      wordEnd={timing.end}
+                      currentTimeRef={audio.currentTimeRef}
+                      trailingSpace={!isLast}
+                    />
+                  );
+                })}
+              </p>
             )}
           </PromptSection>
         )}

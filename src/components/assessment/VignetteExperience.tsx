@@ -151,15 +151,18 @@ export function VignetteExperience({
     return () => clearInterval(interval);
   }, [state.phase]);
 
-  // --- recording_1: auto-start + 75s countdown ---
+  // --- recording_1: auto-start recorder ---
   useEffect(() => {
     if (state.phase !== "recording_1") return;
-
-    // Start recording
     if (recorder.status === "idle") {
       recorder.start();
       phase1StartTimeRef.current = new Date().toISOString();
     }
+  }, [state.phase, recorder.status, recorder.start]);
+
+  // recording_1: 75s countdown (separate from recorder to avoid resets)
+  useEffect(() => {
+    if (state.phase !== "recording_1") return;
 
     setRecording1Remaining(RECORDING_1_SECONDS);
     const interval = setInterval(() => {
@@ -173,7 +176,7 @@ export function VignetteExperience({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [state.phase, recorder]);
+  }, [state.phase]);
 
   // Auto-clip at recording_1 countdown expiry
   useEffect(() => {
@@ -192,7 +195,7 @@ export function VignetteExperience({
 
     clipPhase1();
     return () => { cancelled = true; };
-  }, [state.phase, recording1Remaining, recorder]);
+  }, [state.phase, recording1Remaining, recorder.status, recorder.clip]);
 
   // Handle recorder error during recording_1
   useEffect(() => {
@@ -306,13 +309,17 @@ export function VignetteExperience({
     return () => clearInterval(interval);
   }, [state.phase, buffer2SubStage]);
 
-  // --- recording_2: auto-start + 45s countdown ---
+  // --- recording_2: auto-start recorder ---
   useEffect(() => {
     if (state.phase !== "recording_2") return;
-
     if (recorder.status === "idle") {
       recorder.start();
     }
+  }, [state.phase, recorder.status, recorder.start]);
+
+  // recording_2: 45s countdown (separate from recorder to avoid resets)
+  useEffect(() => {
+    if (state.phase !== "recording_2") return;
 
     setRecording2Remaining(RECORDING_2_SECONDS);
     const interval = setInterval(() => {
@@ -326,7 +333,7 @@ export function VignetteExperience({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [state.phase, recorder]);
+  }, [state.phase]);
 
   // Auto-stop at recording_2 countdown expiry
   useEffect(() => {
@@ -334,7 +341,7 @@ export function VignetteExperience({
     if (recorder.status !== "recording") return;
 
     recorder.stop();
-  }, [state.phase, recording2Remaining, recorder]);
+  }, [state.phase, recording2Remaining, recorder.status, recorder.stop]);
 
   // Handle recording_2 done -> submitting
   useEffect(() => {
