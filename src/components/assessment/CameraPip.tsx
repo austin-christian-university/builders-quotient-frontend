@@ -26,10 +26,9 @@ export function CameraPip({ stream }: CameraPipProps) {
 
   return (
     <motion.div
-      layoutId="camera"
       initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       className="fixed bottom-6 right-6 z-50 h-24 w-24 overflow-hidden rounded-full ring-1 ring-white/10 shadow-2xl"
       aria-hidden="true"
     >
