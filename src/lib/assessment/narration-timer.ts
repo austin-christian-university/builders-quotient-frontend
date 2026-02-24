@@ -6,7 +6,7 @@ export type AudioWordTiming = {
   section?: AudioSection;
 };
 
-export type AudioSection = "narrative" | "phase_1_prompt" | "phase_2_prompt";
+export type AudioSection = "narrative" | "phase_1_prompt" | "phase_2_prompt" | "phase_3_prompt";
 
 /** Boundary info for a section within the audio timing array. */
 export type SectionBoundary = {

@@ -48,7 +48,7 @@ export async function reserveResponse(data: {
   }
 
   // If final step AND final phase, mark session as completed
-  if (parsed.step === 4 && parsed.responsePhase === 2) {
+  if (parsed.step === 4 && parsed.responsePhase === 3) {
     const { error: sessionError } = await supabase
       .from("assessment_sessions")
       .update({
@@ -64,8 +64,8 @@ export async function reserveResponse(data: {
     return { success: true, complete: true };
   }
 
-  // Navigate to next step only after phase 2 is complete
-  if (parsed.responsePhase === 2) {
+  // Navigate to next step only after phase 3 is complete
+  if (parsed.responsePhase === 3) {
     return { success: true, nextStep: parsed.step + 1 };
   }
 

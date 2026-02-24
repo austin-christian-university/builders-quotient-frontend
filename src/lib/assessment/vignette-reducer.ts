@@ -6,6 +6,8 @@ export type Phase =
   | "recording_1"
   | "buffer_2"
   | "recording_2"
+  | "buffer_3"
+  | "recording_3"
   | "submitting"
   | "transitioning"
   | "error";
@@ -19,6 +21,8 @@ export type Action =
   | { type: "RECORDING_1_COMPLETE" }
   | { type: "BUFFER_2_COMPLETE" }
   | { type: "RECORDING_2_COMPLETE" }
+  | { type: "BUFFER_3_COMPLETE" }
+  | { type: "RECORDING_3_COMPLETE" }
   | { type: "SUBMIT_COMPLETE" }
   | { type: "ERROR"; message: string }
   | { type: "DEV_SET_PHASE"; phase: Phase; errorMessage?: string };
@@ -61,6 +65,14 @@ export function reducer(state: State, action: Action): State {
         : state;
     case "RECORDING_2_COMPLETE":
       return state.phase === "recording_2"
+        ? { ...state, phase: "buffer_3" }
+        : state;
+    case "BUFFER_3_COMPLETE":
+      return state.phase === "buffer_3"
+        ? { ...state, phase: "recording_3" }
+        : state;
+    case "RECORDING_3_COMPLETE":
+      return state.phase === "recording_3"
         ? { ...state, phase: "submitting" }
         : state;
     case "SUBMIT_COMPLETE":

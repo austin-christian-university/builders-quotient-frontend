@@ -6,15 +6,16 @@ import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
 
 /** Safe columns to expose to the client — never include scoring anchors, moves, or exemplars. */
 const PI_SAFE_COLUMNS =
-  "id, vignette_text, phase_1_prompt, phase_2_prompt, situation_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;
+  "id, vignette_text, phase_1_prompt, phase_2_prompt, phase_3_prompt, situation_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;
 const CI_SAFE_COLUMNS =
-  "id, vignette_text, phase_1_prompt, phase_2_prompt, episode_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;
+  "id, vignette_text, phase_1_prompt, phase_2_prompt, phase_3_prompt, episode_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;
 
 export type VignetteData = {
   id: string;
   vignette_text: string;
   vignette_prompt: string;
   phase_2_prompt: string | null;
+  phase_3_prompt: string | null;
   type_label: string;
   vignette_type: "practical" | "creative";
   audio_storage_path: string | null;
@@ -49,6 +50,7 @@ export async function getVignetteForStep(
       vignette_text: data.vignette_text,
       vignette_prompt: data.phase_1_prompt ?? "",
       phase_2_prompt: data.phase_2_prompt ?? null,
+      phase_3_prompt: data.phase_3_prompt ?? null,
       type_label: data.situation_type,
       vignette_type: "practical",
       audio_storage_path: data.audio_storage_path,
@@ -74,6 +76,7 @@ export async function getVignetteForStep(
     vignette_text: data.vignette_text,
     vignette_prompt: data.phase_1_prompt ?? "",
     phase_2_prompt: data.phase_2_prompt ?? null,
+    phase_3_prompt: data.phase_3_prompt ?? null,
     type_label: data.episode_type,
     vignette_type: "creative",
     audio_storage_path: data.audio_storage_path,
@@ -84,7 +87,7 @@ export async function getVignetteForStep(
 
 /**
  * Returns the set of completed step numbers (1-4) for a session.
- * A step is complete when BOTH phase 1 and phase 2 have `response_submitted_at IS NOT NULL`.
+ * A step is complete when all three phases (1, 2, 3) have `response_submitted_at IS NOT NULL`.
  */
 export async function getCompletedSteps(
   sessionId: string,
@@ -108,18 +111,18 @@ export async function getCompletedSteps(
     phasesByVignette.set(r.vignette_id, existing);
   }
 
-  // A step is complete only when both phases are submitted
+  // A step is complete only when all three phases are submitted
   const steps = new Set<number>();
 
   session.practical_vignette_ids.forEach((id, i) => {
     const phases = phasesByVignette.get(id);
-    if (phases && phases.has(1) && phases.has(2)) {
+    if (phases && phases.has(1) && phases.has(2) && phases.has(3)) {
       steps.add(i + 1);
     }
   });
   session.creative_vignette_ids.forEach((id, i) => {
     const phases = phasesByVignette.get(id);
-    if (phases && phases.has(1) && phases.has(2)) {
+    if (phases && phases.has(1) && phases.has(2) && phases.has(3)) {
       steps.add(i + 3);
     }
   });

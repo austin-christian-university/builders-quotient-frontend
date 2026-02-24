@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     typeof step !== "number" ||
     step < 1 ||
     step > 4 ||
-    ![1, 2].includes(responsePhase)
+    ![1, 2, 3].includes(responsePhase)
   ) {
     console.error(`[BQ Upload API] Invalid params — vignetteType: ${vignetteType}, step: ${step}, responsePhase: ${responsePhase}`);
     return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });

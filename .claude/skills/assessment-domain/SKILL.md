@@ -14,6 +14,23 @@ Intake → Practical Intelligence → Creative Intelligence → Personality → 
 
 Intelligence assessments come first (more cognitively demanding), personality last.
 
+## Vignette Response Phases
+
+Each vignette has three timed response phases, each captured as a separate video recording:
+
+| Phase | Duration | Prompt | Scoring Target |
+|-------|----------|--------|----------------|
+| Phase 1 | 75s | Diagnostic thinking ("What do you need to understand?") | Diagnosing, Reasoning, Meta-Reasoning |
+| Phase 2 | 45s | Action planning ("What's your initial read?") | Taking Action, Evaluating |
+| Phase 3 | 45s | Communication/values (consistent across all vignettes) | Communication Strategy, Emotional/Values Reasoning |
+
+**Phase 3 prompt** (same for all vignettes):
+> "Now think about the people involved -- your team, your investors, your partners. How would you communicate your approach to each of them? What values or principles are guiding your decisions here?"
+
+**Timing per phase**: 2s transition, prompt narration, 30s thinking buffer, then recording. Total per-vignette: ~165s.
+
+Phase 3 was added to activate the Communication Strategy and Emotional/Values Reasoning scoring categories, which produced near-zero signal with only two prompts.
+
 ## Practical Intelligence (PI)
 
 **What it measures**: How students navigate real-world ambiguity, execute under constraints, and learn from experience — the way experienced founders do.

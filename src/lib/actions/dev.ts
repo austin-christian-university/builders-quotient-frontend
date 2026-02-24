@@ -117,23 +117,27 @@ async function completeSessionInDb(): Promise<{
         })),
       ];
 
+      const upsertRows = allVignetteIds.flatMap((vignette) =>
+        [1, 2, 3].map((phase) => ({
+          session_id: session.id,
+          vignette_id: vignette.id,
+          vignette_type: vignette.type,
+          response_phase: phase,
+          response_text: "",
+          video_storage_path: `dev/dummy-${session.id}-${vignette.id}-p${phase}.webm`,
+          video_duration_seconds: 30,
+          vignette_served_at: now,
+          recording_started_at: now,
+          response_submitted_at: now,
+          needs_scoring: true,
+        }))
+      );
+
       const upsertResults = await Promise.all(
-        allVignetteIds.map((vignette) =>
-          supabase.from("student_responses").upsert(
-            {
-              session_id: session.id,
-              vignette_id: vignette.id,
-              vignette_type: vignette.type,
-              response_text: "",
-              video_storage_path: `dev/dummy-${session.id}-${vignette.id}.webm`,
-              video_duration_seconds: 30,
-              vignette_served_at: now,
-              recording_started_at: now,
-              response_submitted_at: now,
-              needs_scoring: true,
-            },
-            { onConflict: "session_id,vignette_id" }
-          )
+        upsertRows.map((row) =>
+          supabase.from("student_responses").upsert(row, {
+            onConflict: "session_id,vignette_id,response_phase",
+          })
         )
       );
 
@@ -219,20 +223,25 @@ async function completeSessionInDb(): Promise<{
     ...ciIds.map((id) => ({ id, type: "creative" as const })),
   ];
 
+  const insertRows = allVignetteIds.flatMap((vignette) =>
+    [1, 2, 3].map((phase) => ({
+      session_id: session.id,
+      vignette_id: vignette.id,
+      vignette_type: vignette.type,
+      response_phase: phase,
+      response_text: "",
+      video_storage_path: `dev/dummy-${session.id}-${vignette.id}-p${phase}.webm`,
+      video_duration_seconds: 30,
+      vignette_served_at: now,
+      recording_started_at: now,
+      response_submitted_at: now,
+      needs_scoring: true,
+    }))
+  );
+
   const insertResults = await Promise.all(
-    allVignetteIds.map((vignette) =>
-      supabase.from("student_responses").insert({
-        session_id: session.id,
-        vignette_id: vignette.id,
-        vignette_type: vignette.type,
-        response_text: "",
-        video_storage_path: `dev/dummy-${session.id}-${vignette.id}.webm`,
-        video_duration_seconds: 30,
-        vignette_served_at: now,
-        recording_started_at: now,
-        response_submitted_at: now,
-        needs_scoring: true,
-      })
+    insertRows.map((row) =>
+      supabase.from("student_responses").insert(row)
     )
   );
 
