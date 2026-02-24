@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  forwardRef,
   useEffect,
   useMemo,
   useRef,
@@ -10,34 +11,38 @@ import {
 import { motion } from "motion/react";
 import {
   calculateWordTiming,
+  getSectionBoundaries,
   type AudioWordTiming,
   type WordTiming,
 } from "@/lib/assessment/narration-timer";
 import type { AudioNarratorResult } from "@/lib/assessment/use-audio-narrator";
+import type { Phase } from "@/lib/assessment/vignette-reducer";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
 type VignetteNarratorProps = {
   vignetteText: string;
   vignettePrompt: string;
+  phase2Prompt: string | null;
   estimatedNarrationSeconds: number | null;
-  showPrompt: boolean;
+  phase: Phase;
   onComplete: () => void;
-  isActive: boolean;
   /** Audio narrator state, managed by the parent (VignetteExperience). */
   audio: AudioNarratorResult;
   audioTiming?: AudioWordTiming[] | null;
+  buffer2SubStage?: "transition" | "prompting" | "thinking";
 };
 
 export function VignetteNarrator({
   vignetteText,
   vignettePrompt,
+  phase2Prompt,
   estimatedNarrationSeconds,
-  showPrompt,
+  phase,
   onComplete,
-  isActive,
   audio,
   audioTiming = null,
+  buffer2SubStage,
 }: VignetteNarratorProps) {
   const hasCompletedRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -46,14 +51,29 @@ export function VignetteNarrator({
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const useAudioMode = audio.hasAudio;
+  const isActive = phase === "narrating";
 
-  // --- Timer-based fallback timing ---
+  // Compute section boundaries from audioTiming
+  const sectionBounds = useMemo(
+    () => (audioTiming ? getSectionBoundaries(audioTiming) : []),
+    [audioTiming]
+  );
+  const narrativeBound = sectionBounds.find((b) => b.section === "narrative");
+  const phase1PromptBound = sectionBounds.find((b) => b.section === "phase_1_prompt");
+  const phase2PromptBound = sectionBounds.find((b) => b.section === "phase_2_prompt");
+
+  // Narrative word count (for splitting audio timings between sections)
+  const narrativeEndIdx = narrativeBound ? narrativeBound.endIdx + 1 : (audioTiming?.length ?? 0);
+  const phase1PromptStartIdx = phase1PromptBound?.startIdx ?? narrativeEndIdx;
+  const phase1PromptEndIdx = phase1PromptBound ? phase1PromptBound.endIdx + 1 : narrativeEndIdx;
+  const phase2PromptStartIdx = phase2PromptBound?.startIdx ?? (audioTiming?.length ?? 0);
+
+  // --- Timer-based fallback timing (for narrative text only) ---
   const { words, totalDuration } = useMemo(
     () => calculateWordTiming(vignetteText, estimatedNarrationSeconds),
     [vignetteText, estimatedNarrationSeconds]
   );
 
-  // Group words by sentence for rendering (timer mode only)
   const sentenceGroups = useMemo(() => {
     const groups: WordTiming[][] = [];
     for (const word of words) {
@@ -68,25 +88,48 @@ export function VignetteNarrator({
   // --- State for timer-based reveal ---
   const [timerRevealedCount, setTimerRevealedCount] = useState(0);
 
-  // In reduced-motion + timer mode, reveal all words immediately (no effect needed)
   const effectiveTimerCount =
     !useAudioMode && prefersReducedMotion && isActive
       ? words.length
       : timerRevealedCount;
 
-  // The actual count used for rendering
-  // When inactive (post-narration reference view), reveal everything
+  // Derived counts for each section
   const totalWords = useAudioMode ? (audioTiming?.length ?? 0) : words.length;
-  const revealedCount = !isActive ? totalWords : useAudioMode ? audio.revealedCount : effectiveTimerCount;
 
-  // --- Audio mode: fire onComplete when audio ends ---
+  // Show all words when past narrating phase
+  const showAllNarrative = phase !== "narrating";
+
+  // Prompt visibility rules
+  const showPhase1Prompt = phase === "buffer_1" || phase === "recording_1" || phase === "buffer_2" || phase === "recording_2";
+  const showPhase2Prompt = phase === "buffer_2" || phase === "recording_2";
+  const isPhase2Revealing = phase === "buffer_2" && buffer2SubStage === "prompting";
+
+  // The actual revealed count
+  const revealedCount = showAllNarrative
+    ? totalWords
+    : useAudioMode
+      ? audio.revealedCount
+      : effectiveTimerCount;
+
+  // --- Audio mode: fire onComplete when phase_1_prompt section ends ---
   useEffect(() => {
     if (!useAudioMode) return;
+
+    // If we have section boundaries, fire when revealed count reaches end of phase_1_prompt
+    if (phase1PromptBound) {
+      if (audio.revealedCount >= phase1PromptEndIdx && !hasCompletedRef.current) {
+        hasCompletedRef.current = true;
+        onComplete();
+      }
+      return;
+    }
+
+    // Fallback: fire when entire audio completes (old behavior)
     if (audio.isComplete && !hasCompletedRef.current) {
       hasCompletedRef.current = true;
       onComplete();
     }
-  }, [useAudioMode, audio.isComplete, onComplete]);
+  }, [useAudioMode, audio.isComplete, audio.revealedCount, phase1PromptBound, phase1PromptEndIdx, onComplete]);
 
   // --- Timer mode: drive reveal with setTimeout per word ---
   useEffect(() => {
@@ -94,8 +137,6 @@ export function VignetteNarrator({
     if (!isActive || words.length === 0) return;
 
     if (prefersReducedMotion) {
-      // Words are revealed immediately via effectiveTimerCount (no setState needed).
-      // Fire onComplete after a short delay.
       if (!hasCompletedRef.current) {
         hasCompletedRef.current = true;
         const id = setTimeout(onComplete, 1500);
@@ -113,7 +154,6 @@ export function VignetteNarrator({
       timers.push(timer);
     });
 
-    // Fire completion after total duration
     const completionTimer = setTimeout(() => {
       if (!hasCompletedRef.current) {
         hasCompletedRef.current = true;
@@ -141,45 +181,43 @@ export function VignetteNarrator({
 
   // --- Render ---
 
-  // Inactive mode: static text with sentence-grouped paragraphs (no animation)
-  if (!isActive) {
-    return (
-      <div className="w-full space-y-6">
-        <ScrollableTextBox scrollContainerRef={scrollContainerRef}>
-          {sentenceGroups.map((group, sentenceIdx) => (
-            <p key={sentenceIdx}>
-              {group.map((word, wordIdx) => (
-                <span key={wordIdx} className="inline">
-                  {word.text}
-                  {wordIdx < group.length - 1 ? " " : ""}
-                </span>
-              ))}
-            </p>
-          ))}
-        </ScrollableTextBox>
-
-        <PromptSection showPrompt={showPrompt} vignettePrompt={vignettePrompt} />
-      </div>
-    );
-  }
-
-  // Audio mode: flat word list from audioTiming
+  // Audio mode: section-aware rendering
   if (useAudioMode && audioTiming) {
     const showAll = prefersReducedMotion;
-    const count = showAll ? audioTiming.length : revealedCount;
+
+    // Narrative words (section = "narrative" or no section)
+    const narrativeTimings = audioTiming.slice(0, narrativeEndIdx);
+    const narrativeCount = showAllNarrative || showAll
+      ? narrativeTimings.length
+      : Math.min(revealedCount, narrativeTimings.length);
+
+    // Phase 1 prompt words
+    const phase1PromptTimings = audioTiming.slice(phase1PromptStartIdx, phase1PromptEndIdx);
+    const phase1PromptCount = showAllNarrative || showAll
+      ? phase1PromptTimings.length
+      : Math.max(0, revealedCount - phase1PromptStartIdx);
+
+    // Phase 2 prompt words
+    const phase2PromptTimings = phase2PromptBound
+      ? audioTiming.slice(phase2PromptStartIdx, phase2PromptBound.endIdx + 1)
+      : [];
+    const phase2PromptCount = (showPhase2Prompt && !isPhase2Revealing) || showAll
+      ? phase2PromptTimings.length
+      : isPhase2Revealing
+        ? Math.max(0, revealedCount - phase2PromptStartIdx)
+        : 0;
 
     return (
-      <div className="w-full space-y-6">
+      <motion.div layout className="w-full space-y-6">
         <ScrollableTextBox scrollContainerRef={scrollContainerRef} ariaLive="polite">
           <p>
-            {audioTiming.map((timing, i) => {
-              if (i >= count) return null;
+            {narrativeTimings.map((timing, i) => {
+              if (i >= narrativeCount) return null;
 
-              const isActive = i === count - 1 && !showAll;
-              const isLast = i === audioTiming.length - 1;
+              const isActiveWord = i === narrativeCount - 1 && !showAll && isActive;
+              const isLast = i === narrativeTimings.length - 1;
 
-              // Complete words: plain static span
-              if (!isActive) {
+              if (!isActiveWord) {
                 return (
                   <span key={i} className="inline">
                     {timing.word}
@@ -188,7 +226,6 @@ export function VignetteNarrator({
                 );
               }
 
-              // Active word: per-character animated reveal
               return (
                 <ActiveWord
                   key={i}
@@ -214,11 +251,68 @@ export function VignetteNarrator({
           />
         </ScrollableTextBox>
 
-        <PromptSection
-          showPrompt={showPrompt}
-          vignettePrompt={vignettePrompt}
-        />
-      </div>
+        {/* Phase 1 prompt */}
+        {showPhase1Prompt && (
+          <PromptSection label="Prompt 1" text={vignettePrompt}>
+            {phase1PromptTimings.length > 0 && (
+              <div className="mt-2">
+                <p>
+                  {phase1PromptTimings.map((timing, i) => {
+                    if (i >= phase1PromptCount) return null;
+                    const isLast = i === phase1PromptTimings.length - 1;
+                    return (
+                      <span key={i} className="inline">
+                        {timing.word}
+                        {!isLast ? " " : ""}
+                      </span>
+                    );
+                  })}
+                </p>
+              </div>
+            )}
+          </PromptSection>
+        )}
+
+        {/* Phase 2 prompt */}
+        {showPhase2Prompt && phase2Prompt && (
+          <PromptSection label="Prompt 2" text={!isPhase2Revealing ? phase2Prompt : undefined}>
+            {isPhase2Revealing && phase2PromptTimings.length > 0 && (
+              <div className="mt-2">
+                <p>
+                  {phase2PromptTimings.map((timing, i) => {
+                    if (i >= phase2PromptCount) return null;
+
+                    const globalIdx = phase2PromptStartIdx + i;
+                    const isActiveWord = globalIdx === revealedCount - 1 && !showAll;
+                    const isLast = i === phase2PromptTimings.length - 1;
+
+                    if (!isActiveWord) {
+                      return (
+                        <span key={i} className="inline">
+                          {timing.word}
+                          {!isLast ? " " : ""}
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <ActiveWord
+                        key={i}
+                        ref={latestWordRef}
+                        word={timing.word}
+                        wordStart={timing.start}
+                        wordEnd={timing.end}
+                        currentTimeRef={audio.currentTimeRef}
+                        trailingSpace={!isLast}
+                      />
+                    );
+                  })}
+                </p>
+              </div>
+            )}
+          </PromptSection>
+        )}
+      </motion.div>
     );
   }
 
@@ -226,7 +320,7 @@ export function VignetteNarrator({
   let globalWordIndex = 0;
 
   return (
-    <div className="w-full space-y-6">
+    <motion.div layout className="w-full space-y-6">
       <ScrollableTextBox scrollContainerRef={scrollContainerRef} ariaLive="polite">
         {sentenceGroups.map((group, sentenceIdx) => {
           const sentenceStartIdx = globalWordIndex;
@@ -247,10 +341,9 @@ export function VignetteNarrator({
                 if (absIdx >= revealedCount) return null;
 
                 const isActiveWord =
-                  absIdx === revealedCount - 1 && !prefersReducedMotion;
+                  absIdx === revealedCount - 1 && !prefersReducedMotion && isActive;
                 const isLastInGroup = wordIdx === group.length - 1;
 
-                // Complete words: plain static span
                 if (!isActiveWord) {
                   return (
                     <span key={`${sentenceIdx}-${wordIdx}`} className="inline">
@@ -260,7 +353,6 @@ export function VignetteNarrator({
                   );
                 }
 
-                // Active word in timer mode: interpolate timing from word startTimes
                 const nextWord = words[absIdx + 1];
                 const wordEndTime = nextWord
                   ? nextWord.startTime
@@ -295,14 +387,20 @@ export function VignetteNarrator({
         />
       </ScrollableTextBox>
 
-      <PromptSection showPrompt={showPrompt} vignettePrompt={vignettePrompt} />
-    </div>
+      {/* Phase 1 prompt (timer fallback — show full text) */}
+      {showPhase1Prompt && (
+        <PromptSection label="Prompt 1" text={vignettePrompt} />
+      )}
+
+      {/* Phase 2 prompt (timer fallback — show full text) */}
+      {showPhase2Prompt && phase2Prompt && (
+        <PromptSection label="Prompt 2" text={phase2Prompt} />
+      )}
+    </motion.div>
   );
 }
 
 // --- ActiveWord: per-character fade-in reveal ---
-
-import { forwardRef } from "react";
 
 type ActiveWordProps = {
   word: string;
@@ -314,9 +412,9 @@ type ActiveWordProps = {
 
 const ActiveWord = forwardRef<HTMLSpanElement, ActiveWordProps>(
   function ActiveWord({ word, wordStart, wordEnd, trailingSpace }, ref) {
-    const chars = [...word]; // handles Unicode
+    const chars = [...word];
     const wordDuration = Math.max(wordEnd - wordStart, 0.05);
-    const charAnimDuration = 0.12; // 120ms per character
+    const charAnimDuration = 0.12;
 
     return (
       <span ref={ref} className="inline whitespace-nowrap">
@@ -364,7 +462,6 @@ function NarrationDebugBar({
 }: NarrationDebugBarProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  // Keep latest values in refs so the rAF loop reads current data
   const revealedCountRef = useRef(revealedCount);
   revealedCountRef.current = revealedCount;
   const audioTimingRef = useRef(audioTiming);
@@ -372,7 +469,6 @@ function NarrationDebugBar({
   const totalWordsRef = useRef(totalWords);
   totalWordsRef.current = totalWords;
 
-  // Self-sustaining rAF loop — writes directly to DOM via ref.innerHTML
   useEffect(() => {
     const startTime = performance.now();
     let rafId: number;
@@ -395,7 +491,6 @@ function NarrationDebugBar({
         const lwEnd = timing[timing.length - 1].end;
         const durMismatch = Number.isFinite(dur) ? dur - lwEnd : NaN;
 
-        // Find expected word at current time
         let expectedIdx = -1;
         for (let i = 0; i < timing.length; i++) {
           if (timing[i].start <= ct) expectedIdx = i;
@@ -414,7 +509,6 @@ function NarrationDebugBar({
           ` &middot; ${count}/${total}` +
           ` &middot; <span style="color:${driftColor}">drift ${drift > 0 ? "+" : ""}${drift}</span>`;
       } else {
-        // Timer mode
         const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
         const modeLabel = hasFailed
           ? `<span style="color:#f87171;font-weight:600">TIMER (audio failed)</span>`
@@ -439,7 +533,7 @@ function NarrationDebugBar({
   );
 }
 
-// --- ScrollableTextBox: glass card with Duolingo-style scroll indicators ---
+// --- ScrollableTextBox: glass card with scroll indicators ---
 
 function ScrollableTextBox({
   scrollContainerRef,
@@ -475,12 +569,12 @@ function ScrollableTextBox({
   }, [scrollContainerRef]);
 
   return (
-    <div
+    <motion.div
+      layout
       className="rounded-2xl border border-border-glass ring-1 ring-inset ring-white/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl"
       aria-live={ariaLive}
     >
       <div className="relative">
-        {/* Top scroll indicator */}
         <div
           className={cn(
             "pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200",
@@ -495,7 +589,6 @@ function ScrollableTextBox({
           {children}
         </div>
 
-        {/* Bottom scroll indicator */}
         <div
           className={cn(
             "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200",
@@ -503,34 +596,38 @@ function ScrollableTextBox({
           )}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 // --- PromptSection ---
 
 function PromptSection({
-  showPrompt,
-  vignettePrompt,
+  label,
+  text,
+  children,
 }: {
-  showPrompt: boolean;
-  vignettePrompt: string;
+  label: string;
+  text?: string;
+  children?: React.ReactNode;
 }) {
-  if (!showPrompt) return null;
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-2xl border border-secondary/30 bg-secondary/5 p-5"
+      layout
+      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ delay: 0.3, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className="rounded-2xl border border-secondary/30 bg-secondary/5 p-5 mt-4"
     >
       <p className="mb-1 text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-secondary">
-        Your Prompt
+        {label}
       </p>
-      <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
-        {vignettePrompt}
-      </p>
+      {text && (
+        <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
+          {text}
+        </p>
+      )}
+      {children}
     </motion.div>
   );
 }

@@ -22,6 +22,7 @@ export function useVideoRecorder(stream: MediaStream | null) {
   const chunksRef = useRef<Blob[]>([]);
   const [startTime, setStartTime] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mimeTypeRef = useRef<string>("");
 
   const [status, setStatus] = useState<RecorderStatus>("idle");
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -41,6 +42,7 @@ export function useVideoRecorder(stream: MediaStream | null) {
     setError(null);
 
     const mimeType = getPreferredMimeType();
+    mimeTypeRef.current = mimeType;
     try {
       const recorder = new MediaRecorder(stream, {
         mimeType: mimeType || undefined,
@@ -108,9 +110,48 @@ export function useVideoRecorder(stream: MediaStream | null) {
     }
   }, []);
 
+  /**
+   * Clip: stops the current recording, assembles the blob, resets to idle
+   * so `start()` can be called again for a second recording.
+   * Returns the blob via a Promise (resolves when onstop fires).
+   */
+  const clip = useCallback((): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      const recorder = recorderRef.current;
+      if (!recorder || recorder.state === "inactive") {
+        resolve(null);
+        return;
+      }
+
+      // Override onstop for this clip operation
+      const mimeType = mimeTypeRef.current;
+      recorder.onstop = () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+
+        const clippedBlob = new Blob(chunksRef.current, {
+          type: mimeType || "video/webm",
+        });
+
+        // Reset state for reuse (don't set blob/done — that's for final stop)
+        chunksRef.current = [];
+        recorderRef.current = null;
+        setStatus("idle");
+        setDuration(0);
+
+        resolve(clippedBlob);
+      };
+
+      recorder.stop();
+    });
+  }, []);
+
   return {
     start,
     stop,
+    clip,
     blob,
     status,
     duration,

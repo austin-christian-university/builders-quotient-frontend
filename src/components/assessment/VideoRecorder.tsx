@@ -1,16 +1,11 @@
 "use client";
 
-import { useCallback, useRef } from "react";
 import { motion } from "motion/react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 type VideoRecorderProps = {
-  stream: MediaStream | null;
-  isRecording: boolean;
-  duration: number;
-  onStop: () => void;
-  minRecordingSeconds: number;
+  secondsRemaining: number;
+  totalSeconds: number;
+  phaseLabel: string;
 };
 
 function formatTime(seconds: number): string {
@@ -20,91 +15,79 @@ function formatTime(seconds: number): string {
 }
 
 export function VideoRecorder({
-  stream,
-  isRecording,
-  duration,
-  onStop,
-  minRecordingSeconds,
+  secondsRemaining,
+  totalSeconds,
+  phaseLabel,
 }: VideoRecorderProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const callbackRef = useCallback(
-    (el: HTMLVideoElement | null) => {
-      if (el && stream) {
-        el.srcObject = stream;
-      }
-      (videoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el;
-    },
-    [stream]
-  );
-
-  const canStop = isRecording && duration >= minRecordingSeconds;
+  const progress = 1 - secondsRemaining / totalSeconds;
+  const circumference = 2 * Math.PI * 54;
+  const offset = circumference * (1 - progress);
+  const isDramatic = secondsRemaining <= 5;
 
   return (
-    <motion.div layoutId="camera" className="w-full">
-      {/* Camera preview */}
-      <div
-        className={cn(
-          "relative overflow-hidden rounded-2xl border bg-bg-base transition-shadow duration-300",
-          isRecording
-            ? "border-red-500/30 ring-2 ring-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
-            : "border-border-glass"
-        )}
-      >
-        <video
-          ref={callbackRef}
-          autoPlay
-          playsInline
-          muted
-          aria-label="Camera preview — your video will be recorded"
-          className="aspect-video w-full object-cover [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]"
-        />
-
-        {/* Recording indicator */}
-        {isRecording && (
-          <div
-            className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm"
-            aria-label="Recording in progress"
-          >
-            <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-            </span>
-            <span
-              className="text-sm font-medium tabular-nums text-white"
-              role="timer"
-              aria-live="off"
-            >
-              {formatTime(duration)}
-            </span>
-          </div>
-        )}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="flex w-full flex-col items-center gap-4 mt-4"
+    >
+      {/* Recording indicator */}
+      <div className="flex items-center gap-3 rounded-full border border-red-500/30 bg-red-500/10 px-5 py-2.5 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+        <span className="relative flex h-3 w-3">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+        </span>
+        <span
+          className="text-base font-medium tabular-nums text-red-400"
+          role="timer"
+          aria-live="off"
+        >
+          Recording &bull; {phaseLabel}
+        </span>
       </div>
 
-      {/* Controls */}
-      {isRecording && (
-        <div className="mt-4 flex justify-center">
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={onStop}
-            disabled={!canStop}
-            aria-label={canStop ? "I\u2019m done recording" : `Minimum recording time: ${minRecordingSeconds - duration} seconds remaining`}
-            className="min-w-[140px]"
-          >
-            {canStop ? (
-              "I\u2019m Done"
-            ) : (
-              <>
-                <span className="tabular-nums">
-                  {minRecordingSeconds - duration}s
-                </span>{" "}
-                min
-              </>
-            )}
-          </Button>
-        </div>
-      )}
+      {/* Countdown ring */}
+      <div className="relative flex h-28 w-28 items-center justify-center">
+        <svg
+          className="absolute inset-0 -rotate-90"
+          viewBox="0 0 120 120"
+          aria-hidden="true"
+        >
+          <circle
+            cx="60"
+            cy="60"
+            r="54"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            className="text-border-glass"
+          />
+          <circle
+            cx="60"
+            cy="60"
+            r="54"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            className="text-red-500 transition-[stroke-dashoffset] duration-1000 ease-linear"
+            style={{
+              filter: "drop-shadow(0 0 6px rgba(239, 68, 68, 0.6))",
+            }}
+          />
+        </svg>
+
+        <span
+          className={`font-display text-[length:var(--text-fluid-xl)] font-bold tabular-nums ${
+            isDramatic ? "text-red-400" : "text-text-primary"
+          }`}
+          aria-label={`${secondsRemaining} seconds remaining`}
+        >
+          {formatTime(secondsRemaining)}
+        </span>
+      </div>
     </motion.div>
   );
 }

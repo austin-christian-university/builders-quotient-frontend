@@ -21,6 +21,7 @@ export type UploadJob = {
   vignetteId: string;
   vignetteType: "practical" | "creative";
   step: number;
+  responsePhase: number;
   status: UploadJobStatus;
   progress: number;
   retryCount: number;
@@ -33,6 +34,7 @@ type EnqueuePayload = {
   vignetteId: string;
   vignetteType: "practical" | "creative";
   step: number;
+  responsePhase: number;
 };
 
 type UploadQueueContextValue = {
@@ -81,7 +83,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
 
   // --- Enqueue ---
   const enqueue = useCallback((payload: EnqueuePayload) => {
-    const id = `${payload.sessionId}-${payload.vignetteType}-${payload.step}`;
+    const id = `${payload.sessionId}-${payload.vignetteType}-${payload.step}-p${payload.responsePhase}`;
     blobMapRef.current.set(id, payload.blob);
     setJobs((prev) => {
       // Replace existing job if re-enqueued (e.g. manual retry)
@@ -94,6 +96,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           vignetteId: payload.vignetteId,
           vignetteType: payload.vignetteType,
           step: payload.step,
+          responsePhase: payload.responsePhase,
           status: "queued" as const,
           progress: 0,
           retryCount: 0,
@@ -154,6 +157,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({
             vignetteType: job.vignetteType,
             step: job.step,
+            responsePhase: job.responsePhase,
           }),
         });
 
@@ -239,6 +243,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         await confirmUpload({
           sessionId: job.sessionId,
           vignetteId: job.vignetteId,
+          responsePhase: job.responsePhase,
           storagePath,
         });
 
@@ -290,6 +295,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           reportUploadFailure({
             sessionId: job.sessionId,
             vignetteId: job.vignetteId,
+            responsePhase: job.responsePhase,
           }).catch(() => {
             // Best-effort — don't throw if this fails
           });

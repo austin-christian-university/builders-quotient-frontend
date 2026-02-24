@@ -14,6 +14,7 @@ export type VignetteData = {
   id: string;
   vignette_text: string;
   vignette_prompt: string;
+  phase_2_prompt: string | null;
   type_label: string;
   vignette_type: "practical" | "creative";
   audio_storage_path: string | null;
@@ -47,6 +48,7 @@ export async function getVignetteForStep(
       id: data.id,
       vignette_text: data.vignette_text,
       vignette_prompt: data.phase_1_prompt ?? "",
+      phase_2_prompt: data.phase_2_prompt ?? null,
       type_label: data.situation_type,
       vignette_type: "practical",
       audio_storage_path: data.audio_storage_path,
@@ -71,6 +73,7 @@ export async function getVignetteForStep(
     id: data.id,
     vignette_text: data.vignette_text,
     vignette_prompt: data.phase_1_prompt ?? "",
+    phase_2_prompt: data.phase_2_prompt ?? null,
     type_label: data.episode_type,
     vignette_type: "creative",
     audio_storage_path: data.audio_storage_path,
@@ -81,7 +84,7 @@ export async function getVignetteForStep(
 
 /**
  * Returns the set of completed step numbers (1-4) for a session.
- * A step is complete when `response_submitted_at IS NOT NULL`.
+ * A step is complete when BOTH phase 1 and phase 2 have `response_submitted_at IS NOT NULL`.
  */
 export async function getCompletedSteps(
   sessionId: string,
@@ -91,20 +94,34 @@ export async function getCompletedSteps(
 
   const { data, error } = await supabase
     .from("student_responses")
-    .select("vignette_id")
+    .select("vignette_id, response_phase")
     .eq("session_id", sessionId)
     .not("response_submitted_at", "is", null);
 
   if (error || !data) return new Set();
 
-  const completedIds = new Set(data.map((r) => r.vignette_id));
+  // Group by vignette_id, collect which phases are submitted
+  const phasesByVignette = new Map<string, Set<number>>();
+  for (const r of data) {
+    const existing = phasesByVignette.get(r.vignette_id) ?? new Set();
+    existing.add(r.response_phase);
+    phasesByVignette.set(r.vignette_id, existing);
+  }
+
+  // A step is complete only when both phases are submitted
   const steps = new Set<number>();
 
   session.practical_vignette_ids.forEach((id, i) => {
-    if (completedIds.has(id)) steps.add(i + 1);
+    const phases = phasesByVignette.get(id);
+    if (phases && phases.has(1) && phases.has(2)) {
+      steps.add(i + 1);
+    }
   });
   session.creative_vignette_ids.forEach((id, i) => {
-    if (completedIds.has(id)) steps.add(i + 3);
+    const phases = phasesByVignette.get(id);
+    if (phases && phases.has(1) && phases.has(2)) {
+      steps.add(i + 3);
+    }
   });
 
   return steps;

@@ -22,16 +22,29 @@ export async function recordVignetteServed(
 
   const supabase = createServiceClient();
 
+  // Create placeholder rows for both response phases
   const { error } = await supabase.from("student_responses").upsert(
-    {
-      session_id: sessionId,
-      vignette_id: vignetteId,
-      vignette_type: vignetteType,
-      vignette_served_at: servedAt,
-      response_text: "",
-      needs_scoring: false,
-    },
-    { onConflict: "session_id,vignette_id", ignoreDuplicates: true }
+    [
+      {
+        session_id: sessionId,
+        vignette_id: vignetteId,
+        vignette_type: vignetteType,
+        vignette_served_at: servedAt,
+        response_phase: 1,
+        response_text: "",
+        needs_scoring: false,
+      },
+      {
+        session_id: sessionId,
+        vignette_id: vignetteId,
+        vignette_type: vignetteType,
+        vignette_served_at: servedAt,
+        response_phase: 2,
+        response_text: "",
+        needs_scoring: false,
+      },
+    ],
+    { onConflict: "session_id,vignette_id,response_phase", ignoreDuplicates: true }
   );
 
   if (error) {

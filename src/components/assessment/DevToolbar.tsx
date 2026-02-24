@@ -8,8 +8,10 @@ const PHASES: Phase[] = [
   "ready",
   "countdown",
   "narrating",
-  "buffer",
-  "recording",
+  "buffer_1",
+  "recording_1",
+  "buffer_2",
+  "recording_2",
   "submitting",
   "transitioning",
   "error",
@@ -19,8 +21,10 @@ const PHASE_LABELS: Record<Phase, string> = {
   ready: "Ready",
   countdown: "Countdown",
   narrating: "Narrating",
-  buffer: "Buffer",
-  recording: "Recording",
+  buffer_1: "Buffer 1",
+  recording_1: "Rec 1",
+  buffer_2: "Buffer 2",
+  recording_2: "Rec 2",
   submitting: "Submitting",
   transitioning: "Transitioning",
   error: "Error",
@@ -29,8 +33,11 @@ const PHASE_LABELS: Record<Phase, string> = {
 type DevToolbarProps = {
   state: State;
   dispatch: React.Dispatch<Action>;
-  bufferRemaining: number;
-  recorderDuration: number;
+  buffer1Remaining: number;
+  recording1Remaining: number;
+  buffer2SubStage: "transition" | "prompting" | "thinking";
+  buffer2ThinkingRemaining: number;
+  recording2Remaining: number;
   recorderStatus: string;
   streamStatus: string;
   sessionId: string;
@@ -39,8 +46,11 @@ type DevToolbarProps = {
 export function DevToolbar({
   state,
   dispatch,
-  bufferRemaining,
-  recorderDuration,
+  buffer1Remaining,
+  recording1Remaining,
+  buffer2SubStage,
+  buffer2ThinkingRemaining,
+  recording2Remaining,
   recorderStatus,
   streamStatus,
   sessionId,
@@ -104,8 +114,10 @@ export function DevToolbar({
           </span>
         </div>
         <div className="mt-1 text-green-500/70">
-          {state.phase === "buffer" && `${bufferRemaining}s remaining`}
-          {state.phase === "recording" && `${recorderDuration}s recorded`}
+          {state.phase === "buffer_1" && `${buffer1Remaining}s remaining`}
+          {state.phase === "recording_1" && `${recording1Remaining}s remaining`}
+          {state.phase === "buffer_2" && `${buffer2SubStage} ${buffer2SubStage === "thinking" ? `${buffer2ThinkingRemaining}s` : ""}`}
+          {state.phase === "recording_2" && `${recording2Remaining}s remaining`}
           {state.phase === "error" && state.errorMessage}
           {(state.phase === "ready" || state.phase === "narrating" || state.phase === "submitting" || state.phase === "transitioning") && (
             <span>
@@ -139,7 +151,7 @@ export function DevToolbar({
       {/* Quick actions */}
       <div>
         <div className="mb-1 text-[10px] text-green-500/60">Quick actions</div>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           <button
             type="button"
             onClick={() => dispatch({ type: "NARRATION_COMPLETE" })}
@@ -150,11 +162,35 @@ export function DevToolbar({
           </button>
           <button
             type="button"
-            onClick={() => dispatch({ type: "BUFFER_COMPLETE" })}
-            disabled={state.phase !== "buffer"}
+            onClick={() => dispatch({ type: "BUFFER_1_COMPLETE" })}
+            disabled={state.phase !== "buffer_1"}
             className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30 disabled:hover:bg-green-900/50"
           >
-            Skip Buffer
+            Skip Buf 1
+          </button>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "RECORDING_1_COMPLETE" })}
+            disabled={state.phase !== "recording_1"}
+            className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30 disabled:hover:bg-green-900/50"
+          >
+            Skip Rec 1
+          </button>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "BUFFER_2_COMPLETE" })}
+            disabled={state.phase !== "buffer_2"}
+            className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30 disabled:hover:bg-green-900/50"
+          >
+            Skip Buf 2
+          </button>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "RECORDING_2_COMPLETE" })}
+            disabled={state.phase !== "recording_2"}
+            className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30 disabled:hover:bg-green-900/50"
+          >
+            Skip Rec 2
           </button>
         </div>
       </div>
@@ -168,7 +204,6 @@ export function DevToolbar({
           onClick={async () => {
             setSkipping(true);
             const result = await devSkipToComplete();
-            // Only reaches here on failure (success redirects server-side)
             setSkipping(false);
             console.error("[DEV] Skip failed:", result.error);
           }}

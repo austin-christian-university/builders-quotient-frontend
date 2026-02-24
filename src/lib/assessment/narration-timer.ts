@@ -3,7 +3,52 @@ export type AudioWordTiming = {
   word: string;
   start: number; // seconds
   end: number;   // seconds
+  section?: AudioSection;
 };
+
+export type AudioSection = "narrative" | "phase_1_prompt" | "phase_2_prompt";
+
+/** Boundary info for a section within the audio timing array. */
+export type SectionBoundary = {
+  section: AudioSection;
+  startIdx: number;
+  endIdx: number; // inclusive
+  audioStart: number;
+  audioEnd: number;
+};
+
+/**
+ * Groups AudioWordTiming entries by their `section` field and returns
+ * the index range and time range for each section found.
+ */
+export function getSectionBoundaries(
+  timings: AudioWordTiming[]
+): SectionBoundary[] {
+  if (timings.length === 0) return [];
+
+  const boundaries: SectionBoundary[] = [];
+  let currentSection = timings[0].section ?? "narrative";
+  let startIdx = 0;
+
+  for (let i = 1; i <= timings.length; i++) {
+    const section = i < timings.length ? (timings[i].section ?? "narrative") : null;
+    if (section !== currentSection) {
+      boundaries.push({
+        section: currentSection,
+        startIdx,
+        endIdx: i - 1,
+        audioStart: timings[startIdx].start,
+        audioEnd: timings[i - 1].end,
+      });
+      if (section !== null) {
+        currentSection = section;
+        startIdx = i;
+      }
+    }
+  }
+
+  return boundaries;
+}
 
 /**
  * Splits text into sentences and calculates reveal timing.

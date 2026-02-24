@@ -18,6 +18,7 @@ export async function reserveResponse(data: {
   vignetteId: string;
   vignetteType: "practical" | "creative";
   step: number;
+  responsePhase: number;
   videoDurationSeconds: number;
   recordingStartedAt: string;
 }): Promise<{ success: true; nextStep?: number; complete?: boolean }> {
@@ -39,14 +40,15 @@ export async function reserveResponse(data: {
       needs_scoring: false,
     })
     .eq("session_id", parsed.sessionId)
-    .eq("vignette_id", parsed.vignetteId);
+    .eq("vignette_id", parsed.vignetteId)
+    .eq("response_phase", parsed.responsePhase);
 
   if (responseError) {
     throw new Error("Failed to reserve response");
   }
 
-  // If final step, mark session as completed
-  if (parsed.step === 4) {
+  // If final step AND final phase, mark session as completed
+  if (parsed.step === 4 && parsed.responsePhase === 2) {
     const { error: sessionError } = await supabase
       .from("assessment_sessions")
       .update({
@@ -62,7 +64,13 @@ export async function reserveResponse(data: {
     return { success: true, complete: true };
   }
 
-  return { success: true, nextStep: parsed.step + 1 };
+  // Navigate to next step only after phase 2 is complete
+  if (parsed.responsePhase === 2) {
+    return { success: true, nextStep: parsed.step + 1 };
+  }
+
+  // Phase 1 reserved — no navigation yet
+  return { success: true };
 }
 
 /**
@@ -74,6 +82,7 @@ export async function reserveResponse(data: {
 export async function confirmUpload(data: {
   sessionId: string;
   vignetteId: string;
+  responsePhase: number;
   storagePath: string;
 }): Promise<{ success: true }> {
   const cookieSessionId = await readSessionCookie();
@@ -92,7 +101,8 @@ export async function confirmUpload(data: {
       needs_scoring: true,
     })
     .eq("session_id", parsed.sessionId)
-    .eq("vignette_id", parsed.vignetteId);
+    .eq("vignette_id", parsed.vignetteId)
+    .eq("response_phase", parsed.responsePhase);
 
   if (error) {
     throw new Error("Failed to confirm upload");
@@ -108,6 +118,7 @@ export async function confirmUpload(data: {
 export async function reportUploadFailure(data: {
   sessionId: string;
   vignetteId: string;
+  responsePhase: number;
 }): Promise<{ success: true }> {
   const cookieSessionId = await readSessionCookie();
   if (cookieSessionId !== data.sessionId) {
@@ -120,7 +131,8 @@ export async function reportUploadFailure(data: {
     .from("student_responses")
     .update({ upload_status: "failed" })
     .eq("session_id", data.sessionId)
-    .eq("vignette_id", data.vignetteId);
+    .eq("vignette_id", data.vignetteId)
+    .eq("response_phase", data.responsePhase);
 
   if (error) {
     throw new Error("Failed to report upload failure");

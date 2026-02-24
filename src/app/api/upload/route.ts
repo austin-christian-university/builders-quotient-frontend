@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No active session" }, { status: 401 });
   }
 
-  let body: { vignetteType: string; step: number };
+  let body: { vignetteType: string; step: number; responsePhase?: number };
   try {
     body = await request.json();
   } catch {
@@ -26,19 +26,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { vignetteType, step } = body;
+  const { vignetteType, step, responsePhase = 1 } = body;
   if (
     !vignetteType ||
     !["practical", "creative"].includes(vignetteType) ||
     typeof step !== "number" ||
     step < 1 ||
-    step > 4
+    step > 4 ||
+    ![1, 2].includes(responsePhase)
   ) {
-    console.error(`[BQ Upload API] Invalid params — vignetteType: ${vignetteType}, step: ${step}`);
+    console.error(`[BQ Upload API] Invalid params — vignetteType: ${vignetteType}, step: ${step}, responsePhase: ${responsePhase}`);
     return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
   }
 
-  const storagePath = `${sessionId}/${vignetteType}_${step}.webm`;
+  const storagePath = `${sessionId}/${vignetteType}_${step}_phase${responsePhase}.webm`;
   console.log(`[BQ Upload API] Creating signed URL for: ${storagePath}`);
 
   try {

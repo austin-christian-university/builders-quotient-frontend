@@ -152,6 +152,10 @@ export function useAudioNarrator(
     });
   }, []);
 
+  const pause = useCallback(() => {
+    audioRef.current?.pause();
+  }, []);
+
   // Audio not available or failed — caller uses timer fallback
   if (!hasAudioData || state.hasFailed) {
     return {
@@ -160,6 +164,7 @@ export function useAudioNarrator(
       isComplete: false,
       hasFailed: state.hasFailed,
       play,
+      pause,
       audioRef,
       currentTimeRef,
       hasAudio: false as const,
@@ -170,6 +175,7 @@ export function useAudioNarrator(
     ...state,
     hasFailed: false as const,
     play,
+    pause,
     audioRef,
     currentTimeRef,
     hasAudio: true as const,

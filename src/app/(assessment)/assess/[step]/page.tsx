@@ -102,6 +102,7 @@ export default async function StepPage({
       vignetteType={vignette.vignette_type}
       vignetteText={vignette.vignette_text}
       vignettePrompt={vignette.vignette_prompt}
+      phase2Prompt={vignette.phase_2_prompt}
       servedAt={servedAt}
       audioUrl={audioUrl}
       audioTiming={vignette.audio_timing}

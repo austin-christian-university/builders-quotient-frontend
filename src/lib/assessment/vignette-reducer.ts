@@ -2,8 +2,10 @@ export type Phase =
   | "ready"
   | "countdown"
   | "narrating"
-  | "buffer"
-  | "recording"
+  | "buffer_1"
+  | "recording_1"
+  | "buffer_2"
+  | "recording_2"
   | "submitting"
   | "transitioning"
   | "error";
@@ -13,8 +15,10 @@ export type Action =
   | { type: "BEGIN_COUNTDOWN" }
   | { type: "COUNTDOWN_COMPLETE" }
   | { type: "NARRATION_COMPLETE" }
-  | { type: "BUFFER_COMPLETE" }
-  | { type: "RECORDING_STOPPED" }
+  | { type: "BUFFER_1_COMPLETE" }
+  | { type: "RECORDING_1_COMPLETE" }
+  | { type: "BUFFER_2_COMPLETE" }
+  | { type: "RECORDING_2_COMPLETE" }
   | { type: "SUBMIT_COMPLETE" }
   | { type: "ERROR"; message: string }
   | { type: "DEV_SET_PHASE"; phase: Phase; errorMessage?: string };
@@ -41,14 +45,22 @@ export function reducer(state: State, action: Action): State {
         : state;
     case "NARRATION_COMPLETE":
       return state.phase === "narrating"
-        ? { ...state, phase: "buffer" }
+        ? { ...state, phase: "buffer_1" }
         : state;
-    case "BUFFER_COMPLETE":
-      return state.phase === "buffer"
-        ? { ...state, phase: "recording" }
+    case "BUFFER_1_COMPLETE":
+      return state.phase === "buffer_1"
+        ? { ...state, phase: "recording_1" }
         : state;
-    case "RECORDING_STOPPED":
-      return state.phase === "recording"
+    case "RECORDING_1_COMPLETE":
+      return state.phase === "recording_1"
+        ? { ...state, phase: "buffer_2" }
+        : state;
+    case "BUFFER_2_COMPLETE":
+      return state.phase === "buffer_2"
+        ? { ...state, phase: "recording_2" }
+        : state;
+    case "RECORDING_2_COMPLETE":
+      return state.phase === "recording_2"
         ? { ...state, phase: "submitting" }
         : state;
     case "SUBMIT_COMPLETE":
