@@ -11,15 +11,13 @@ function Credibility() {
 
       <div className="relative mx-auto max-w-3xl text-center">
         <ScrollReveal>
-          <p
-            className="font-display text-[length:var(--text-fluid-5xl)] font-bold tabular-nums text-secondary"
-            aria-label="274 real entrepreneurs analyzed"
-          >
+          <h2 className="font-display text-[length:var(--text-fluid-5xl)] font-bold tabular-nums text-secondary">
             274
-          </p>
-          <p className="mt-2 text-[length:var(--text-fluid-lg)] font-medium text-text-primary">
+          </h2>
+          <p className="mt-2 text-[length:var(--text-fluid-lg)] font-medium text-text-primary" aria-hidden="true">
             real entrepreneurs analyzed
           </p>
+          <span className="sr-only">274 real entrepreneurs analyzed</span>
           <p className="mx-auto mt-6 max-w-lg text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
             Our assessment is grounded in real-world data. We studied how
             hundreds of successful entrepreneurs actually think\u2014their

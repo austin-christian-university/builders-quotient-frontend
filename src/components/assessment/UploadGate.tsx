@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useUploadQueue } from "@/lib/assessment/upload-queue";
 
 const GATE_TIMEOUT_MS = 60_000; // Show children after 60s regardless
@@ -66,9 +66,9 @@ export function UploadGate({ children }: { children: ReactNode }) {
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
 
-        <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-[-0.01em] text-text-primary">
+        <h1 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-[-0.01em] text-text-primary">
           Almost done&#8230;
-        </h2>
+        </h1>
         <p className="mt-2 text-[length:var(--text-fluid-base)] text-text-secondary">
           Finishing video uploads. Please keep this tab open.
         </p>
@@ -129,7 +129,7 @@ export function UploadGate({ children }: { children: ReactNode }) {
           ))}
         </div>
 
-        <p className="mt-4 text-sm tabular-nums text-text-secondary">
+        <p className="mt-4 text-sm tabular-nums text-text-secondary" aria-live="polite">
           {completedCount} of {totalCount} uploaded
         </p>
       </motion.div>

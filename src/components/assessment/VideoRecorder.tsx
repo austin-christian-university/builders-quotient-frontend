@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -56,17 +56,25 @@ export function VideoRecorder({
           autoPlay
           playsInline
           muted
+          aria-label="Camera preview — your video will be recorded"
           className="aspect-video w-full object-cover [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]"
         />
 
         {/* Recording indicator */}
         {isRecording && (
-          <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
-            <span className="relative flex h-2.5 w-2.5">
+          <div
+            className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm"
+            aria-label="Recording in progress"
+          >
+            <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
             </span>
-            <span className="text-sm font-medium tabular-nums text-white">
+            <span
+              className="text-sm font-medium tabular-nums text-white"
+              role="timer"
+              aria-live="off"
+            >
               {formatTime(duration)}
             </span>
           </div>
@@ -81,6 +89,7 @@ export function VideoRecorder({
             size="lg"
             onClick={onStop}
             disabled={!canStop}
+            aria-label={canStop ? "I\u2019m done recording" : `Minimum recording time: ${minRecordingSeconds - duration} seconds remaining`}
             className="min-w-[140px]"
           >
             {canStop ? (

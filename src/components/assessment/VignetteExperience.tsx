@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { VignetteNarrator } from "./VignetteNarrator";
 import { ProcessingBuffer } from "./ProcessingBuffer";

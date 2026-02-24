@@ -2,6 +2,7 @@
 
 import { motion, type HTMLMotionProps } from "motion/react";
 import { type ReactNode } from "react";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
 type ScrollRevealProps = {
   children: ReactNode;
@@ -9,6 +10,12 @@ type ScrollRevealProps = {
 } & Omit<HTMLMotionProps<"div">, "children">;
 
 function ScrollReveal({ children, delay = 0, ...props }: ScrollRevealProps) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  if (prefersReducedMotion) {
+    return <div {...(props as React.ComponentProps<"div">)}>{children}</div>;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}

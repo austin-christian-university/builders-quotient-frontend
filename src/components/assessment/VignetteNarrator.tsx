@@ -7,7 +7,7 @@ import {
   useState,
   type RefObject,
 } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
   calculateWordTiming,
   type AudioWordTiming,

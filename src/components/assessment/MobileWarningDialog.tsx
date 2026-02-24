@@ -36,7 +36,7 @@ export function MobileWarningDialog({
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-white/10 hover:text-text-primary"
+          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-white/10 hover:text-text-primary"
           aria-label="Go back to home"
         >
           <svg

@@ -171,6 +171,7 @@ export function SetupClient() {
                 autoPlay
                 playsInline
                 muted
+                aria-label="Camera preview"
                 className="h-full w-full object-cover [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]"
               />
             ) : (
