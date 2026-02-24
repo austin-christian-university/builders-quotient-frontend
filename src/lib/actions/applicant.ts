@@ -13,7 +13,7 @@ type CaptureEmailResult =
       success: false;
       error: string;
       fieldErrors?: Partial<
-        Record<"email" | "firstName" | "leadType", string>
+        Record<"email" | "firstName" | "phone" | "leadType", string>
       >;
     };
 
@@ -36,16 +36,21 @@ export async function captureEmail(
   const raw = {
     email: formData.get("email"),
     firstName: formData.get("firstName") || undefined,
+    phone: formData.get("phone"),
     leadType: formData.get("leadType") || undefined,
   };
 
   const parsed = emailCaptureSchema.safeParse(raw);
   if (!parsed.success) {
     const fieldErrors: Partial<
-      Record<"email" | "firstName" | "leadType", string>
+      Record<"email" | "firstName" | "phone" | "leadType", string>
     > = {};
     for (const issue of parsed.error.issues) {
-      const field = issue.path[0] as "email" | "firstName" | "leadType";
+      const field = issue.path[0] as
+        | "email"
+        | "firstName"
+        | "phone"
+        | "leadType";
       if (!fieldErrors[field]) {
         fieldErrors[field] = issue.message;
       }
@@ -65,6 +70,8 @@ export async function captureEmail(
     .update({
       email: parsed.data.email,
       display_name: parsed.data.firstName ?? null,
+      phone: parsed.data.phone,
+      sms_consent_at: new Date().toISOString(),
       results_token: resultsToken,
       lead_type: parsed.data.leadType,
     })

@@ -12,7 +12,7 @@ type FormState =
       success: false;
       error: string;
       fieldErrors?: Partial<
-        Record<"email" | "firstName" | "leadType", string>
+        Record<"email" | "firstName" | "phone" | "leadType", string>
       >;
     }
   | null;
@@ -59,6 +59,7 @@ export function EmailCapture() {
 
   const emailRef = useRef<HTMLInputElement>(null);
   const firstNameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
   const leadTypeRef = useRef<HTMLFieldSetElement>(null);
 
   // Focus first invalid field on error
@@ -68,6 +69,8 @@ export function EmailCapture() {
       emailRef.current?.focus();
     } else if (state.fieldErrors?.firstName) {
       firstNameRef.current?.focus();
+    } else if (state.fieldErrors?.phone) {
+      phoneRef.current?.focus();
     } else if (state.fieldErrors?.leadType) {
       leadTypeRef.current?.focus();
     }
@@ -76,6 +79,7 @@ export function EmailCapture() {
   const failState = state && !state.success ? state : null;
   const emailError = failState?.fieldErrors?.email;
   const firstNameError = failState?.fieldErrors?.firstName;
+  const phoneError = failState?.fieldErrors?.phone;
   const leadTypeError = failState?.fieldErrors?.leadType;
   const generalError =
     failState?.error && !failState.fieldErrors ? failState.error : null;
@@ -108,8 +112,8 @@ export function EmailCapture() {
             Get Your Results
           </h1>
           <p className="mt-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
-            Enter your email to receive your personalized Builders Quotient
-            profile within 24&nbsp;hours.
+            Enter your details to receive your personalized Builders Quotient
+            profile via email and text within 24&nbsp;hours.
           </p>
         </div>
 
@@ -187,6 +191,46 @@ export function EmailCapture() {
                 {firstNameError}
               </p>
             )}
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label
+              htmlFor="phone"
+              className="mb-1.5 block text-[length:var(--text-fluid-sm)] font-medium text-text-primary"
+            >
+              Phone number
+            </label>
+            <Input
+              ref={phoneRef}
+              id="phone"
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              required
+              placeholder="(512) 555-1234"
+              aria-invalid={phoneError ? "true" : undefined}
+              aria-describedby={
+                phoneError ? "phone-error" : "phone-disclosure"
+              }
+            />
+            {phoneError && (
+              <p
+                id="phone-error"
+                role="alert"
+                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-red-400"
+              >
+                {phoneError}
+              </p>
+            )}
+            <p
+              id="phone-disclosure"
+              className="mt-1.5 text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary"
+            >
+              We&rsquo;ll text you once when your results are ready. No spam,
+              ever. Message&nbsp;&amp;&nbsp;data rates may apply.
+            </p>
           </div>
 
           {/* Lead type toggle */}
