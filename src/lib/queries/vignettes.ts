@@ -6,9 +6,9 @@ import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
 
 /** Safe columns to expose to the client — never include scoring anchors, moves, or exemplars. */
 const PI_SAFE_COLUMNS =
-  "id, vignette_text, vignette_prompt, situation_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;
+  "id, vignette_text, phase_1_prompt, phase_2_prompt, situation_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;
 const CI_SAFE_COLUMNS =
-  "id, vignette_text, vignette_prompt, episode_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;
+  "id, vignette_text, phase_1_prompt, phase_2_prompt, episode_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;
 
 export type VignetteData = {
   id: string;
@@ -46,7 +46,7 @@ export async function getVignetteForStep(
     return {
       id: data.id,
       vignette_text: data.vignette_text,
-      vignette_prompt: data.vignette_prompt,
+      vignette_prompt: data.phase_1_prompt ?? "",
       type_label: data.situation_type,
       vignette_type: "practical",
       audio_storage_path: data.audio_storage_path,
@@ -70,7 +70,7 @@ export async function getVignetteForStep(
   return {
     id: data.id,
     vignette_text: data.vignette_text,
-    vignette_prompt: data.vignette_prompt,
+    vignette_prompt: data.phase_1_prompt ?? "",
     type_label: data.episode_type,
     vignette_type: "creative",
     audio_storage_path: data.audio_storage_path,
