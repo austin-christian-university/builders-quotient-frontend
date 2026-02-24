@@ -39,53 +39,58 @@ export function SplashSequence({
       key="splash"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-      transition={{ duration: 0.8, ease: "easeInOut" }}
-      className="flex min-h-[60vh] flex-col items-center justify-center px-4"
+      exit={{ opacity: 0, scale: 0.95, filter: "blur(20px)" }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      className="flex min-h-[60vh] w-full flex-col items-center justify-center px-4"
     >
-      <div className="relative mb-14 flex h-40 w-40 items-center justify-center">
-        {/* Pulsing rings */}
+      <div className="relative mb-20 flex h-48 w-48 items-center justify-center">
+        {/* Cinematic glow core */}
         <motion.div
-          animate={{ scale: [1, 2.2], opacity: [0.2, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
-          className="absolute inset-0 rounded-full border border-primary/40 bg-primary/5"
+          animate={{
+            scale: [1, 1.4, 1],
+            opacity: [0.3, 0.6, 0.3],
+            filter: ["blur(40px)", "blur(70px)", "blur(40px)"]
+          }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 rounded-full bg-primary/40"
         />
         <motion.div
-          animate={{ scale: [1, 1.6], opacity: [0.6, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 1.5 }}
-          className="absolute inset-0 rounded-full border border-primary/30 bg-primary/10"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute inset-4 rounded-full border border-primary/20 bg-primary/10 backdrop-blur-2xl"
         />
-        <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full border border-primary/20 bg-bg-elevated shadow-[0_0_40px_rgba(var(--color-primary),0.15)] backdrop-blur-md">
+        <div className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full border border-primary/30 bg-bg-surface/90 shadow-[0_0_80px_rgba(var(--color-primary),0.25)] backdrop-blur-3xl">
           {icon}
         </div>
       </div>
 
-      <div className="h-8 overflow-hidden text-center">
+      <div className="h-10 overflow-hidden text-center flex items-center justify-center">
         <AnimatePresence mode="popLayout">
           {step < steps.length ? (
             <motion.p
               key={step}
-              initial={{ y: 20, opacity: 0, filter: "blur(4px)" }}
+              initial={{ y: 30, opacity: 0, filter: "blur(12px)" }}
               animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-              exit={{ y: -20, opacity: 0, filter: "blur(4px)" }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="font-display text-[length:var(--text-fluid-lg)] font-medium tracking-wide text-text-primary"
+              exit={{ y: -30, opacity: 0, filter: "blur(12px)" }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display text-[length:var(--text-fluid-xl)] font-medium tracking-wide text-text-primary"
             >
               {steps[step]}
             </motion.p>
           ) : (
             <motion.p
               key="complete"
-              initial={{ y: 20, opacity: 0, filter: "blur(4px)" }}
+              initial={{ y: 30, opacity: 0, filter: "blur(12px)" }}
               animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="font-display text-[length:var(--text-fluid-lg)] font-bold tracking-wide text-secondary"
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-[0.15em] text-secondary uppercase"
             >
               Complete
               <motion.span
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="ml-2 inline-block h-2 w-2 rounded-full bg-secondary"
+                transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+                className="ml-3 mb-1 inline-block h-2 w-2 rounded-full bg-secondary shadow-[0_0_10px_rgba(var(--color-secondary),1)]"
               />
             </motion.p>
           )}
