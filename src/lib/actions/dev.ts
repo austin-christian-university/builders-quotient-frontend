@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 import {
   readSessionCookie,
@@ -12,7 +13,7 @@ import {
   type LikertValue,
 } from "@/lib/assessment/personality-bank";
 
-export async function devSkipToComplete(): Promise<{
+export async function devResetSession(): Promise<{
   success: boolean;
   error?: string;
 }> {
@@ -20,24 +21,88 @@ export async function devSkipToComplete(): Promise<{
     return { success: false, error: "Only available in development" };
   }
 
+  const sessionId = await readSessionCookie();
+
+  if (sessionId) {
+    const session = await getSessionById(sessionId);
+
+    if (session) {
+      const supabase = createServiceClient();
+
+      // Delete in FK order: responses -> scores -> session -> applicant
+      await supabase
+        .from("student_responses")
+        .delete()
+        .eq("session_id", session.id);
+
+      await supabase
+        .from("personality_responses")
+        .delete()
+        .eq("session_id", session.id);
+
+      await supabase
+        .from("personality_scores")
+        .delete()
+        .eq("session_id", session.id);
+
+      await supabase
+        .from("assessment_sessions")
+        .delete()
+        .eq("id", session.id);
+
+      await supabase.from("applicants").delete().eq("id", session.applicant_id);
+    }
+  }
+
+  await clearSessionCookie();
+
+  return { success: true };
+}
+
+export async function devGetSessionStatus(): Promise<{
+  status: string | null;
+  sessionId: string | null;
+}> {
+  if (process.env.NODE_ENV !== "development") {
+    return { status: null, sessionId: null };
+  }
+
+  const sessionId = await readSessionCookie();
+  if (!sessionId) return { status: null, sessionId: null };
+
+  const session = await getSessionById(sessionId);
+  if (!session) return { status: null, sessionId: null };
+
+  return { status: session.status, sessionId: session.id };
+}
+
+/**
+ * Core DB logic for creating a completed assessment session.
+ * Does NOT redirect -- callers decide what to do next.
+ */
+async function completeSessionInDb(): Promise<{
+  success: boolean;
+  sessionId?: string;
+  error?: string;
+}> {
   const supabase = createServiceClient();
   const now = new Date().toISOString();
 
   const existingSessionId = await readSessionCookie();
 
   if (existingSessionId) {
-    // Path A: Cookie exists — use existing session
+    // Path A: Cookie exists -- use existing session
     const session =
       (await getActiveSession(existingSessionId)) ??
       (await getSessionById(existingSessionId));
 
     if (!session) {
-      // Stale cookie — clear it and fall through to Path B (create fresh)
+      // Stale cookie -- clear it and fall through to Path B (create fresh)
       await clearSessionCookie();
     } else {
       // If already completed, just return success
       if (session.status === "completed") {
-        return { success: true };
+        return { success: true, sessionId: session.id };
       }
 
       // Upsert dummy responses for all 4 vignettes
@@ -52,7 +117,7 @@ export async function devSkipToComplete(): Promise<{
         })),
       ];
 
-      await Promise.all(
+      const upsertResults = await Promise.all(
         allVignetteIds.map((vignette) =>
           supabase.from("student_responses").upsert(
             {
@@ -72,8 +137,16 @@ export async function devSkipToComplete(): Promise<{
         )
       );
 
+      const failedUpsert = upsertResults.find((r) => r.error);
+      if (failedUpsert?.error) {
+        return {
+          success: false,
+          error: `Failed to upsert responses: ${failedUpsert.error.message}`,
+        };
+      }
+
       // Mark session as completed
-      await supabase
+      const { error: updateError } = await supabase
         .from("assessment_sessions")
         .update({
           status: "completed",
@@ -82,11 +155,18 @@ export async function devSkipToComplete(): Promise<{
         })
         .eq("id", session.id);
 
-      return { success: true };
+      if (updateError) {
+        return {
+          success: false,
+          error: `Failed to update session: ${updateError.message}`,
+        };
+      }
+
+      return { success: true, sessionId: session.id };
     }
   }
 
-  // Path B: No cookie — create everything from scratch
+  // Path B: No cookie -- create everything from scratch
   const { data: applicant, error: applicantError } = await supabase
     .from("applicants")
     .insert({ email: null })
@@ -139,7 +219,7 @@ export async function devSkipToComplete(): Promise<{
     ...ciIds.map((id) => ({ id, type: "creative" as const })),
   ];
 
-  await Promise.all(
+  const insertResults = await Promise.all(
     allVignetteIds.map((vignette) =>
       supabase.from("student_responses").insert({
         session_id: session.id,
@@ -156,10 +236,34 @@ export async function devSkipToComplete(): Promise<{
     )
   );
 
+  const failedInsert = insertResults.find((r) => r.error);
+  if (failedInsert?.error) {
+    return {
+      success: false,
+      error: `Failed to insert responses: ${failedInsert.error.message}`,
+    };
+  }
+
   // Set session cookie
   await createSessionCookie(session.id);
 
-  return { success: true };
+  return { success: true, sessionId: session.id };
+}
+
+export async function devSkipToComplete(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  if (process.env.NODE_ENV !== "development") {
+    return { success: false, error: "Only available in development" };
+  }
+
+  const result = await completeSessionInDb();
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  redirect("/assess/complete");
 }
 
 /**
@@ -175,7 +279,7 @@ export async function devSkipToPersonality(): Promise<{
   }
 
   // First ensure we have a completed session with email
-  const result = await devSkipToComplete();
+  const result = await completeSessionInDb();
   if (!result.success) return result;
 
   const supabase = createServiceClient();

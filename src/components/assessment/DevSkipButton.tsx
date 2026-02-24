@@ -1,22 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { devSkipToComplete } from "@/lib/actions/dev";
 
 export function DevSkipButton() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function handleClick() {
     setLoading(true);
     const result = await devSkipToComplete();
-    if (result.success) {
-      router.push("/assess/complete");
-    } else {
-      setLoading(false);
-      console.error("[DEV] Skip failed:", result.error);
-    }
+    // Only reaches here on failure (success redirects server-side)
+    setLoading(false);
+    console.error("[DEV] Skip failed:", result.error);
   }
 
   return (

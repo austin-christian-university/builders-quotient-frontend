@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { Action, Phase, State } from "@/lib/assessment/vignette-reducer";
 import { devSkipToComplete } from "@/lib/actions/dev";
 
@@ -46,7 +45,6 @@ export function DevToolbar({
   streamStatus,
   sessionId,
 }: DevToolbarProps) {
-  const router = useRouter();
   const [visible, setVisible] = useState(true);
   const [skipping, setSkipping] = useState(false);
 
@@ -170,12 +168,9 @@ export function DevToolbar({
           onClick={async () => {
             setSkipping(true);
             const result = await devSkipToComplete();
-            if (result.success) {
-              router.push("/assess/complete");
-            } else {
-              setSkipping(false);
-              console.error("[DEV] Skip failed:", result.error);
-            }
+            // Only reaches here on failure (success redirects server-side)
+            setSkipping(false);
+            console.error("[DEV] Skip failed:", result.error);
           }}
           className="w-full rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-50"
         >

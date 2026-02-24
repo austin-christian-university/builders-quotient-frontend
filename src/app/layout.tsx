@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Inter_Tight } from "next/font/google";
 import "./globals.css";
+import { GlobalDevToolbar } from "@/components/dev/GlobalDevToolbar";
 
 const inter = Inter({
   variable: "--font-inter-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
           Skip to content
         </a>
         {children}
+        {process.env.NODE_ENV === "development" && <GlobalDevToolbar />}
       </body>
     </html>
   );
