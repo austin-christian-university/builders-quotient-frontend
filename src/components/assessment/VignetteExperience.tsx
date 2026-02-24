@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { VignetteNarrator } from "./VignetteNarrator";
 import { ProcessingBuffer } from "./ProcessingBuffer";
@@ -76,6 +77,8 @@ export function VignetteExperience({
   const recorder = useVideoRecorder(stream);
   const [bufferRemaining, setBufferRemaining] = useState(BUFFER_SECONDS);
   const [countdownNumber, setCountdownNumber] = useState(3);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const phaseContainerRef = useRef<HTMLDivElement>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioPlayRef = useRef(audio.play);
   audioPlayRef.current = audio.play;
@@ -279,7 +282,7 @@ export function VignetteExperience({
     <LayoutGroup>
       <div className="relative flex min-h-dvh flex-col">
         {/* Ambient background orbs */}
-        <AmbientBackground phase={state.phase} />
+        <AmbientBackground phase={state.phase} prefersReducedMotion={prefersReducedMotion} />
 
         <ProgressIndicator step={step} totalSteps={totalSteps} />
 
@@ -344,7 +347,14 @@ export function VignetteExperience({
                 transition={{ duration: 0.25 }}
                 className="flex flex-1 flex-col items-center justify-center"
               >
-                <CountdownDigit number={countdownNumber} onEnterComplete={handleCountdownTone} />
+                <div
+                  tabIndex={-1}
+                  aria-label={`Countdown: ${countdownNumber}`}
+                  aria-live="assertive"
+                  ref={phaseContainerRef}
+                >
+                  <CountdownDigit number={countdownNumber} onEnterComplete={handleCountdownTone} prefersReducedMotion={prefersReducedMotion} />
+                </div>
               </motion.div>
             )}
 
@@ -433,8 +443,10 @@ export function VignetteExperience({
                 exit={{ opacity: 0 }}
                 className="flex flex-1 flex-col items-center justify-center gap-4"
               >
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <p className="text-text-secondary">Saving your response&#8230;</p>
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+                <p className="text-text-secondary" role="status" tabIndex={-1} ref={phaseContainerRef}>
+                  Saving your response&#8230;
+                </p>
               </motion.div>
             )}
 
@@ -447,8 +459,8 @@ export function VignetteExperience({
                 exit={{ opacity: 0 }}
                 className="flex flex-1 flex-col items-center justify-center gap-4"
               >
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <p className="text-text-secondary">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+                <p className="text-text-secondary" role="status" tabIndex={-1} ref={phaseContainerRef}>
                   {step < totalSteps ? "Loading next scenario\u2026" : "Finishing up\u2026"}
                 </p>
               </motion.div>
@@ -463,7 +475,12 @@ export function VignetteExperience({
                 exit={{ opacity: 0 }}
                 className="flex flex-1 flex-col items-center justify-center"
               >
-                <div className="w-full max-w-md space-y-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center">
+                <div
+                  className="w-full max-w-md space-y-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center"
+                  role="alert"
+                  tabIndex={-1}
+                  ref={phaseContainerRef}
+                >
                   <p className="text-text-primary">{state.errorMessage}</p>
                   <p className="text-sm text-text-secondary">
                     Please try again or contact support if the problem persists.
@@ -495,10 +512,30 @@ export function VignetteExperience({
 function CountdownDigit({
   number,
   onEnterComplete,
+  prefersReducedMotion,
 }: {
   number: number;
   onEnterComplete?: (n: number) => void;
+  prefersReducedMotion?: boolean;
 }) {
+  // Fire onEnterComplete immediately for reduced motion since there's no animation
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      onEnterComplete?.(number);
+    }
+  }, [prefersReducedMotion, number, onEnterComplete]);
+
+  if (prefersReducedMotion) {
+    return (
+      <span
+        className="select-none text-[clamp(6rem,20vw,10rem)] font-bold leading-none tracking-tight text-text-primary"
+        style={{ textShadow: "0 0 40px rgba(77, 163, 255, 0.35)" }}
+      >
+        {number}
+      </span>
+    );
+  }
+
   return (
     <AnimatePresence mode="wait">
       <motion.span
@@ -518,7 +555,17 @@ function CountdownDigit({
 }
 
 // --- Ambient gradient orbs behind the glass panels ---
-function AmbientBackground({ phase }: { phase: string }) {
+function AmbientBackground({ phase, prefersReducedMotion }: { phase: string; prefersReducedMotion?: boolean }) {
+  if (prefersReducedMotion) {
+    return (
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute -right-24 top-1/3 h-[400px] w-[400px] rounded-full bg-secondary/[0.08] blur-[100px]" />
+        <div className="absolute -bottom-20 left-1/3 h-[350px] w-[350px] rounded-full bg-primary/[0.06] blur-[100px]" />
+      </div>
+    );
+  }
+
   const isActive = phase === "ready" || phase === "countdown" || phase === "narrating" || phase === "buffer" || phase === "recording";
 
   return (

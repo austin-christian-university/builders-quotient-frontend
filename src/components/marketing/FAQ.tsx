@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
 const faqs = [
   {
@@ -39,6 +40,7 @@ const faqs = [
 
 function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   function toggle(index: number) {
     setOpenIndex(openIndex === index ? null : index);
@@ -61,56 +63,97 @@ function FAQ() {
             <ScrollReveal key={i} delay={i * 0.05}>
               <div className="rounded-xl border border-border-glass">
                 <button
+                  id={`faq-trigger-${i}`}
                   type="button"
                   className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded-xl"
                   onClick={() => toggle(i)}
                   aria-expanded={openIndex === i}
+                  aria-controls={`faq-panel-${i}`}
                 >
                   <span className="font-display text-[length:var(--text-fluid-base)] font-medium text-text-primary">
                     {faq.question}
                   </span>
-                  <motion.span
-                    animate={{ rotate: openIndex === i ? 45 : 0 }}
-                    transition={{
-                      duration: 0.3,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                    className="shrink-0 text-text-secondary"
-                    aria-hidden="true"
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  {prefersReducedMotion ? (
+                    <span
+                      className="shrink-0 text-text-secondary"
+                      aria-hidden="true"
+                      style={{ transform: openIndex === i ? "rotate(45deg)" : undefined }}
                     >
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                  </motion.span>
-                </button>
-                <AnimatePresence initial={false}>
-                  {openIndex === i && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                    </span>
+                  ) : (
+                    <motion.span
+                      animate={{ rotate: openIndex === i ? 45 : 0 }}
                       transition={{
                         duration: 0.3,
                         ease: [0.16, 1, 0.3, 1],
                       }}
-                      className="overflow-hidden"
+                      className="shrink-0 text-text-secondary"
+                      aria-hidden="true"
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                    </motion.span>
+                  )}
+                </button>
+                {prefersReducedMotion ? (
+                  openIndex === i && (
+                    <div
+                      id={`faq-panel-${i}`}
+                      role="region"
+                      aria-labelledby={`faq-trigger-${i}`}
                     >
                       <p className="px-6 pb-5 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
                         {faq.answer}
                       </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    </div>
+                  )
+                ) : (
+                  <AnimatePresence initial={false}>
+                    {openIndex === i && (
+                      <motion.div
+                        id={`faq-panel-${i}`}
+                        role="region"
+                        aria-labelledby={`faq-trigger-${i}`}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{
+                          duration: 0.3,
+                          ease: [0.16, 1, 0.3, 1],
+                        }}
+                        className="overflow-hidden"
+                      >
+                        <p className="px-6 pb-5 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+                          {faq.answer}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                )}
               </div>
             </ScrollReveal>
           ))}

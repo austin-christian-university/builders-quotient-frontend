@@ -3,27 +3,34 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion, type Variants } from "motion/react";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
 function Hero() {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delayChildren: 0.3,
-        staggerChildren: 0.15,
-      },
-    },
-  };
+  const prefersReducedMotion = usePrefersReducedMotion();
 
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.8, ease: "easeOut" },
-    },
-  };
+  const containerVariants: Variants = prefersReducedMotion
+    ? { hidden: {}, visible: {} }
+    : {
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            delayChildren: 0.3,
+            staggerChildren: 0.15,
+          },
+        },
+      };
+
+  const itemVariants: Variants = prefersReducedMotion
+    ? { hidden: {}, visible: {} }
+    : {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.8, ease: "easeOut" },
+        },
+      };
 
   return (
     <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6">
@@ -31,17 +38,26 @@ function Hero() {
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="absolute inset-0 bg-bg-base" />
 
-        {/* Animated glowing orbs for high-end feel */}
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.4, 0.3] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] blur-3xl mix-blend-screen"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] blur-3xl mix-blend-screen"
-        />
+        {/* Glowing orbs — static when reduced motion preferred */}
+        {prefersReducedMotion ? (
+          <>
+            <div className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] blur-3xl mix-blend-screen opacity-30" />
+            <div className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] blur-3xl mix-blend-screen opacity-20" />
+          </>
+        ) : (
+          <>
+            <motion.div
+              animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.4, 0.3] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] blur-3xl mix-blend-screen"
+            />
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] blur-3xl mix-blend-screen"
+            />
+          </>
+        )}
 
         {/* Dot grid texture */}
         <div
@@ -94,7 +110,7 @@ function Hero() {
               as={Link}
               href="/assess/setup"
               size="lg"
-              className="relative rounded-full border border-white/10 bg-white/5 px-10 py-7 text-lg uppercase tracking-widest backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+              className="relative rounded-full border border-white/10 bg-white/5 px-10 py-7 text-lg uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
             >
               Begin Assessment
             </Button>

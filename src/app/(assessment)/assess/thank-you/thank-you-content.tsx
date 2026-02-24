@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
 import { SplashSequence } from "@/components/assessment/SplashSequence";
 
@@ -363,6 +364,22 @@ function DefaultVariant() {
 
 export function ThankYouContent({ variant }: { variant: Variant }) {
   const [isReady, setIsReady] = useState(false);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Focus the h1 after splash completes
+  useEffect(() => {
+    if (isReady) {
+      const id = requestAnimationFrame(() => {
+        const h1 = contentRef.current?.querySelector("h1");
+        if (h1) {
+          h1.tabIndex = -1;
+          h1.focus();
+        }
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [isReady]);
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center overflow-x-hidden pt-16 pb-28 selection:bg-primary/20 selection:text-white">
@@ -380,7 +397,8 @@ export function ThankYouContent({ variant }: { variant: Variant }) {
             initial="hidden"
             animate="visible"
             exit={{ opacity: 0 }}
-            variants={stagger}
+            ref={contentRef}
+            variants={prefersReducedMotion ? { hidden: {}, visible: {} } : stagger}
             className="flex w-full flex-col items-center px-4 md:px-8"
           >
             {variant === "student" && <StudentVariant />}

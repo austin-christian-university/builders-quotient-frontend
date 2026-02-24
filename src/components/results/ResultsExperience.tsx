@@ -12,6 +12,7 @@ import { PersonalitySlide } from "./slides/PersonalitySlide";
 import { RadarSlide } from "./slides/RadarSlide";
 import { StatsSlide } from "./slides/StatsSlide";
 import { ShareSlide } from "./slides/ShareSlide";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
 // ---------------------------------------------------------------------------
 // Hooks
@@ -37,28 +38,6 @@ function useIsDesktop() {
   }, []);
 
   return isDesktop;
-}
-
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false,
-  );
-
-  useEffect(() => {
-    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mql.matches);
-
-    function onChange(e: MediaQueryListEvent) {
-      setReduced(e.matches);
-    }
-
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-
-  return reduced;
 }
 
 // ---------------------------------------------------------------------------

@@ -180,7 +180,14 @@ export function DebugContent({
                     </span>
                   </div>
                 </div>
-                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10"
+                  role="progressbar"
+                  aria-valuenow={Math.round(row.rescaled_score)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`${FACET_NAMES[row.facet] ?? row.facet}: ${row.rescaled_score.toFixed(1)}%`}
+                >
                   <div
                     className="h-full rounded-full bg-accent-blue/70"
                     style={{
@@ -198,10 +205,11 @@ export function DebugContent({
           <button
             type="button"
             onClick={() => setJsonExpanded((v) => !v)}
+            aria-expanded={jsonExpanded}
             className="flex w-full items-center justify-between text-sm font-semibold uppercase tracking-[0.2em] text-text-secondary hover:text-text-primary"
           >
             Raw JSON
-            <span className="text-xs">
+            <span className="text-xs" aria-hidden="true">
               {jsonExpanded ? "\u25B2" : "\u25BC"}
             </span>
           </button>

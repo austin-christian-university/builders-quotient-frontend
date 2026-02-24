@@ -14,12 +14,14 @@ const LIKERT_OPTIONS: { value: LikertValue; label: string; short: string }[] = [
 
 type PersonalityLikertProps = {
   itemId: string;
+  questionText?: string;
   value: LikertValue | undefined;
   onChange: (itemId: string, value: LikertValue) => void;
 };
 
 export function PersonalityLikert({
   itemId,
+  questionText,
   value,
   onChange,
 }: PersonalityLikertProps) {
@@ -27,12 +29,37 @@ export function PersonalityLikert({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      // Number key shortcuts
       const num = parseInt(e.key, 10);
       if (num >= 1 && num <= 5) {
         onChange(itemId, num as LikertValue);
+        // Focus the newly selected button
+        const buttons = groupRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+        buttons?.[num - 1]?.focus();
+        return;
       }
+
+      // Arrow key navigation (WAI-ARIA APG Radio Group pattern)
+      if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
+      e.preventDefault();
+
+      const currentIndex = value ? value - 1 : 0;
+      let nextIndex: number;
+
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        nextIndex = (currentIndex + 1) % LIKERT_OPTIONS.length;
+      } else {
+        nextIndex = (currentIndex - 1 + LIKERT_OPTIONS.length) % LIKERT_OPTIONS.length;
+      }
+
+      const nextOption = LIKERT_OPTIONS[nextIndex];
+      onChange(itemId, nextOption.value);
+
+      // Focus the new button
+      const buttons = groupRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+      buttons?.[nextIndex]?.focus();
     },
-    [itemId, onChange]
+    [itemId, onChange, value]
   );
 
   useEffect(() => {
@@ -42,11 +69,14 @@ export function PersonalityLikert({
     return () => el.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
+  const labelId = questionText ? `likert-label-${itemId}` : undefined;
+
   return (
     <div
       ref={groupRef}
       role="radiogroup"
-      aria-label="Rating scale"
+      aria-label={questionText ? undefined : "Rating scale"}
+      aria-labelledby={labelId}
       className="flex gap-2"
     >
       {LIKERT_OPTIONS.map((option) => {

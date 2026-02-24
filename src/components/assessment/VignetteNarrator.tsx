@@ -15,6 +15,7 @@ import {
 } from "@/lib/assessment/narration-timer";
 import type { AudioNarratorResult } from "@/lib/assessment/use-audio-narrator";
 import { cn } from "@/lib/utils";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
 type VignetteNarratorProps = {
   vignetteText: string;
@@ -42,9 +43,7 @@ export function VignetteNarrator({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const latestWordRef = useRef<HTMLSpanElement>(null);
 
-  const prefersReducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   const useAudioMode = audio.hasAudio;
 

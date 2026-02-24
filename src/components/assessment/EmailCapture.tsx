@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { captureEmail } from "@/lib/actions/applicant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -202,36 +202,11 @@ export function EmailCapture() {
               </span>
             </legend>
             <input type="hidden" name="leadType" value={leadType ?? ""} />
-            <div
-              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
-              role="radiogroup"
-              aria-label="What best describes you?"
-            >
-              {leadTypeOptions.map((option) => {
-                const isSelected = leadType === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    onClick={() => setLeadType(option.value)}
-                    className={[
-                      "min-h-[3rem] rounded-xl px-4 py-3",
-                      "text-[length:var(--text-fluid-sm)] font-medium leading-snug",
-                      "transition-all duration-200 ease-[var(--ease-out-expo)]",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
-                      "cursor-pointer",
-                      isSelected
-                        ? "border border-primary/60 bg-primary/10 text-text-primary shadow-[0_0_16px_rgb(77_163_255/0.2)]"
-                        : "border border-border-glass bg-bg-elevated/60 text-text-secondary hover:border-white/20 hover:bg-white/5",
-                    ].join(" ")}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
+            <LeadTypeRadioGroup
+              options={leadTypeOptions}
+              value={leadType}
+              onChange={setLeadType}
+            />
             {leadTypeError && (
               <p
                 id="leadType-error"
@@ -261,6 +236,78 @@ export function EmailCapture() {
           </Button>
         </form>
       </div>
+    </div>
+  );
+}
+
+// --- LeadType radio group with arrow key navigation ---
+
+function LeadTypeRadioGroup({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: LeadType; label: string }[];
+  value: LeadType | null;
+  onChange: (value: LeadType) => void;
+}) {
+  const groupRef = useRef<HTMLDivElement>(null);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
+      e.preventDefault();
+
+      const currentIndex = value ? options.findIndex((o) => o.value === value) : 0;
+      let nextIndex: number;
+
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        nextIndex = (currentIndex + 1) % options.length;
+      } else {
+        nextIndex = (currentIndex - 1 + options.length) % options.length;
+      }
+
+      onChange(options[nextIndex].value);
+
+      const buttons = groupRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+      buttons?.[nextIndex]?.focus();
+    },
+    [value, options, onChange]
+  );
+
+  return (
+    <div
+      ref={groupRef}
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+      role="radiogroup"
+      aria-label="What best describes you?"
+      onKeyDown={handleKeyDown}
+    >
+      {options.map((option, i) => {
+        const isSelected = value === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={isSelected}
+            tabIndex={isSelected || (!value && i === 0) ? 0 : -1}
+            onClick={() => onChange(option.value)}
+            className={[
+              "min-h-[3rem] rounded-xl px-4 py-3",
+              "text-[length:var(--text-fluid-sm)] font-medium leading-snug",
+              "transition-all duration-200 ease-[var(--ease-out-expo)]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
+              "cursor-pointer",
+              isSelected
+                ? "border border-primary/60 bg-primary/10 text-text-primary shadow-[0_0_16px_rgb(77_163_255/0.2)]"
+                : "border border-border-glass bg-bg-elevated/60 text-text-secondary hover:border-white/20 hover:bg-white/5",
+            ].join(" ")}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

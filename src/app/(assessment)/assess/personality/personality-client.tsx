@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
 import { PersonalityProgress } from "@/components/assessment/PersonalityProgress";
 import { PersonalityQuizPage } from "@/components/assessment/PersonalityQuizPage";
@@ -54,6 +55,8 @@ export function PersonalityClient({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasUnsavedChanges = useRef(false);
+  const pageContainerRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   // Deterministic item order seeded from sessionId
   const pages = useMemo(() => {
@@ -81,6 +84,16 @@ export function PersonalityClient({
     // All answered — go to last page for submission
     setCurrentPage(pages.length - 1);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Focus page container when page changes for keyboard users
+  const initialPageSet = useRef(false);
+  useEffect(() => {
+    if (!initialPageSet.current) {
+      initialPageSet.current = true;
+      return;
+    }
+    pageContainerRef.current?.focus();
+  }, [currentPage]);
 
   // Warn on unsaved changes before navigation
   useEffect(() => {
@@ -219,25 +232,27 @@ export function PersonalityClient({
           </div>
 
           {/* Questions */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentPage}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{
-                duration: 0.3,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-            >
-              <PersonalityQuizPage
-                items={currentItems}
-                responses={responses}
-                onResponse={handleResponse}
-                pageOffset={currentPage * QUESTIONS_PER_PAGE}
-              />
-            </motion.div>
-          </AnimatePresence>
+          <div ref={pageContainerRef} tabIndex={-1} className="outline-none">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentPage}
+                initial={prefersReducedMotion ? false : { opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -20 }}
+                transition={prefersReducedMotion ? { duration: 0 } : {
+                  duration: 0.3,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+              >
+                <PersonalityQuizPage
+                  items={currentItems}
+                  responses={responses}
+                  onResponse={handleResponse}
+                  pageOffset={currentPage * QUESTIONS_PER_PAGE}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           {/* Error message */}
           {error && (

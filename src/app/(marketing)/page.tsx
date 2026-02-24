@@ -17,7 +17,10 @@ export default function HomePage() {
     <main id="main-content" className="relative">
       <SplashScreen onComplete={() => setShowSplash(false)} />
 
-      <div className={`transition-opacity duration-1000 ${showSplash ? "opacity-0 invisible" : "opacity-100 visible"}`}>
+      <div
+        className={`transition-opacity duration-1000 ${showSplash ? "opacity-0 invisible" : "opacity-100 visible"}`}
+        inert={showSplash || undefined}
+      >
         <Hero />
         <HowItWorks />
         <WhatYouDiscover />

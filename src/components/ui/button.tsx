@@ -35,6 +35,8 @@ const buttonVariants = cva(
         ],
       },
       size: {
+        // Note: sm (36px) meets WCAG 2.5.8 24px AA minimum but not 44px mobile recommendation.
+        // Avoid using sm on primary mobile-facing interactive elements.
         sm: "min-h-9 px-4 text-sm",
         md: "min-h-11 px-6 text-sm",
         lg: "min-h-12 px-8 text-base",
