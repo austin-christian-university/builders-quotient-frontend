@@ -81,11 +81,6 @@ function RocketIcon({ className = "h-6 w-6 text-primary" }: { className?: string
 // --- Student variant ---
 
 function StudentVariant() {
-  // Fire-and-forget: mark BQ complete for admissions tracking
-  useEffect(() => {
-    markBqComplete();
-  }, []);
-
   return (
     <div className="w-full max-w-5xl">
       <motion.div
@@ -281,6 +276,11 @@ function ExploreCard({
 
 export function PersonalityCompleteContent({ variant }: { variant: Variant }) {
   const [isReady, setIsReady] = useState(false);
+
+  // Fallback: mark BQ complete for all variants (idempotent — primary write happens in submitPersonalityQuiz)
+  useEffect(() => {
+    markBqComplete();
+  }, []);
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center overflow-x-hidden pt-12 pb-24">

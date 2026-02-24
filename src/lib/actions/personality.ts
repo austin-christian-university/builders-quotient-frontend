@@ -78,6 +78,17 @@ export async function submitPersonalityQuiz(input: unknown): Promise<{
 
   const supabase = createServiceClient();
 
+  // Fetch applicant_id from session (needed for bq_completed_at)
+  const { data: session, error: sessionLookupError } = await supabase
+    .from("assessment_sessions")
+    .select("applicant_id")
+    .eq("id", sessionId)
+    .single();
+
+  if (sessionLookupError || !session) {
+    return { success: false, error: "Session not found" };
+  }
+
   // Fetch all responses for this session
   const { data: rawResponses, error: fetchError } = await supabase
     .from("personality_responses")
@@ -144,6 +155,13 @@ export async function submitPersonalityQuiz(input: unknown): Promise<{
   if (sessionError) {
     return { success: false, error: "Failed to update session" };
   }
+
+  // Mark applicant as BQ-complete (idempotent — only sets if not already set)
+  await supabase
+    .from("applicants")
+    .update({ bq_completed_at: now })
+    .eq("id", session.applicant_id)
+    .is("bq_completed_at", null);
 
   return { success: true };
 }

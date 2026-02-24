@@ -5,9 +5,9 @@ import { readSessionCookie } from "@/lib/assessment/session-cookie";
 import { getSessionById } from "@/lib/queries/session";
 
 /**
- * Marks the BQ as complete for prospective students.
+ * Marks the BQ as complete for the current applicant.
  * Sets `applicants.bq_completed_at` to now().
- * Idempotent: no-ops if already set or if lead_type is not prospective_student.
+ * Idempotent: no-ops if already set.
  */
 export async function markBqComplete(): Promise<{
   success: boolean;
@@ -25,12 +25,11 @@ export async function markBqComplete(): Promise<{
 
   const supabase = createServiceClient();
 
-  // Only set bq_completed_at for prospective students, and only if not already set
+  // Only set bq_completed_at if not already set
   const { error } = await supabase
     .from("applicants")
     .update({ bq_completed_at: new Date().toISOString() })
     .eq("id", session.applicant_id)
-    .eq("lead_type", "prospective_student")
     .is("bq_completed_at", null);
 
   if (error) {
