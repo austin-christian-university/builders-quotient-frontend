@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { SplashSequence } from "@/components/assessment/SplashSequence";
+import { markBqComplete } from "@/lib/actions/application";
 
-type Variant = "student" | "general" | "default";
+type Variant = "student" | "general";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -23,20 +24,24 @@ const transition = {
   ease: [0.16, 1, 0.3, 1] as const,
 };
 
-// --- Icons ---
+const personalityLoadingSteps = [
+  "Recording your personality profile\u2026",
+  "Calculating your entrepreneur dimensions\u2026",
+  "Building your complete BQ analysis\u2026",
+];
+
+function PersonalityIcon({ className = "h-10 w-10 text-primary" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+    </svg>
+  );
+}
 
 function HeartIcon({ className = "h-8 w-8 text-secondary" }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-    </svg>
-  );
-}
-
-function BrainIcon({ className = "h-6 w-6 text-primary" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
     </svg>
   );
 }
@@ -73,13 +78,152 @@ function RocketIcon({ className = "h-6 w-6 text-primary" }: { className?: string
   );
 }
 
-const intelligenceLoadingSteps = [
-  "Securing your responses\u2026",
-  "Analyzing your intelligence profile\u2026",
-  "Preparing your personalized results\u2026",
-];
+// --- Student variant ---
 
-// --- Card Components (Bento Style) ---
+function StudentVariant() {
+  // Fire-and-forget: mark BQ complete for admissions tracking
+  useEffect(() => {
+    markBqComplete();
+  }, []);
+
+  return (
+    <div className="w-full max-w-5xl">
+      <motion.div
+        variants={fadeUp}
+        transition={transition}
+        className="mx-auto mb-16 text-center sm:mb-24"
+      >
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
+          <HeartIcon className="h-10 w-10 text-secondary" />
+        </div>
+        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.3em] text-secondary/90">
+          BQ Complete
+        </p>
+        <h1 className="mt-4 font-display text-[length:var(--text-fluid-4xl)] font-semibold tracking-tight text-text-primary">
+          You&rsquo;re Almost There
+        </h1>
+        <p className="mx-auto mt-6 max-w-2xl text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary">
+          What you&rsquo;ve just completed is the first two steps of your application to ACU &mdash; you&rsquo;re basically almost done.
+        </p>
+      </motion.div>
+
+      <div className="grid gap-6 md:grid-cols-12 md:gap-8">
+        {/* Primary CTA: Finish Application */}
+        <motion.div
+          variants={fadeUp}
+          transition={transition}
+          className="group relative col-span-12 overflow-hidden rounded-[2.5rem] border border-primary/20 bg-bg-surface/80 p-8 shadow-2xl shadow-primary/5 backdrop-blur-2xl sm:p-12 md:col-span-8 lg:p-16"
+        >
+          <div className="pointer-events-none absolute -right-32 -top-32 h-[30rem] w-[30rem] rounded-full bg-primary/20 blur-[120px] transition-transform duration-1000 group-hover:scale-110" aria-hidden="true" />
+          <div className="pointer-events-none absolute -bottom-32 -left-32 h-[20rem] w-[20rem] rounded-full bg-secondary/10 blur-[100px] transition-transform duration-1000 group-hover:-translate-y-10 group-hover:translate-x-10" aria-hidden="true" />
+
+          <div className="relative z-10 flex h-full flex-col justify-center">
+            <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 shadow-inner backdrop-blur-md">
+              <RocketIcon className="h-8 w-8 text-primary drop-shadow-[0_0_8px_rgba(var(--color-primary),0.5)]" />
+            </div>
+
+            <h2 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-tight text-text-primary">
+              Finish Your Application
+            </h2>
+
+            <div className="mt-5 max-w-xl space-y-4">
+              <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
+                Your intelligence and personality assessments are done. The hardest part is behind you. Complete your application to ACU and take the next step toward building something&nbsp;extraordinary.
+              </p>
+            </div>
+
+            <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center">
+              <Button
+                as="a"
+                href="https://austinchristianu.org/apply"
+                size="lg"
+                className="px-8 shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 hover:shadow-primary/30"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Finish Your Application
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Results info card */}
+        <motion.div
+          variants={fadeUp}
+          transition={transition}
+          className="group relative col-span-12 flex flex-col overflow-hidden rounded-[2.5rem] border border-border-glass bg-bg-elevated/40 p-8 shadow-sm backdrop-blur-xl transition-all hover:bg-bg-elevated/80 hover:shadow-lg md:col-span-4 lg:p-10"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-secondary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl border border-secondary/20 bg-secondary/5 shadow-sm transition-transform duration-500 group-hover:scale-110">
+            <SparklesIcon className="h-7 w-7 text-secondary" />
+          </div>
+          <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-tight text-text-primary">
+            Your Full BQ Results
+          </h2>
+          <p className="mt-3 flex-grow text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
+            Your complete BQ analysis &mdash; intelligence and personality &mdash; will arrive via email within 24&nbsp;hours.
+          </p>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// --- General variant ---
+
+function GeneralVariant() {
+  return (
+    <div className="w-full max-w-5xl">
+      <motion.div
+        variants={fadeUp}
+        transition={transition}
+        className="mx-auto mb-16 text-center sm:mb-24"
+      >
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
+          <SparklesIcon className="h-10 w-10 text-secondary" />
+        </div>
+        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.3em] text-secondary/90">
+          BQ Complete
+        </p>
+        <h1 className="mt-4 font-display text-[length:var(--text-fluid-4xl)] font-semibold tracking-tight text-text-primary">
+          Your Full BQ Analysis Is Coming
+        </h1>
+        <p className="mx-auto mt-6 max-w-2xl text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary">
+          You&rsquo;ll receive your detailed BQ analysis &mdash; intelligence and personality &mdash; via email within 24&nbsp;hours. In the meantime, here&rsquo;s more about what we&rsquo;re building at&nbsp;ACU.
+        </p>
+      </motion.div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 md:gap-8">
+        <ExploreCard
+          icon={<GlobeIcon className="h-8 w-8 text-primary" />}
+          heading="Discover ACU"
+          body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
+          buttonLabel="Visit Our Home"
+          href="https://austinchristianu.org"
+          external
+        />
+        <ExploreCard
+          icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
+          heading="Explore Curriculum"
+          body="See the programs and courses designed to build the next generation of entrepreneurial leaders."
+          buttonLabel="View Curriculum"
+          href="https://austinchristianu.org/curriculum"
+          external
+        />
+        <ExploreCard
+          icon={<RocketIcon className="h-8 w-8 text-primary" />}
+          heading="Startups &amp; Projects"
+          body="Our accelerator connects students with real ventures from day&nbsp;one so they can make a real impact."
+          buttonLabel="The Accelerator"
+          href="https://austinchristianu.org"
+          external
+        />
+      </div>
+    </div>
+  );
+}
+
+// --- Explore card ---
 
 function ExploreCard({
   icon,
@@ -109,7 +253,7 @@ function ExploreCard({
       </div>
 
       <div className="flex flex-grow flex-col">
-        <h2 className="font-display text-[length:var(--text-fluid-lg)] font-bold tracking-tight text-text-primary group-hover:text-primary transition-colors">
+        <h2 className="font-display text-[length:var(--text-fluid-lg)] font-bold tracking-tight text-text-primary transition-colors group-hover:text-primary">
           {heading}
         </h2>
         <p className="mt-2 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
@@ -133,227 +277,9 @@ function ExploreCard({
   );
 }
 
-// --- Student variant (warm splash → personality CTA) ---
+// --- Main ---
 
-function StudentVariant() {
-  const [showCTA, setShowCTA] = useState(false);
-
-  return (
-    <div className="w-full max-w-5xl">
-      {/* Warm welcome splash */}
-      <motion.div
-        variants={fadeUp}
-        transition={transition}
-        className="mx-auto mb-16 text-center sm:mb-24"
-      >
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
-          <HeartIcon className="h-10 w-10 text-secondary" />
-        </div>
-        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.3em] text-secondary/90">
-          Assessment Complete
-        </p>
-        <h1 className="mt-4 font-display text-[length:var(--text-fluid-4xl)] font-semibold tracking-tight text-text-primary">
-          We&rsquo;re Glad You&rsquo;re Here
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary">
-          Thank you for taking the time to complete your intelligence assessment. We&rsquo;re excited you&rsquo;re considering ACU, and we&rsquo;d love to get to know you a&nbsp;little&nbsp;better.
-        </p>
-      </motion.div>
-
-      <div className="grid gap-6 md:grid-cols-12 md:gap-8">
-        {/* Personality profile intro - Premium Bento CTA */}
-        <motion.div
-          variants={fadeUp}
-          transition={transition}
-          onAnimationComplete={() => setShowCTA(true)}
-          className="group relative col-span-12 overflow-hidden rounded-[2.5rem] border border-primary/20 bg-bg-surface/80 p-8 shadow-2xl shadow-primary/5 backdrop-blur-2xl sm:p-12 md:col-span-8 lg:p-16"
-        >
-          {/* Subtle slow moving gradients */}
-          <div className="pointer-events-none absolute -right-32 -top-32 h-[30rem] w-[30rem] rounded-full bg-primary/20 blur-[120px] transition-transform duration-1000 group-hover:scale-110" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-32 -left-32 h-[20rem] w-[20rem] rounded-full bg-secondary/10 blur-[100px] transition-transform duration-1000 group-hover:-translate-y-10 group-hover:translate-x-10" aria-hidden="true" />
-
-          <div className="relative z-10 flex h-full flex-col justify-center">
-            <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 shadow-inner backdrop-blur-md">
-              <BrainIcon className="h-8 w-8 text-primary drop-shadow-[0_0_8px_rgba(var(--color-primary),0.5)]" />
-            </div>
-
-            <h2 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-tight text-text-primary">
-              Your Entrepreneur Personality Profile
-            </h2>
-
-            <div className="mt-5 max-w-xl space-y-4">
-              <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
-                At ACU, we believe great entrepreneurs aren&rsquo;t just smart &mdash; they have a unique blend of personality traits that drives them. Our personality profile measures 9&nbsp;key dimensions like grit, risk tolerance, and innovativeness that define successful founders.
-              </p>
-              <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
-                We use this alongside your intelligence scores to understand who you are and how we can best support your&nbsp;journey.
-              </p>
-            </div>
-
-            <AnimatePresence>
-              {showCTA && (
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-                  className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center"
-                >
-                  <Button as="a" href="/assess/personality" size="lg" className="px-8 shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 hover:shadow-primary/30">
-                    Start Personality Profile
-                  </Button>
-                  <span className="text-[length:var(--text-fluid-sm)] font-medium text-text-secondary/70">
-                    Takes about 5&nbsp;minutes
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
-        {/* Secondary: Curriculum - Slim Sidebar Bento */}
-        <motion.div
-          variants={fadeUp}
-          transition={transition}
-          className="group relative col-span-12 flex flex-col overflow-hidden rounded-[2.5rem] border border-border-glass bg-bg-elevated/40 p-8 shadow-sm backdrop-blur-xl transition-all hover:bg-bg-elevated/80 hover:shadow-lg md:col-span-4 lg:p-10"
-        >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl border border-border-glass bg-bg-surface shadow-sm transition-transform duration-500 group-hover:scale-110">
-            <AcademicCapIcon className="h-7 w-7 text-primary" />
-          </div>
-          <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-tight text-text-primary">
-            Explore Our Curriculum
-          </h2>
-          <p className="mt-3 flex-grow text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
-            See the programs and courses designed to build the next generation of entrepreneurial leaders that make ACU different.
-          </p>
-          <div className="mt-10">
-            <Button
-              as="a"
-              href="/curriculum"
-              variant="outline"
-              size="md"
-              className="w-full bg-transparent"
-            >
-              View Curriculum
-            </Button>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-// --- General variant (three explore cards) ---
-
-function GeneralVariant() {
-  return (
-    <div className="w-full max-w-5xl">
-      {/* Hero */}
-      <motion.div
-        variants={fadeUp}
-        transition={transition}
-        className="mx-auto mb-16 text-center sm:mb-24"
-      >
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
-          <SparklesIcon className="h-10 w-10 text-secondary" />
-        </div>
-        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.3em] text-secondary/90">
-          Assessment Complete
-        </p>
-        <h1 className="mt-4 font-display text-[length:var(--text-fluid-4xl)] font-semibold tracking-tight text-text-primary">
-          Your Intelligence Profile Is Ready
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary">
-          You&rsquo;ll receive your detailed BQ analysis via email within 24&nbsp;hours. In the meantime, here&rsquo;s more about what we&rsquo;re building at&nbsp;ACU.
-        </p>
-      </motion.div>
-
-      {/* Three explore cards in a bento grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 md:gap-8">
-        <div className="md:col-span-2 lg:col-span-1 h-full">
-          <ExploreCard
-            icon={<GlobeIcon className="h-8 w-8 text-primary" />}
-            heading="Discover ACU"
-            body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
-            buttonLabel="Visit Our Home"
-            href="https://austinchristianu.org"
-            external
-          />
-        </div>
-        <div className="md:col-span-1 lg:col-span-1 h-full">
-          <ExploreCard
-            icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
-            heading="Explore Curriculum"
-            body="See the programs and courses designed to build the next generation of entrepreneurial leaders."
-            buttonLabel="View Curriculum"
-            href="https://austinchristianu.org/curriculum"
-            external
-          />
-        </div>
-        <div className="md:col-span-1 lg:col-span-1 h-full">
-          <ExploreCard
-            icon={<RocketIcon className="h-8 w-8 text-primary" />}
-            heading="Startups &amp; Projects"
-            body="We love getting students plugged into real ventures so they can make a real impact. Our accelerator connects students with startups from day&nbsp;one."
-            buttonLabel="The Accelerator"
-            href="https://austinchristianu.org"
-            external
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// --- Default variant (fallback, no path param) ---
-
-function DefaultVariant() {
-  return (
-    <div className="w-full max-w-4xl">
-      <motion.div
-        variants={fadeUp}
-        transition={transition}
-        className="mx-auto mb-16 text-center sm:mb-20"
-      >
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
-          <SparklesIcon className="h-10 w-10 text-secondary" />
-        </div>
-        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.3em] text-secondary/90">
-          Assessment Complete
-        </p>
-        <h1 className="mt-4 font-display text-[length:var(--text-fluid-4xl)] font-semibold tracking-tight text-text-primary">
-          Your Intelligence Profile Is Ready
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary">
-          You&rsquo;ll receive your detailed BQ analysis via email within 24&nbsp;hours. Here&rsquo;s what you can do next.
-        </p>
-      </motion.div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
-        <ExploreCard
-          icon={<GlobeIcon className="h-8 w-8 text-primary" />}
-          heading="Discover ACU"
-          body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient."
-          buttonLabel="Visit Our Home"
-          href="https://austinchristianu.org"
-          external
-        />
-        <ExploreCard
-          icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
-          heading="Explore Curriculum"
-          body="See the programs designed to build the next generation of entrepreneurial leaders."
-          buttonLabel="View Curriculum"
-          href="https://austinchristianu.org/curriculum"
-          external
-        />
-      </div>
-    </div>
-  );
-}
-
-// --- Main content ---
-
-export function ThankYouContent({ variant }: { variant: Variant }) {
+export function PersonalityCompleteContent({ variant }: { variant: Variant }) {
   const [isReady, setIsReady] = useState(false);
 
   return (
@@ -362,8 +288,8 @@ export function ThankYouContent({ variant }: { variant: Variant }) {
         {!isReady ? (
           <SplashSequence
             key="loading"
-            steps={intelligenceLoadingSteps}
-            icon={<BrainIcon className="h-10 w-10 text-primary drop-shadow-md" />}
+            steps={personalityLoadingSteps}
+            icon={<PersonalityIcon className="h-10 w-10 text-primary drop-shadow-md" />}
             onComplete={() => setIsReady(true)}
           />
         ) : (
@@ -377,9 +303,7 @@ export function ThankYouContent({ variant }: { variant: Variant }) {
           >
             {variant === "student" && <StudentVariant />}
             {variant === "general" && <GeneralVariant />}
-            {variant === "default" && <DefaultVariant />}
 
-            {/* Back to home */}
             <motion.div
               variants={fadeUp}
               transition={{ ...transition, delay: 0.4 }}

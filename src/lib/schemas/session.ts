@@ -22,6 +22,9 @@ export const sessionRowSchema = z.object({
   started_at: z.string().nullable(),
   completed_at: z.string().nullable(),
   created_at: z.string(),
+  personality_started_at: z.string().nullable().optional(),
+  personality_completed_at: z.string().nullable().optional(),
+  personality_summary: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
 export type SessionRow = z.infer<typeof sessionRowSchema>;

@@ -4,6 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { ResultsPageData } from "@/lib/schemas/results";
 
+import { RevealSlide } from "./slides/RevealSlide";
+import { ArchetypeSlide } from "./slides/ArchetypeSlide";
+import { IntelligenceSlide } from "./slides/IntelligenceSlide";
+import { HighlightSlide } from "./slides/HighlightSlide";
+import { PersonalitySlide } from "./slides/PersonalitySlide";
+import { RadarSlide } from "./slides/RadarSlide";
+import { StatsSlide } from "./slides/StatsSlide";
+import { ShareSlide } from "./slides/ShareSlide";
+
 // ---------------------------------------------------------------------------
 // Hooks
 // ---------------------------------------------------------------------------
@@ -50,30 +59,6 @@ function usePrefersReducedMotion() {
   }, []);
 
   return reduced;
-}
-
-// ---------------------------------------------------------------------------
-// Section placeholder (unchanged)
-// ---------------------------------------------------------------------------
-
-type SectionPlaceholderProps = {
-  name: string;
-  data: unknown;
-};
-
-function SectionPlaceholder({ name, data }: SectionPlaceholderProps) {
-  return (
-    <section className="flex h-full items-center justify-center px-6">
-      <div className="text-center">
-        <h2 className="font-display text-[length:var(--text-fluid-2xl)] font-semibold text-text-primary">
-          {name}
-        </h2>
-        <pre className="mt-4 max-w-lg overflow-auto text-left text-sm text-text-secondary">
-          {JSON.stringify(data, null, 2)}
-        </pre>
-      </div>
-    </section>
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -146,67 +131,63 @@ export function ResultsExperience({ data }: Props) {
   const [currentSection, setCurrentSection] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
 
-  // Build sections array — conditionally exclude empty data sections
+  // Build components array based on data presence
   const sections = useMemo(() => {
-    const s: { name: string; data: unknown }[] = [
-      {
-        name: "The Reveal",
-        data: {
+    const s: React.ReactNode[] = [
+      <RevealSlide
+        key="reveal"
+        data={{
           displayName: data.applicant.displayName,
           bqPercentile: data.overall.bqPercentile,
-        },
-      },
-      { name: "Your Archetype", data: data.archetype },
-      {
-        name: "Practical Intelligence",
-        data: {
+        }}
+      />,
+      <ArchetypeSlide key="archetype" data={data.archetype} />,
+      <IntelligenceSlide
+        key="pi"
+        title="Practical Intelligence"
+        variant="pi"
+        data={{
           headline: data.overall.piHeadlinePercentile,
           categories: data.piCategories,
-        },
-      },
-      {
-        name: "Creative Intelligence",
-        data: {
+        }}
+      />,
+      <IntelligenceSlide
+        key="ci"
+        title="Creative Intelligence"
+        variant="ci"
+        data={{
           headline: data.overall.ciHeadlinePercentile,
           categories: data.ciCategories,
-        },
-      },
+        }}
+      />,
     ];
 
+    if (data.personality) {
+      s.push(<PersonalitySlide key="personality" data={data.personality} />);
+    }
+
     if (data.signatureMoves.length > 0) {
-      s.push({ name: "Your Signature Moves", data: data.signatureMoves });
+      s.push(
+        <HighlightSlide
+          key="signatureMoves"
+          data={{ title: "Your Signature Moves", items: data.signatureMoves }}
+        />
+      );
     }
 
     if (data.rarestMove) {
-      s.push({ name: "The Rarest Thing You Did", data: data.rarestMove });
+      s.push(
+        <HighlightSlide
+          key="rarestMove"
+          data={{ title: "The Rarest Thing You Did", items: [data.rarestMove] }}
+        />
+      );
     }
 
     s.push(
-      {
-        name:
-          data.growthEdges.length > 0
-            ? "Your Growth Edge"
-            : "You Covered All the Bases",
-        data:
-          data.growthEdges.length > 0
-            ? data.growthEdges
-            : { message: "No significant gaps detected" },
-      },
-      {
-        name: "You vs. Entrepreneurs",
-        data: {
-          overall: data.overall,
-          piCategories: data.piCategories,
-          ciCategories: data.ciCategories,
-        },
-      },
-      {
-        name: "Entrepreneur Match",
-        data: { status: "Coming in Phase D \u2014 needs Python pipeline" },
-      },
-      {
-        name: "Your Profile Shape",
-        data: {
+      <RadarSlide
+        key="radar"
+        data={{
           pi: data.piCategories.map((c) => ({
             category: c.category,
             percentile: c.percentile,
@@ -215,22 +196,17 @@ export function ResultsExperience({ data }: Props) {
             category: c.category,
             percentile: c.percentile,
           })),
-        },
-      },
-      {
-        name: "Industry Alignment",
-        data: { status: "Coming in Phase D \u2014 needs matching pipeline" },
-      },
-      { name: "By the Numbers", data: data.stats },
-      { name: "Your Strengths Narrative", data: data.narrative },
-      {
-        name: "Share Your Results",
-        data: {
+        }}
+      />,
+      <StatsSlide key="stats" data={data.stats} />,
+      <ShareSlide
+        key="share"
+        data={{
           displayName: data.applicant.displayName,
           bqPercentile: data.overall.bqPercentile,
           archetype: data.archetype.name,
-        },
-      },
+        }}
+      />
     );
 
     return s;
@@ -307,8 +283,6 @@ export function ResultsExperience({ data }: Props) {
     ease: [0.16, 1, 0.3, 1] as const,
   };
 
-  const current = sections[currentSection];
-
   return (
     <main className="relative h-[100svh] overflow-hidden bg-bg-base">
       {/* Progress indicator */}
@@ -319,7 +293,7 @@ export function ResultsExperience({ data }: Props) {
       {/* Section content */}
       {reducedMotion ? (
         <div className="h-full" key={currentSection}>
-          <SectionPlaceholder name={current.name} data={current.data} />
+          {sections[currentSection]}
         </div>
       ) : (
         <AnimatePresence mode="wait" custom={direction}>
@@ -333,7 +307,7 @@ export function ResultsExperience({ data }: Props) {
             transition={transition}
             className="h-full"
           >
-            <SectionPlaceholder name={current.name} data={current.data} />
+            {sections[currentSection]}
           </motion.div>
         </AnimatePresence>
       )}

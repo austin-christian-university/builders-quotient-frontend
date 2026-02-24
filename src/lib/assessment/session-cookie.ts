@@ -53,6 +53,11 @@ export async function readSessionCookie(): Promise<string | null> {
   }
 }
 
+/** Re-issues the JWT with a fresh TTL using the same session ID. */
+export async function refreshSessionCookie(sessionId: string) {
+  await createSessionCookie(sessionId);
+}
+
 /** Deletes the session cookie. */
 export async function clearSessionCookie() {
   const jar = await cookies();
