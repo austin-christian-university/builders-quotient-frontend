@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
 
 type ProfilePoint = { category: string; percentile: number };
 
@@ -13,8 +12,6 @@ type Props = {
 };
 
 export function RadarSlide({ data }: Props) {
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
 
     const allPoints = [...data.pi, ...data.ci];
     const numPoints = allPoints.length;
@@ -52,7 +49,6 @@ export function RadarSlide({ data }: Props) {
             </motion.p>
 
             <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
-                {mounted ? (
                     <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="overflow-visible drop-shadow-2xl">
                         {/* Background concentric polygons (grids) */}
                         {[0.2, 0.4, 0.6, 0.8, 1].map((scale) => {
@@ -146,7 +142,6 @@ export function RadarSlide({ data }: Props) {
                             </linearGradient>
                         </defs>
                     </svg>
-                ) : null}
             </div>
         </section>
     );

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { reducer, type State } from "./vignette-reducer";
 
 function makeState(phase: State["phase"], errorMessage: string | null = null, retryCount = 0): State {
@@ -150,37 +150,33 @@ describe("vignette reducer", () => {
 
   // --- DEV_SET_PHASE ---
   it("DEV_SET_PHASE sets phase in development", () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     const result = reducer(makeState("ready"), { type: "DEV_SET_PHASE", phase: "recording_3" });
     expect(result.phase).toBe("recording_3");
     expect(result.errorMessage).toBeNull();
-    process.env.NODE_ENV = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("DEV_SET_PHASE is a no-op in production", () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     const state = makeState("ready");
     const result = reducer(state, { type: "DEV_SET_PHASE", phase: "recording_3" });
     expect(result).toBe(state);
-    process.env.NODE_ENV = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("DEV_SET_PHASE to error sets default error message", () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     const result = reducer(makeState("ready"), { type: "DEV_SET_PHASE", phase: "error" });
     expect(result.phase).toBe("error");
     expect(result.errorMessage).toBe("Dev test error");
-    process.env.NODE_ENV = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("DEV_SET_PHASE to buffer_3 works", () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     const result = reducer(makeState("ready"), { type: "DEV_SET_PHASE", phase: "buffer_3" });
     expect(result.phase).toBe("buffer_3");
-    process.env.NODE_ENV = originalEnv;
+    vi.unstubAllEnvs();
   });
 });

@@ -53,7 +53,7 @@ export function ShareSlide({ data }: Props) {
                     <div className="absolute bottom-0 left-0 w-40 h-40 bg-primary/30 rounded-tr-full blur-[50px] -z-10" />
 
                     <div>
-                        <h3 className="uppercase tracking-widest text-xs text-white/70 mb-2">Builder's Quotient</h3>
+                        <h3 className="uppercase tracking-widest text-xs text-white/70 mb-2">Builder{"\u2019"}s Quotient</h3>
                         <div className="font-display font-bold text-3xl text-white leading-none">
                             {namePossessive} Results
                         </div>

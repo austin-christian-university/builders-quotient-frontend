@@ -14,10 +14,11 @@ export function RevealSlide({ data }: Props) {
     const [count, setCount] = useState(0);
 
     useEffect(() => {
-        let start = 0;
         const end = data.bqPercentile;
-        if (start === end) {
-            setCount(end);
+        if (end === 0) {
+            // Reset count when percentile is 0 (e.g., component reused with new data)
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setCount(0);
             return;
         }
         const duration = 2000;

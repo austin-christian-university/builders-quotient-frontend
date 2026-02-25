@@ -44,7 +44,9 @@ export function useAudioNarrator(
   useEffect(() => {
     if (!hasAudioData) return;
 
-    // Reset state for the new audio source
+    // Reset state for the new audio source — synchronous reset is intentional
+    // to avoid a render with stale state before the new Audio element is ready.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState({ revealedCount: 0, isPlaying: false, isComplete: false, hasFailed: false });
     currentTimeRef.current = 0;
 

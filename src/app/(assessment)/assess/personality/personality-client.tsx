@@ -50,14 +50,6 @@ export function PersonalityClient({
   const router = useRouter();
   const [responses, setResponses] =
     useState<Record<string, LikertValue>>(existingResponses);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const hasUnsavedChanges = useRef(false);
-  const pageContainerRef = useRef<HTMLDivElement>(null);
-  const prefersReducedMotion = usePrefersReducedMotion();
-
   // Deterministic item order seeded from sessionId
   const pages = useMemo(() => {
     const random = mulberry32(hashString(sessionId));
@@ -65,25 +57,26 @@ export function PersonalityClient({
     return toPages(mixed);
   }, [sessionId]);
 
+  // Resume to furthest unanswered page on mount
+  const [currentPage, setCurrentPage] = useState(() => {
+    if (Object.keys(existingResponses).length === 0) return 0;
+    for (let p = 0; p < pages.length; p++) {
+      const allAnswered = pages[p].every((item) => existingResponses[item.id]);
+      if (!allAnswered) return p;
+    }
+    return pages.length - 1;
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const hasUnsavedChanges = useRef(false);
+  const pageContainerRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   const totalPages = pages.length;
-  const currentItems = pages[currentPage] ?? [];
+  const currentItems = useMemo(() => pages[currentPage] ?? [], [pages, currentPage]);
   const answeredCount = Object.keys(responses).length;
   const isLastPage = currentPage === totalPages - 1;
-
-  // Resume to furthest unanswered page
-  useEffect(() => {
-    if (Object.keys(existingResponses).length === 0) return;
-    for (let p = 0; p < pages.length; p++) {
-      const pageItems = pages[p];
-      const allAnswered = pageItems.every((item) => existingResponses[item.id]);
-      if (!allAnswered) {
-        setCurrentPage(p);
-        return;
-      }
-    }
-    // All answered — go to last page for submission
-    setCurrentPage(pages.length - 1);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Focus page container when page changes for keyboard users
   const initialPageSet = useRef(false);

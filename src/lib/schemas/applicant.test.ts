@@ -111,7 +111,7 @@ describe("emailCaptureSchema", () => {
   });
 
   it("rejects missing phone", () => {
-    const { phone: _, ...noPhone } = validInput;
+    const { phone: _phone, ...noPhone } = validInput; // eslint-disable-line @typescript-eslint/no-unused-vars
     const result = emailCaptureSchema.safeParse(noPhone);
     expect(result.success).toBe(false);
   });

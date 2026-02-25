@@ -63,7 +63,7 @@ export function DevToolbar({
   recording3Remaining,
   recorderStatus,
   streamStatus,
-  sessionId,
+  sessionId: _sessionId, // eslint-disable-line @typescript-eslint/no-unused-vars -- kept for future dev toolbar features
 }: DevToolbarProps) {
   const [visible, setVisible] = useState(true);
   const [skipping, setSkipping] = useState(false);

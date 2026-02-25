@@ -74,7 +74,7 @@ describe("sessionRowSchema", () => {
   });
 
   it("defaults assessment_type to public", () => {
-    const { assessment_type, ...withoutType } = validRow;
+    const { assessment_type: _type, ...withoutType } = validRow; // eslint-disable-line @typescript-eslint/no-unused-vars
     const result = sessionRowSchema.safeParse(withoutType);
     expect(result.success).toBe(true);
     if (result.success) {
@@ -83,7 +83,7 @@ describe("sessionRowSchema", () => {
   });
 
   it("defaults vignette arrays to empty", () => {
-    const { practical_vignette_ids, creative_vignette_ids, ...withoutIds } =
+    const { practical_vignette_ids: _pids, creative_vignette_ids: _cids, ...withoutIds } = // eslint-disable-line @typescript-eslint/no-unused-vars
       validRow;
     const result = sessionRowSchema.safeParse(withoutIds);
     expect(result.success).toBe(true);

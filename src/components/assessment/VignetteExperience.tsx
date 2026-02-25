@@ -67,7 +67,7 @@ export function VignetteExperience({
   vignettePrompt,
   phase2Prompt,
   phase3Prompt,
-  servedAt: _servedAt,
+  servedAt: _servedAt, // eslint-disable-line @typescript-eslint/no-unused-vars -- reserved for future server-side timing validation
   audioUrl,
   audioTiming,
   estimatedNarrationSeconds,
@@ -113,7 +113,6 @@ export function VignetteExperience({
 
   // Compute section boundaries for prompt audio detection
   const sectionBoundaries = audioTiming ? getSectionBoundaries(audioTiming) : [];
-  const phase1PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_1_prompt");
   const phase2PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_2_prompt");
   const phase3PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_3_prompt");
 
@@ -193,7 +192,7 @@ export function VignetteExperience({
       recorder.start();
       phase1StartTimeRef.current = new Date().toISOString();
     }
-  }, [state.phase, recorder.status, recorder.start]);
+  }, [state.phase, recorder.status, recorder.start]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // recording_1: 75s countdown (separate from recorder to avoid resets)
   useEffect(() => {
@@ -232,7 +231,7 @@ export function VignetteExperience({
 
     clipPhase1();
     return () => { cancelled = true; };
-  }, [state.phase, recording1Remaining, recorder.status, recorder.clip]);
+  }, [state.phase, recording1Remaining, recorder.status, recorder.clip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle recorder error during recording_1
   useEffect(() => {
@@ -358,7 +357,7 @@ export function VignetteExperience({
       recorder.start();
       phase2StartTimeRef.current = new Date().toISOString();
     }
-  }, [state.phase, recorder.status, recorder.start]);
+  }, [state.phase, recorder.status, recorder.start]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // recording_2: 45s countdown (separate from recorder to avoid resets)
   useEffect(() => {
@@ -397,7 +396,7 @@ export function VignetteExperience({
 
     clipPhase2();
     return () => { cancelled = true; };
-  }, [state.phase, recording2Remaining, recorder.status, recorder.clip]);
+  }, [state.phase, recording2Remaining, recorder.status, recorder.clip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle recorder error during recording_2
   useEffect(() => {
@@ -523,7 +522,7 @@ export function VignetteExperience({
       recorder.start();
       phase3StartTimeRef.current = new Date().toISOString();
     }
-  }, [state.phase, recorder.status, recorder.start]);
+  }, [state.phase, recorder.status, recorder.start]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // recording_3: 45s countdown (separate from recorder to avoid resets)
   useEffect(() => {
@@ -549,7 +548,7 @@ export function VignetteExperience({
     if (recorder.status !== "recording") return;
 
     recorder.stop();
-  }, [state.phase, recording3Remaining, recorder.status, recorder.stop]);
+  }, [state.phase, recording3Remaining, recorder.status, recorder.stop]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle recording_3 done -> submitting
   useEffect(() => {

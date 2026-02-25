@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { isMobileDevice } from "./detect-mobile";
 
 /** Set up matchMedia to return controlled values per query. */

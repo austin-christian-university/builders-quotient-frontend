@@ -27,12 +27,9 @@ function useIsDesktop() {
 
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mql.matches);
-
     function onChange(e: MediaQueryListEvent) {
       setIsDesktop(e.matches);
     }
-
     mql.addEventListener("change", onChange);
     return () => mql.removeEventListener("change", onChange);
   }, []);

@@ -9,14 +9,15 @@ export function UploadStatusBar() {
   const { jobs, retryJob, hasPendingUploads, allComplete } = useUploadQueue();
   const [dismissed, setDismissed] = useState(false);
 
-  // Auto-dismiss 3s after all uploads complete
+  // Auto-dismiss 3s after all uploads complete.
+  // Cleanup resets dismissed when allComplete changes (new uploads start).
   useEffect(() => {
-    if (!allComplete) {
-      setDismissed(false);
-      return;
-    }
+    if (!allComplete) return;
     const timer = setTimeout(() => setDismissed(true), 3000);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      setDismissed(false);
+    };
   }, [allComplete]);
 
   const activeJobs = jobs.filter(
@@ -34,19 +35,23 @@ export function UploadStatusBar() {
   const currentUpload = jobs.find((j) => j.status === "uploading");
   const [slowDetected, setSlowDetected] = useState(false);
 
+  const uploadId = currentUpload?.id;
+  const uploadStatus = currentUpload?.status;
+  const uploadProgress = currentUpload?.progress ?? 0;
+
   useEffect(() => {
-    if (!currentUpload || currentUpload.status !== "uploading") {
-      setSlowDetected(false);
-      return;
-    }
+    if (!uploadId || uploadStatus !== "uploading") return;
     // Check after 10 seconds if progress is still low
     const timer = setTimeout(() => {
-      if (currentUpload.progress < 10) {
+      if (uploadProgress < 10) {
         setSlowDetected(true);
       }
     }, 10_000);
-    return () => clearTimeout(timer);
-  }, [currentUpload?.id, currentUpload?.status, currentUpload?.progress]);
+    return () => {
+      clearTimeout(timer);
+      setSlowDetected(false);
+    };
+  }, [uploadId, uploadStatus, uploadProgress]);
 
   // Average progress across active jobs
   const avgProgress =

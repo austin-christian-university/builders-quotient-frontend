@@ -553,11 +553,14 @@ function NarrationDebugBar({
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const revealedCountRef = useRef(revealedCount);
-  revealedCountRef.current = revealedCount;
   const audioTimingRef = useRef(audioTiming);
-  audioTimingRef.current = audioTiming;
   const totalWordsRef = useRef(totalWords);
-  totalWordsRef.current = totalWords;
+
+  useEffect(() => {
+    revealedCountRef.current = revealedCount;
+    audioTimingRef.current = audioTiming;
+    totalWordsRef.current = totalWords;
+  });
 
   useEffect(() => {
     const startTime = performance.now();
