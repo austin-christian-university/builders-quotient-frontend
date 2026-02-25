@@ -33,9 +33,12 @@ const RECORDING_1_SECONDS = 75;
 const TRANSITION_SECONDS = 2;
 const BUFFER_2_THINKING_SECONDS = 30;
 const RECORDING_2_SECONDS = 45;
+const BUFFER_3_THINKING_SECONDS = 30;
+const RECORDING_3_SECONDS = 45;
 const MAX_BLOB_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB Supabase bucket limit
 
 type Buffer2SubStage = "transition" | "prompting" | "thinking";
+type Buffer3SubStage = "transition" | "prompting" | "thinking";
 
 // --- Props ---
 type VignetteExperienceProps = {
@@ -47,6 +50,7 @@ type VignetteExperienceProps = {
   vignetteText: string;
   vignettePrompt: string;
   phase2Prompt: string | null;
+  phase3Prompt: string | null;
   servedAt: string;
   audioUrl: string | null;
   audioTiming: AudioWordTiming[] | null;
@@ -62,6 +66,7 @@ export function VignetteExperience({
   vignetteText,
   vignettePrompt,
   phase2Prompt,
+  phase3Prompt,
   servedAt: _servedAt,
   audioUrl,
   audioTiming,
@@ -86,6 +91,9 @@ export function VignetteExperience({
   const [buffer2ThinkingRemaining, setBuffer2ThinkingRemaining] = useState(BUFFER_2_THINKING_SECONDS);
   const [recording2Remaining, setRecording2Remaining] = useState(RECORDING_2_SECONDS);
   const [buffer2SubStage, setBuffer2SubStage] = useState<Buffer2SubStage>("transition");
+  const [buffer3ThinkingRemaining, setBuffer3ThinkingRemaining] = useState(BUFFER_3_THINKING_SECONDS);
+  const [recording3Remaining, setRecording3Remaining] = useState(RECORDING_3_SECONDS);
+  const [buffer3SubStage, setBuffer3SubStage] = useState<Buffer3SubStage>("transition");
   const [countdownNumber, setCountdownNumber] = useState(3);
   const prefersReducedMotion = usePrefersReducedMotion();
   const phaseContainerRef = useRef<HTMLDivElement>(null);
@@ -97,11 +105,17 @@ export function VignetteExperience({
   const phase1StartTimeRef = useRef<string | null>(null);
   const phase1DurationRef = useRef(0);
   const phase2BlobRef = useRef<Blob | null>(null);
+  const phase2StartTimeRef = useRef<string | null>(null);
+  const phase2DurationRef = useRef(0);
+  const phase3BlobRef = useRef<Blob | null>(null);
+  const phase3StartTimeRef = useRef<string | null>(null);
+  const phase3DurationRef = useRef(0);
 
-  // Compute section boundaries for phase_2_prompt audio detection
+  // Compute section boundaries for prompt audio detection
   const sectionBoundaries = audioTiming ? getSectionBoundaries(audioTiming) : [];
-  const phase2PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_2_prompt");
   const phase1PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_1_prompt");
+  const phase2PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_2_prompt");
+  const phase3PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_3_prompt");
 
   // --- 3-2-1 countdown ---
   useEffect(() => {
@@ -314,6 +328,7 @@ export function VignetteExperience({
     if (state.phase !== "recording_2") return;
     if (recorder.status === "idle") {
       recorder.start();
+      phase2StartTimeRef.current = new Date().toISOString();
     }
   }, [state.phase, recorder.status, recorder.start]);
 
@@ -335,38 +350,202 @@ export function VignetteExperience({
     return () => clearInterval(interval);
   }, [state.phase]);
 
-  // Auto-stop at recording_2 countdown expiry
+  // Auto-clip at recording_2 countdown expiry (clip instead of stop, so recorder can restart for phase 3)
   useEffect(() => {
     if (state.phase !== "recording_2" || recording2Remaining > 0) return;
     if (recorder.status !== "recording") return;
 
+    let cancelled = false;
+
+    async function clipPhase2() {
+      phase2DurationRef.current = RECORDING_2_SECONDS;
+      const blob = await recorder.clip();
+      if (cancelled) return;
+      phase2BlobRef.current = blob;
+      dispatch({ type: "RECORDING_2_COMPLETE" });
+    }
+
+    clipPhase2();
+    return () => { cancelled = true; };
+  }, [state.phase, recording2Remaining, recorder.status, recorder.clip]);
+
+  // Handle recorder error during recording_2
+  useEffect(() => {
+    if (state.phase !== "recording_2") return;
+    if (recorder.status === "error") {
+      if (recorder.blob) {
+        phase2BlobRef.current = recorder.blob;
+        phase2DurationRef.current = recorder.duration;
+        dispatch({ type: "RECORDING_2_COMPLETE" });
+      } else {
+        dispatch({ type: "ERROR", message: "Recording failed. Please try again." });
+      }
+    }
+  }, [state.phase, recorder.status, recorder.blob, recorder.duration]);
+
+  // --- buffer_3: transition -> prompting -> thinking ---
+  useEffect(() => {
+    if (state.phase !== "buffer_3") return;
+
+    setBuffer3SubStage("transition");
+    setBuffer3ThinkingRemaining(BUFFER_3_THINKING_SECONDS);
+
+    // Sub-stage 1: "transition" (2s) — enqueue phase 2 blob for upload
+    const phase2Blob = phase2BlobRef.current;
+    if (phase2Blob) {
+      if (phase2Blob.size <= MAX_BLOB_SIZE_BYTES) {
+        reserveResponse({
+          sessionId,
+          vignetteId,
+          vignetteType,
+          step,
+          responsePhase: 2,
+          videoDurationSeconds: phase2DurationRef.current,
+          recordingStartedAt: phase2StartTimeRef.current ?? new Date().toISOString(),
+        }).then(() => {
+          uploadQueue.enqueue({
+            blob: phase2Blob,
+            sessionId,
+            vignetteId,
+            vignetteType,
+            step,
+            responsePhase: 2,
+          });
+        }).catch((err) => {
+          console.error("[BQ] Failed to reserve phase 2:", err);
+        });
+      }
+      phase2BlobRef.current = null;
+    }
+
+    const transitionTimer = setTimeout(() => {
+      setBuffer3SubStage("prompting");
+
+      // Resume audio for phase_3_prompt (if available)
+      if (audio.hasAudio && phase3PromptBoundary) {
+        const audioEl = audio.audioRef.current;
+        if (audioEl) {
+          audioEl.currentTime = phase3PromptBoundary.audioStart;
+        }
+        audio.play();
+      }
+    }, TRANSITION_SECONDS * 1000);
+
+    return () => clearTimeout(transitionTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase]);
+
+  // Detect when phase_3_prompt audio finishes -> switch to thinking sub-stage
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "prompting") return;
+
+    if (!audio.hasAudio || !phase3PromptBoundary) {
+      // No audio — go straight to thinking after a brief pause
+      const timer = setTimeout(() => setBuffer3SubStage("thinking"), 1000);
+      return () => clearTimeout(timer);
+    }
+
+    // Check if revealed count has reached end of phase_3_prompt section
+    if (audio.revealedCount >= phase3PromptBoundary.endIdx + 1) {
+      audio.pause();
+      setBuffer3SubStage("thinking");
+    }
+  }, [state.phase, buffer3SubStage, audio, phase3PromptBoundary]);
+
+  // Also transition to thinking when audio completes entirely
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "prompting") return;
+    if (audio.hasAudio && audio.isComplete) {
+      setBuffer3SubStage("thinking");
+    }
+  }, [state.phase, buffer3SubStage, audio]);
+
+  // buffer_3 thinking countdown
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "thinking") return;
+
+    setBuffer3ThinkingRemaining(BUFFER_3_THINKING_SECONDS);
+    const interval = setInterval(() => {
+      setBuffer3ThinkingRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          dispatch({ type: "BUFFER_3_COMPLETE" });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.phase, buffer3SubStage]);
+
+  // --- recording_3: auto-start recorder ---
+  // Allow start from "error" state too (e.g. if recording_2 errored with a partial blob)
+  useEffect(() => {
+    if (state.phase !== "recording_3") return;
+    if (recorder.status === "idle" || recorder.status === "error") {
+      recorder.start();
+      phase3StartTimeRef.current = new Date().toISOString();
+    }
+  }, [state.phase, recorder.status, recorder.start]);
+
+  // recording_3: 45s countdown (separate from recorder to avoid resets)
+  useEffect(() => {
+    if (state.phase !== "recording_3") return;
+
+    setRecording3Remaining(RECORDING_3_SECONDS);
+    const interval = setInterval(() => {
+      setRecording3Remaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.phase]);
+
+  // Auto-stop at recording_3 countdown expiry
+  useEffect(() => {
+    if (state.phase !== "recording_3" || recording3Remaining > 0) return;
+    if (recorder.status !== "recording") return;
+
     recorder.stop();
-  }, [state.phase, recording2Remaining, recorder.status, recorder.stop]);
+  }, [state.phase, recording3Remaining, recorder.status, recorder.stop]);
 
-  // Handle recording_2 done -> submitting
+  // Handle recording_3 done -> submitting
   useEffect(() => {
-    if (recorder.status === "done" && recorder.blob && state.phase === "recording_2") {
-      phase2BlobRef.current = recorder.blob;
-      dispatch({ type: "RECORDING_2_COMPLETE" });
+    if (recorder.status === "done" && recorder.blob && state.phase === "recording_3") {
+      phase3BlobRef.current = recorder.blob;
+      phase3DurationRef.current = RECORDING_3_SECONDS;
+      dispatch({ type: "RECORDING_3_COMPLETE" });
     }
   }, [recorder.status, recorder.blob, state.phase]);
 
-  // Handle camera error during recording_2
+  // Handle camera error during recording_3
   useEffect(() => {
-    if (recorder.status === "error" && recorder.blob && state.phase === "recording_2") {
-      phase2BlobRef.current = recorder.blob;
-      dispatch({ type: "RECORDING_2_COMPLETE" });
+    if (state.phase !== "recording_3") return;
+    if (recorder.status === "error") {
+      if (recorder.blob) {
+        phase3BlobRef.current = recorder.blob;
+        phase3DurationRef.current = recorder.duration;
+        dispatch({ type: "RECORDING_3_COMPLETE" });
+      } else {
+        dispatch({ type: "ERROR", message: "Recording failed. Please try again." });
+      }
     }
-  }, [recorder.status, recorder.blob, state.phase]);
+  }, [state.phase, recorder.status, recorder.blob, recorder.duration]);
 
-  // --- Submit flow: reserve phase 2 + enqueue background upload ---
+  // --- Submit flow: reserve phase 3 + enqueue background upload ---
   useEffect(() => {
-    if (state.phase !== "submitting" || !phase2BlobRef.current) return;
+    if (state.phase !== "submitting" || !phase3BlobRef.current) return;
 
     let cancelled = false;
 
     async function submit() {
-      const blob = phase2BlobRef.current;
+      const blob = phase3BlobRef.current;
       if (!blob) return;
 
       if (blob.size > MAX_BLOB_SIZE_BYTES) {
@@ -384,9 +563,9 @@ export function VignetteExperience({
           vignetteId,
           vignetteType,
           step,
-          responsePhase: 2,
-          videoDurationSeconds: RECORDING_2_SECONDS,
-          recordingStartedAt: recorder.startTime ?? new Date().toISOString(),
+          responsePhase: 3,
+          videoDurationSeconds: phase3DurationRef.current || RECORDING_3_SECONDS,
+          recordingStartedAt: phase3StartTimeRef.current ?? new Date().toISOString(),
         });
 
         if (cancelled) return;
@@ -397,10 +576,10 @@ export function VignetteExperience({
           vignetteId,
           vignetteType,
           step,
-          responsePhase: 2,
+          responsePhase: 3,
         });
 
-        phase2BlobRef.current = null;
+        phase3BlobRef.current = null;
 
         dispatch({ type: "SUBMIT_COMPLETE" });
 
@@ -452,7 +631,9 @@ export function VignetteExperience({
     state.phase === "buffer_1" ||
     state.phase === "recording_1" ||
     state.phase === "buffer_2" ||
-    state.phase === "recording_2";
+    state.phase === "recording_2" ||
+    state.phase === "buffer_3" ||
+    state.phase === "recording_3";
 
   return (
     <>
@@ -548,12 +729,14 @@ export function VignetteExperience({
                       vignetteText={vignetteText}
                       vignettePrompt={vignettePrompt}
                       phase2Prompt={phase2Prompt}
+                      phase3Prompt={phase3Prompt}
                       estimatedNarrationSeconds={estimatedNarrationSeconds}
                       audio={audio}
                       audioTiming={audioTiming}
                       phase={state.phase}
                       onComplete={handleNarrationComplete}
                       buffer2SubStage={buffer2SubStage}
+                      buffer3SubStage={buffer3SubStage}
                     />
 
                     {/* Components below the text/prompt */}
@@ -616,6 +799,48 @@ export function VignetteExperience({
                           secondsRemaining={recording2Remaining}
                           totalSeconds={RECORDING_2_SECONDS}
                           phaseLabel="Phase 2"
+                        />
+                      )}
+
+                      {/* buffer_3 */}
+                      {state.phase === "buffer_3" && (
+                        <div className="w-full">
+                          {buffer3SubStage === "transition" && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="flex flex-col items-center gap-3"
+                            >
+                              <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true" />
+                              <p className="text-text-secondary">Preparing final prompt&#8230;</p>
+                            </motion.div>
+                          )}
+                          {buffer3SubStage === "prompting" && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="flex flex-col items-center gap-2"
+                            >
+                              <p className="text-[length:var(--text-fluid-sm)] text-text-secondary">
+                                Listen to the final prompt&#8230;
+                              </p>
+                            </motion.div>
+                          )}
+                          {buffer3SubStage === "thinking" && (
+                            <ProcessingBuffer
+                              secondsRemaining={buffer3ThinkingRemaining}
+                              totalSeconds={BUFFER_3_THINKING_SECONDS}
+                            />
+                          )}
+                        </div>
+                      )}
+
+                      {/* recording_3: countdown ring */}
+                      {state.phase === "recording_3" && (
+                        <VideoRecorder
+                          secondsRemaining={recording3Remaining}
+                          totalSeconds={RECORDING_3_SECONDS}
+                          phaseLabel="Phase 3"
                         />
                       )}
 
@@ -694,6 +919,9 @@ export function VignetteExperience({
           buffer2SubStage={buffer2SubStage}
           buffer2ThinkingRemaining={buffer2ThinkingRemaining}
           recording2Remaining={recording2Remaining}
+          buffer3SubStage={buffer3SubStage}
+          buffer3ThinkingRemaining={buffer3ThinkingRemaining}
+          recording3Remaining={recording3Remaining}
           recorderStatus={recorder.status}
           streamStatus={streamStatus}
           sessionId={sessionId}
@@ -761,7 +989,8 @@ function AmbientBackground({ phase, prefersReducedMotion }: { phase: Phase; pref
   }
 
   const isActive = phase === "ready" || phase === "countdown" || phase === "narrating" ||
-    phase === "buffer_1" || phase === "recording_1" || phase === "buffer_2" || phase === "recording_2";
+    phase === "buffer_1" || phase === "recording_1" || phase === "buffer_2" || phase === "recording_2" ||
+    phase === "buffer_3" || phase === "recording_3";
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">

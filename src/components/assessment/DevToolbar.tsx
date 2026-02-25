@@ -42,6 +42,9 @@ type DevToolbarProps = {
   buffer2SubStage: "transition" | "prompting" | "thinking";
   buffer2ThinkingRemaining: number;
   recording2Remaining: number;
+  buffer3SubStage: "transition" | "prompting" | "thinking";
+  buffer3ThinkingRemaining: number;
+  recording3Remaining: number;
   recorderStatus: string;
   streamStatus: string;
   sessionId: string;
@@ -55,6 +58,9 @@ export function DevToolbar({
   buffer2SubStage,
   buffer2ThinkingRemaining,
   recording2Remaining,
+  buffer3SubStage,
+  buffer3ThinkingRemaining,
+  recording3Remaining,
   recorderStatus,
   streamStatus,
   sessionId,
@@ -122,6 +128,8 @@ export function DevToolbar({
           {state.phase === "recording_1" && `${recording1Remaining}s remaining`}
           {state.phase === "buffer_2" && `${buffer2SubStage} ${buffer2SubStage === "thinking" ? `${buffer2ThinkingRemaining}s` : ""}`}
           {state.phase === "recording_2" && `${recording2Remaining}s remaining`}
+          {state.phase === "buffer_3" && `${buffer3SubStage} ${buffer3SubStage === "thinking" ? `${buffer3ThinkingRemaining}s` : ""}`}
+          {state.phase === "recording_3" && `${recording3Remaining}s remaining`}
           {state.phase === "error" && state.errorMessage}
           {(state.phase === "ready" || state.phase === "narrating" || state.phase === "submitting" || state.phase === "transitioning") && (
             <span>
@@ -195,6 +203,22 @@ export function DevToolbar({
             className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30 disabled:hover:bg-green-900/50"
           >
             Skip Rec 2
+          </button>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "BUFFER_3_COMPLETE" })}
+            disabled={state.phase !== "buffer_3"}
+            className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30 disabled:hover:bg-green-900/50"
+          >
+            Skip Buf 3
+          </button>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "RECORDING_3_COMPLETE" })}
+            disabled={state.phase !== "recording_3"}
+            className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30 disabled:hover:bg-green-900/50"
+          >
+            Skip Rec 3
           </button>
         </div>
       </div>

@@ -24,6 +24,7 @@ type VignetteNarratorProps = {
   vignetteText: string;
   vignettePrompt: string;
   phase2Prompt: string | null;
+  phase3Prompt: string | null;
   estimatedNarrationSeconds: number | null;
   phase: Phase;
   onComplete: () => void;
@@ -31,18 +32,21 @@ type VignetteNarratorProps = {
   audio: AudioNarratorResult;
   audioTiming?: AudioWordTiming[] | null;
   buffer2SubStage?: "transition" | "prompting" | "thinking";
+  buffer3SubStage?: "transition" | "prompting" | "thinking";
 };
 
 export function VignetteNarrator({
   vignetteText,
   vignettePrompt,
   phase2Prompt,
+  phase3Prompt,
   estimatedNarrationSeconds,
   phase,
   onComplete,
   audio,
   audioTiming = null,
   buffer2SubStage,
+  buffer3SubStage,
 }: VignetteNarratorProps) {
   const hasCompletedRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -61,12 +65,14 @@ export function VignetteNarrator({
   const narrativeBound = sectionBounds.find((b) => b.section === "narrative");
   const phase1PromptBound = sectionBounds.find((b) => b.section === "phase_1_prompt");
   const phase2PromptBound = sectionBounds.find((b) => b.section === "phase_2_prompt");
+  const phase3PromptBound = sectionBounds.find((b) => b.section === "phase_3_prompt");
 
   // Narrative word count (for splitting audio timings between sections)
   const narrativeEndIdx = narrativeBound ? narrativeBound.endIdx + 1 : (audioTiming?.length ?? 0);
   const phase1PromptStartIdx = phase1PromptBound?.startIdx ?? narrativeEndIdx;
   const phase1PromptEndIdx = phase1PromptBound ? phase1PromptBound.endIdx + 1 : narrativeEndIdx;
   const phase2PromptStartIdx = phase2PromptBound?.startIdx ?? (audioTiming?.length ?? 0);
+  const phase3PromptStartIdx = phase3PromptBound?.startIdx ?? (audioTiming?.length ?? 0);
 
   // --- Timer-based fallback timing (for narrative text only) ---
   const { words, totalDuration } = useMemo(
@@ -104,9 +110,15 @@ export function VignetteNarrator({
   const isPhase1Revealing = phase === "narrating";
   const showPhase1Prompt =
     isPhase1Revealing ||
-    phase === "buffer_1" || phase === "recording_1" || phase === "buffer_2" || phase === "recording_2";
-  const showPhase2Prompt = phase === "buffer_2" || phase === "recording_2";
+    phase === "buffer_1" || phase === "recording_1" ||
+    phase === "buffer_2" || phase === "recording_2" ||
+    phase === "buffer_3" || phase === "recording_3";
+  const showPhase2Prompt =
+    phase === "buffer_2" || phase === "recording_2" ||
+    phase === "buffer_3" || phase === "recording_3";
   const isPhase2Revealing = phase === "buffer_2" && buffer2SubStage === "prompting";
+  const showPhase3Prompt = phase === "buffer_3" || phase === "recording_3";
+  const isPhase3Revealing = phase === "buffer_3" && buffer3SubStage === "prompting";
 
   // The actual revealed count
   const revealedCount = showAllNarrative
@@ -209,6 +221,16 @@ export function VignetteNarrator({
       ? phase2PromptTimings.length
       : isPhase2Revealing
         ? Math.max(0, revealedCount - phase2PromptStartIdx)
+        : 0;
+
+    // Phase 3 prompt words
+    const phase3PromptTimings = phase3PromptBound
+      ? audioTiming.slice(phase3PromptStartIdx, phase3PromptBound.endIdx + 1)
+      : [];
+    const phase3PromptCount = (showPhase3Prompt && !isPhase3Revealing) || showAll
+      ? phase3PromptTimings.length
+      : isPhase3Revealing
+        ? Math.max(0, revealedCount - phase3PromptStartIdx)
         : 0;
 
     return (
@@ -335,6 +357,46 @@ export function VignetteNarrator({
             )}
           </PromptSection>
         )}
+
+        {/* Phase 3 prompt */}
+        {showPhase3Prompt && phase3Prompt && (
+          <PromptSection label="Prompt 3" text={!isPhase3Revealing ? phase3Prompt : undefined}>
+            {isPhase3Revealing && phase3PromptTimings.length > 0 && (
+              <div className="mt-2">
+                <p>
+                  {phase3PromptTimings.map((timing, i) => {
+                    if (i >= phase3PromptCount) return null;
+
+                    const globalIdx = phase3PromptStartIdx + i;
+                    const isActiveWord = globalIdx === revealedCount - 1 && !showAll;
+                    const isLast = i === phase3PromptTimings.length - 1;
+
+                    if (!isActiveWord) {
+                      return (
+                        <span key={i} className="inline">
+                          {timing.word}
+                          {!isLast ? " " : ""}
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <ActiveWord
+                        key={i}
+                        ref={latestWordRef}
+                        word={timing.word}
+                        wordStart={timing.start}
+                        wordEnd={timing.end}
+                        currentTimeRef={audio.currentTimeRef}
+                        trailingSpace={!isLast}
+                      />
+                    );
+                  })}
+                </p>
+              </div>
+            )}
+          </PromptSection>
+        )}
       </motion.div>
     );
   }
@@ -418,6 +480,11 @@ export function VignetteNarrator({
       {/* Phase 2 prompt (timer fallback — show full text) */}
       {showPhase2Prompt && phase2Prompt && (
         <PromptSection label="Prompt 2" text={phase2Prompt} />
+      )}
+
+      {/* Phase 3 prompt (timer fallback — show full text) */}
+      {showPhase3Prompt && phase3Prompt && (
+        <PromptSection label="Prompt 3" text={phase3Prompt} />
       )}
     </motion.div>
   );
