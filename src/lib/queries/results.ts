@@ -142,12 +142,12 @@ function unionMoveDetails(responses: ScoredResponse[]): RawMoveDetail[] {
   return Array.from(map.values());
 }
 
-/** Extract signature moves (status === "impressive"), strip keys, cap at 5. */
+/** Extract signature moves (status === "impressive"), strip keys, cap at 3. */
 function extractSignatureMoves(moves: RawMoveDetail[]): SignatureMove[] {
   return moves
     .filter((m) => m.status === "impressive")
     .sort((a, b) => a.entrepreneur_frequency - b.entrepreneur_frequency)
-    .slice(0, 5)
+    .slice(0, 3)
     .map((m) => ({
       description: m.move_name,
       rarityPercent: Math.round(m.entrepreneur_frequency * 100),
@@ -225,11 +225,12 @@ export async function getResultsByToken(
 
   if (sessionError || !session) return null;
 
-  // 3. Fetch all scored responses
+  // 3. Fetch scored responses (phase 1 only — pipeline writes combined score there)
   const { data: responses, error: responsesError } = await supabase
     .from("student_responses")
     .select("vignette_type, scoring_result")
     .eq("session_id", session.id)
+    .eq("response_phase", 1)
     .not("scoring_result", "is", null);
 
   if (responsesError || !responses || responses.length === 0) return null;

@@ -18,16 +18,10 @@ type Props = {
 
 export function HighlightSlide({ data }: Props) {
     return (
-        <section className="flex h-full flex-col justify-center px-6 sm:px-12 max-w-4xl mx-auto w-full relative">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1 }}
-                className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none -z-10"
-            >
-                <div className="w-[120vw] h-[120vw] max-w-[800px] max-h-[800px] bg-secondary/50 rounded-full blur-[150px]" />
-            </motion.div>
-
+        <section
+            className="flex h-full flex-col justify-center px-6 sm:px-12 max-w-4xl mx-auto w-full relative"
+            style={{ background: "radial-gradient(ellipse at center, color-mix(in srgb, var(--color-secondary) 20%, transparent) 0%, transparent 70%)" }}
+        >
             <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
