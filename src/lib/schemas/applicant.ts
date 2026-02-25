@@ -33,6 +33,8 @@ export const emailCaptureSchema = z.object({
   leadType: z.enum(leadTypes, {
     message: "Please select what best describes you",
   }),
+  smsMarketingConsent: z.coerce.boolean().default(false),
+  emailMarketingConsent: z.coerce.boolean().default(false),
 });
 
 export type EmailCaptureInput = z.infer<typeof emailCaptureSchema>;

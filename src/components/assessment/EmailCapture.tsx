@@ -262,6 +262,37 @@ export function EmailCapture() {
             )}
           </fieldset>
 
+          {/* Marketing consent */}
+          <div className="space-y-3 rounded-xl border border-border-glass bg-bg-elevated/60 p-4">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                name="smsMarketingConsent"
+                value="true"
+                className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+              />
+              <span className="text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
+                I&rsquo;d like to receive text messages from ACU about programs
+                and opportunities. Approx. 2&nbsp;msgs/month.
+                Msg&nbsp;&amp;&nbsp;data rates may apply. Reply STOP to opt
+                out.
+              </span>
+            </label>
+
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                name="emailMarketingConsent"
+                value="true"
+                className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+              />
+              <span className="text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
+                Send me updates about ACU programs, events, and opportunities
+                via email. Unsubscribe anytime.
+              </span>
+            </label>
+          </div>
+
           {/* Submit */}
           <Button
             type="submit"
@@ -278,6 +309,25 @@ export function EmailCapture() {
               "Request My Results"
             )}
           </Button>
+
+          {/* Legal links */}
+          <p className="text-center text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
+            By submitting, you agree to our{" "}
+            <a
+              href="/terms"
+              className="text-text-primary underline underline-offset-4 transition-colors hover:text-primary"
+            >
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a
+              href="/privacy"
+              className="text-text-primary underline underline-offset-4 transition-colors hover:text-primary"
+            >
+              Privacy Policy
+            </a>
+            .
+          </p>
         </form>
       </div>
     </div>

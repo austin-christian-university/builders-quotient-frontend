@@ -38,6 +38,8 @@ export async function captureEmail(
     firstName: formData.get("firstName") || undefined,
     phone: formData.get("phone"),
     leadType: formData.get("leadType") || undefined,
+    smsMarketingConsent: formData.get("smsMarketingConsent"),
+    emailMarketingConsent: formData.get("emailMarketingConsent"),
   };
 
   const parsed = emailCaptureSchema.safeParse(raw);
@@ -74,6 +76,12 @@ export async function captureEmail(
       sms_consent_at: new Date().toISOString(),
       results_token: resultsToken,
       lead_type: parsed.data.leadType,
+      ...(parsed.data.smsMarketingConsent && {
+        sms_marketing_consent_at: new Date().toISOString(),
+      }),
+      ...(parsed.data.emailMarketingConsent && {
+        email_marketing_consent_at: new Date().toISOString(),
+      }),
     })
     .eq("id", session.applicant_id);
 
