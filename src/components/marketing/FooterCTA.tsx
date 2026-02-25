@@ -21,7 +21,7 @@ function FooterCTA() {
             entrepreneurial&nbsp;intelligence&nbsp;profile.
           </p>
           <div className="mt-10">
-            <Button as={Link} href="/assess/setup" size="lg">
+            <Button as={Link} href="/assess/overview" size="lg">
               Begin Assessment
             </Button>
           </div>

@@ -108,7 +108,7 @@ function Hero() {
             <div className="absolute -inset-1 rounded-full bg-white/20 blur opacity-75 group-hover:opacity-100 transition duration-500" />
             <Button
               as={Link}
-              href="/assess/setup"
+              href="/assess/overview"
               size="lg"
               className="relative rounded-full border border-white/10 bg-white/5 px-10 py-7 text-lg uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
             >
