@@ -220,7 +220,7 @@ export function VignetteNarrator({
     const phase2PromptCount = (showPhase2Prompt && !isPhase2Revealing) || showAll
       ? phase2PromptTimings.length
       : isPhase2Revealing
-        ? Math.max(0, revealedCount - phase2PromptStartIdx)
+        ? Math.max(0, audio.revealedCount - phase2PromptStartIdx)
         : 0;
 
     // Phase 3 prompt words
@@ -230,7 +230,7 @@ export function VignetteNarrator({
     const phase3PromptCount = (showPhase3Prompt && !isPhase3Revealing) || showAll
       ? phase3PromptTimings.length
       : isPhase3Revealing
-        ? Math.max(0, revealedCount - phase3PromptStartIdx)
+        ? Math.max(0, audio.revealedCount - phase3PromptStartIdx)
         : 0;
 
     return (

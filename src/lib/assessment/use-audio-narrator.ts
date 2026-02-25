@@ -83,7 +83,7 @@ export function useAudioNarrator(
     };
 
     const handlePlay = () => {
-      setState((prev) => ({ ...prev, isPlaying: true }));
+      setState((prev) => ({ ...prev, isPlaying: true, isComplete: false }));
       startLoop();
     };
 

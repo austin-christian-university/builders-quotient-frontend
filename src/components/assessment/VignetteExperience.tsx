@@ -236,7 +236,6 @@ export function VignetteExperience({
     // Sub-stage 1: "transition" (2s) — enqueue phase 1 blob for upload
     const phase1Blob = phase1BlobRef.current;
     if (phase1Blob) {
-      // Validate and enqueue phase 1 upload
       if (phase1Blob.size <= MAX_BLOB_SIZE_BYTES) {
         reserveResponse({
           sessionId,
@@ -257,7 +256,13 @@ export function VignetteExperience({
           });
         }).catch((err) => {
           console.error("[BQ] Failed to reserve phase 1:", err);
+          dispatch({ type: "ERROR", message: "Failed to save recording. Please try again." });
         });
+      } else {
+        const sizeMB = (phase1Blob.size / (1024 * 1024)).toFixed(2);
+        dispatch({ type: "ERROR", message: `Recording too large (${sizeMB} MB). Please try again.` });
+        phase1BlobRef.current = null;
+        return;
       }
       phase1BlobRef.current = null;
     }
@@ -413,7 +418,13 @@ export function VignetteExperience({
           });
         }).catch((err) => {
           console.error("[BQ] Failed to reserve phase 2:", err);
+          dispatch({ type: "ERROR", message: "Failed to save recording. Please try again." });
         });
+      } else {
+        const sizeMB = (phase2Blob.size / (1024 * 1024)).toFixed(2);
+        dispatch({ type: "ERROR", message: `Recording too large (${sizeMB} MB). Please try again.` });
+        phase2BlobRef.current = null;
+        return;
       }
       phase2BlobRef.current = null;
     }
