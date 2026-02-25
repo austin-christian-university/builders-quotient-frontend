@@ -121,9 +121,9 @@ describe("POST /api/upload", () => {
 
     expect(res.status).toBe(200);
     expect(body.uploadUrl).toBe("https://storage.example.com/upload?token=abc");
-    expect(body.storagePath).toBe(`${TEST_SESSION_ID}/practical_2.webm`);
+    expect(body.storagePath).toBe(`${TEST_SESSION_ID}/practical_2_phase1.webm`);
     expect(body.token).toBe("abc");
-    expect(mockCreateSignedUploadUrl).toHaveBeenCalledWith(`${TEST_SESSION_ID}/practical_2.webm`);
+    expect(mockCreateSignedUploadUrl).toHaveBeenCalledWith(`${TEST_SESSION_ID}/practical_2_phase1.webm`);
   });
 
   it("returns signed URL for valid creative request", async () => {
@@ -138,7 +138,7 @@ describe("POST /api/upload", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.storagePath).toBe(`${TEST_SESSION_ID}/creative_4.webm`);
+    expect(body.storagePath).toBe(`${TEST_SESSION_ID}/creative_4_phase1.webm`);
   });
 
   it("returns 500 when storage URL creation fails", async () => {

@@ -3,6 +3,7 @@ import { emailCaptureSchema } from "./applicant";
 
 const validInput = {
   email: "test@example.com",
+  phone: "5125551234",
   leadType: "prospective_student" as const,
 };
 
@@ -98,9 +99,38 @@ describe("emailCaptureSchema", () => {
     }
   });
 
+  it("accepts valid 10-digit phone", () => {
+    const result = emailCaptureSchema.safeParse({
+      ...validInput,
+      phone: "(512) 555-1234",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.phone).toBe("+15125551234");
+    }
+  });
+
+  it("rejects missing phone", () => {
+    const { phone: _, ...noPhone } = validInput;
+    const result = emailCaptureSchema.safeParse(noPhone);
+    expect(result.success).toBe(false);
+  });
+
+  it("normalizes phone to E.164 format", () => {
+    const result = emailCaptureSchema.safeParse({
+      ...validInput,
+      phone: "1-512-555-1234",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.phone).toBe("+15125551234");
+    }
+  });
+
   it("rejects missing leadType", () => {
     const result = emailCaptureSchema.safeParse({
       email: "test@example.com",
+      phone: "5125551234",
     });
     expect(result.success).toBe(false);
   });
@@ -108,6 +138,7 @@ describe("emailCaptureSchema", () => {
   it("rejects invalid leadType", () => {
     const result = emailCaptureSchema.safeParse({
       email: "test@example.com",
+      phone: "5125551234",
       leadType: "something_else",
     });
     expect(result.success).toBe(false);
@@ -117,6 +148,7 @@ describe("emailCaptureSchema", () => {
     for (const leadType of ["prospective_student", "general_interest"]) {
       const result = emailCaptureSchema.safeParse({
         email: "test@example.com",
+        phone: "5125551234",
         leadType,
       });
       expect(result.success).toBe(true);
@@ -126,6 +158,7 @@ describe("emailCaptureSchema", () => {
   it("provides custom error message for missing leadType", () => {
     const result = emailCaptureSchema.safeParse({
       email: "test@example.com",
+      phone: "5125551234",
     });
     expect(result.success).toBe(false);
     if (!result.success) {
