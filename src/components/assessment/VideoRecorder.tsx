@@ -2,10 +2,13 @@
 
 import { motion } from "motion/react";
 
+const MIN_SECONDS_BEFORE_STOP = 5;
+
 type VideoRecorderProps = {
   secondsRemaining: number;
   totalSeconds: number;
   phaseLabel: string;
+  onStopEarly?: () => void;
 };
 
 function formatTime(seconds: number): string {
@@ -18,11 +21,14 @@ export function VideoRecorder({
   secondsRemaining,
   totalSeconds,
   phaseLabel,
+  onStopEarly,
 }: VideoRecorderProps) {
   const progress = 1 - secondsRemaining / totalSeconds;
   const circumference = 2 * Math.PI * 54;
   const offset = circumference * (1 - progress);
   const isDramatic = secondsRemaining <= 5;
+  const elapsed = totalSeconds - secondsRemaining;
+  const canStopEarly = onStopEarly && elapsed >= MIN_SECONDS_BEFORE_STOP;
 
   return (
     <motion.div
@@ -88,6 +94,20 @@ export function VideoRecorder({
           {formatTime(secondsRemaining)}
         </span>
       </div>
+
+      {/* Stop early button */}
+      {canStopEarly && (
+        <motion.button
+          type="button"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          onClick={onStopEarly}
+          className="rounded-full border border-white/15 bg-white/5 px-6 py-2.5 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+        >
+          I&rsquo;m Done
+        </motion.button>
+      )}
     </motion.div>
   );
 }

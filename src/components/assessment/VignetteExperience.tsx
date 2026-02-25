@@ -117,6 +117,27 @@ export function VignetteExperience({
   const phase2PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_2_prompt");
   const phase3PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_3_prompt");
 
+  // --- Early stop handlers ---
+  // These set the actual elapsed duration, then force countdown to 0
+  // which triggers the existing auto-clip/stop effects.
+  const handleStopRecording1Early = useCallback(() => {
+    const elapsed = RECORDING_1_SECONDS - recording1Remaining;
+    phase1DurationRef.current = Math.max(elapsed, 1);
+    setRecording1Remaining(0);
+  }, [recording1Remaining]);
+
+  const handleStopRecording2Early = useCallback(() => {
+    const elapsed = RECORDING_2_SECONDS - recording2Remaining;
+    phase2DurationRef.current = Math.max(elapsed, 1);
+    setRecording2Remaining(0);
+  }, [recording2Remaining]);
+
+  const handleStopRecording3Early = useCallback(() => {
+    const elapsed = RECORDING_3_SECONDS - recording3Remaining;
+    phase3DurationRef.current = Math.max(elapsed, 1);
+    setRecording3Remaining(0);
+  }, [recording3Remaining]);
+
   // --- 3-2-1 countdown ---
   useEffect(() => {
     if (state.phase !== "countdown") return;
@@ -200,7 +221,9 @@ export function VignetteExperience({
     let cancelled = false;
 
     async function clipPhase1() {
-      phase1DurationRef.current = RECORDING_1_SECONDS;
+      if (phase1DurationRef.current === 0) {
+        phase1DurationRef.current = RECORDING_1_SECONDS;
+      }
       const blob = await recorder.clip();
       if (cancelled) return;
       phase1BlobRef.current = blob;
@@ -363,7 +386,9 @@ export function VignetteExperience({
     let cancelled = false;
 
     async function clipPhase2() {
-      phase2DurationRef.current = RECORDING_2_SECONDS;
+      if (phase2DurationRef.current === 0) {
+        phase2DurationRef.current = RECORDING_2_SECONDS;
+      }
       const blob = await recorder.clip();
       if (cancelled) return;
       phase2BlobRef.current = blob;
@@ -530,7 +555,9 @@ export function VignetteExperience({
   useEffect(() => {
     if (recorder.status === "done" && recorder.blob && state.phase === "recording_3") {
       phase3BlobRef.current = recorder.blob;
-      phase3DurationRef.current = RECORDING_3_SECONDS;
+      if (phase3DurationRef.current === 0) {
+        phase3DurationRef.current = RECORDING_3_SECONDS;
+      }
       dispatch({ type: "RECORDING_3_COMPLETE" });
     }
   }, [recorder.status, recorder.blob, state.phase]);
@@ -768,6 +795,7 @@ export function VignetteExperience({
                           secondsRemaining={recording1Remaining}
                           totalSeconds={RECORDING_1_SECONDS}
                           phaseLabel="Phase 1"
+                          onStopEarly={handleStopRecording1Early}
                         />
                       )}
 
@@ -810,6 +838,7 @@ export function VignetteExperience({
                           secondsRemaining={recording2Remaining}
                           totalSeconds={RECORDING_2_SECONDS}
                           phaseLabel="Phase 2"
+                          onStopEarly={handleStopRecording2Early}
                         />
                       )}
 
@@ -852,6 +881,7 @@ export function VignetteExperience({
                           secondsRemaining={recording3Remaining}
                           totalSeconds={RECORDING_3_SECONDS}
                           phaseLabel="Phase 3"
+                          onStopEarly={handleStopRecording3Early}
                         />
                       )}
 
