@@ -20,7 +20,7 @@ export default function PrivacyPage() {
       </p>
 
       <Card className="mt-10">
-        <CardContent className="prose prose-invert max-w-none space-y-8 pt-6 text-text-secondary">
+        <CardContent className="space-y-8 pt-6 text-text-secondary">
           {/* Overview */}
           <section>
             <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
@@ -50,8 +50,8 @@ export default function PrivacyPage() {
                 <strong className="text-text-primary">
                   Assessment responses
                 </strong>
-                &mdash;video recordings, text answers, and personality quiz
-                selections
+                &mdash;video recordings, audio recordings, text answers, and
+                personality quiz selections
               </li>
               <li>
                 <strong className="text-text-primary">Lead preferences</strong>
@@ -63,6 +63,117 @@ export default function PrivacyPage() {
               We also collect technical data automatically, including browser
               type, IP address, and device fingerprint to maintain the integrity
               of the assessment and prevent misuse.
+            </p>
+          </section>
+
+          {/* Video & Audio Recordings */}
+          <section>
+            <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+              Video &amp; Audio Recordings
+            </h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                <strong className="text-text-primary">What&rsquo;s recorded</strong>
+                &mdash;webcam video and microphone audio during assessment
+                responses
+              </li>
+              <li>
+                <strong className="text-text-primary">Purpose</strong>
+                &mdash;scoring your responses against expert rubrics to generate
+                your Builders Quotient profile
+              </li>
+              <li>
+                <strong className="text-text-primary">How processed</strong>
+                &mdash;automated speech-to-text transcription and AI-assisted
+                comparison scoring
+              </li>
+              <li>
+                <strong className="text-text-primary">Where stored</strong>
+                &mdash;securely in the United States on encrypted infrastructure
+              </li>
+              <li>
+                <strong className="text-text-primary">Retention</strong>
+                &mdash;video and audio recordings are retained for 1&nbsp;year
+                after assessment completion, then permanently deleted
+              </li>
+            </ul>
+          </section>
+
+          {/* Biometric Data */}
+          <section>
+            <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+              Biometric Data
+            </h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                <strong className="text-text-primary">What we collect</strong>
+                &mdash;voiceprint data derived during audio transcription;
+                facial geometry data potentially present in video recordings
+              </li>
+              <li>
+                <strong className="text-text-primary">Purpose</strong>
+                &mdash;exclusively for assessment scoring and response
+                processing&thinsp;&mdash;&thinsp;never for identification,
+                surveillance, or tracking
+              </li>
+              <li>
+                <strong className="text-text-primary">Legal basis</strong>
+                &mdash;collected with your explicit informed consent (Texas
+                Business &amp; Commerce
+                Code&nbsp;&sect;&nbsp;503.001;&nbsp;Illinois BIPA
+                740&nbsp;ILCS&nbsp;14)
+              </li>
+              <li>
+                <strong className="text-text-primary">Retention</strong>
+                &mdash;no longer than 1&nbsp;year after assessment completion
+              </li>
+              <li>
+                <strong className="text-text-primary">Destruction</strong>
+                &mdash;permanently deleted from all systems within 30&nbsp;days
+                of retention expiry
+              </li>
+            </ul>
+            <p>
+              Biometric data is never sold, leased, traded, or shared for
+              profit. For full details, see our{" "}
+              <Link
+                href="/biometric-policy"
+                className="text-primary underline underline-offset-4 hover:text-primary/80"
+              >
+                Biometric Data Retention Policy
+              </Link>
+              .
+            </p>
+          </section>
+
+          {/* AI & Automated Processing */}
+          <section>
+            <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+              AI &amp; Automated Processing
+            </h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                Responses are processed using automated speech-to-text and
+                AI&nbsp;scoring tools
+              </li>
+              <li>
+                All processing is performed solely for the purpose of assessment
+                scoring and comparison
+              </li>
+              <li>
+                Your data is never used to train general-purpose AI models
+              </li>
+              <li>
+                AI service providers are contractually prohibited from retaining
+                or training on your data
+              </li>
+            </ul>
+            <p>
+              Named providers are listed in the{" "}
+              <a href="#third-party" className="text-primary underline underline-offset-4 hover:text-primary/80">
+                Third-Party Service Providers
+              </a>{" "}
+              section below.
             </p>
           </section>
 
@@ -147,20 +258,57 @@ export default function PrivacyPage() {
                 consent)
               </li>
             </ul>
-            <p>
-              We do not sell your personal information to third parties.
-            </p>
+          </section>
+
+          {/* Data Security & No Sharing */}
+          <section>
+            <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+              Data Security &amp; No Sharing Commitment
+            </h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                All data stays within ACU&rsquo;s platform infrastructure
+              </li>
+              <li>
+                We never sell your personal information or recordings to any
+                third party
+              </li>
+              <li>
+                We never share your data with advertisers, data brokers, or
+                marketing platforms
+              </li>
+              <li>
+                Service providers (listed below) process data solely on our
+                behalf under strict contractual obligations
+              </li>
+            </ul>
           </section>
 
           {/* Third-Party Service Providers */}
-          <section>
+          <section id="third-party">
             <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
               Third-Party Service Providers
             </h2>
             <p>
               We use the following third-party services to operate the Service:
             </p>
-            <ul className="list-disc space-y-1 pl-5">
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                <strong className="text-text-primary">OpenAI</strong>
+                &mdash;audio transcription (Whisper) and response scoring (GPT).
+                Audio recordings and transcripts are sent for processing. OpenAI
+                is contractually prohibited from using your data to train its
+                models.
+              </li>
+              <li>
+                <strong className="text-text-primary">
+                  Google (Gemini&nbsp;Studio)
+                </strong>
+                &mdash;video analysis for personality assessment and transcript
+                extraction. Video recordings and transcripts are sent for
+                processing. Google is contractually prohibited from using your
+                data to train its models.
+              </li>
               <li>
                 <strong className="text-text-primary">Twilio</strong>
                 &mdash;for sending SMS messages (transactional and marketing).
@@ -211,16 +359,98 @@ export default function PrivacyPage() {
             </ul>
           </section>
 
+          {/* Eligibility */}
+          <section>
+            <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+              Eligibility
+            </h2>
+            <p>
+              This Service is intended for individuals aged 13 and older. If you
+              are under 13, you may not use this Service. If we learn that we
+              have collected personal information from a child under 13, we will
+              promptly delete it. If you believe we have inadvertently collected
+              data from a child under 13, please contact us at{" "}
+              <a
+                href="mailto:bq@austinchristianu.org"
+                className="text-primary underline underline-offset-4 hover:text-primary/80"
+              >
+                bq@austinchristianu.org
+              </a>
+              .
+            </p>
+          </section>
+
           {/* Data Retention */}
           <section>
             <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
               Data Retention
             </h2>
+            <p>We retain different categories of data for specific periods:</p>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                <strong className="text-text-primary">Contact information</strong>
+                &mdash;until you request deletion or 5&nbsp;years of inactivity
+              </li>
+              <li>
+                <strong className="text-text-primary">
+                  Video &amp; audio recordings
+                </strong>
+                &mdash;1&nbsp;year after assessment completion, then permanently
+                deleted
+              </li>
+              <li>
+                <strong className="text-text-primary">Biometric data</strong>
+                &mdash;1&nbsp;year after assessment completion (same lifecycle as
+                video, since video is the biometric source)
+              </li>
+              <li>
+                <strong className="text-text-primary">Assessment scores</strong>
+                &mdash;retained for academic research in de-identified form
+              </li>
+              <li>
+                <strong className="text-text-primary">
+                  De-identified research data
+                </strong>
+                &mdash;retained indefinitely
+              </li>
+            </ul>
+          </section>
+
+          {/* State-Specific Rights */}
+          <section>
+            <h2 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+              State-Specific Rights
+            </h2>
             <p>
-              We retain your assessment data and contact information for as long
-              as needed to fulfill the purposes described in this policy, or as
-              required by law. Assessment responses used for academic research
-              are retained in de-identified form indefinitely.
+              <strong className="text-text-primary">Texas residents:</strong>{" "}
+              You have rights under the Texas Capture or Use of Biometric
+              Identifier Act (CUBI) and the Texas Data Privacy and Security Act
+              (TDPSA), including the right to know what personal data we collect
+              and to request its deletion.
+            </p>
+            <p>
+              <strong className="text-text-primary">Illinois residents:</strong>{" "}
+              You have rights under the Biometric Information Privacy Act (BIPA),
+              including the right to receive written notice before collection of
+              biometric identifiers and the right to a publicly available
+              retention and destruction policy. See our{" "}
+              <Link
+                href="/biometric-policy"
+                className="text-primary underline underline-offset-4 hover:text-primary/80"
+              >
+                Biometric Data Retention Policy
+              </Link>
+              .
+            </p>
+            <p>
+              <strong className="text-text-primary">
+                California residents:
+              </strong>{" "}
+              Under the CCPA/CPRA, you have the right to know what personal
+              information we collect, the right to request deletion, and the
+              right to opt out of the sale of personal information. We do not
+              sell or share your personal information for cross-context
+              behavioral advertising.
             </p>
           </section>
 

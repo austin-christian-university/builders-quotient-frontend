@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MobileWarningDialog } from "@/components/assessment/MobileWarningDialog";
+import { ConsentGate } from "@/components/assessment/ConsentGate";
 import { isMobileDevice } from "@/lib/assessment/detect-mobile";
 import { createAssessmentSession } from "@/lib/actions/session";
 import { useConnectionProbe, type SpeedTier } from "@/lib/assessment/use-connection-probe";
+import type { ConsentData } from "@/lib/schemas/consent";
 import dynamic from "next/dynamic";
 
 const DevSkipButton =
@@ -27,7 +30,12 @@ function resolveDeviceError(err: unknown): DeviceStatus {
   return name === "NotAllowedError" ? "denied" : "error";
 }
 
+type SetupStep = "consent" | "equipment";
+
 export function SetupClient() {
+  const [step, setStep] = useState<SetupStep>("consent");
+  const [consentData, setConsentData] = useState<ConsentData | null>(null);
+
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraStatus, setCameraStatus] = useState<DeviceStatus>("pending");
   const [micStatus, setMicStatus] = useState<DeviceStatus>("pending");
@@ -37,6 +45,11 @@ export function SetupClient() {
     null
   );
   const { result: probeResult, runProbe } = useConnectionProbe();
+
+  const handleConsentAccepted = useCallback((consent: ConsentData) => {
+    setConsentData(consent);
+    setStep("equipment");
+  }, []);
 
   // Callback ref: attaches stream to <video> when it mounts into the DOM
   const videoCallbackRef = useCallback(
@@ -52,12 +65,14 @@ export function SetupClient() {
 
   // Detect mobile devices after mount to avoid hydration mismatch
   useEffect(() => {
+    if (step !== "equipment") return;
     const dismissed = sessionStorage.getItem("bq:mobile-warning-dismissed");
     setShowMobileWarning(!dismissed && isMobileDevice());
-  }, []);
+  }, [step]);
 
   // Request camera/mic only after mobile check completes and warning is dismissed
   useEffect(() => {
+    if (step !== "equipment") return;
     // Wait for mobile check to finish; stay gated while warning is showing
     if (showMobileWarning !== false) return;
 
@@ -101,7 +116,7 @@ export function SetupClient() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showMobileWarning]);
+  }, [showMobileWarning, step]);
 
   async function retryPermissions() {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -142,10 +157,26 @@ export function SetupClient() {
   const isReady = cameraStatus === "granted" && micStatus === "granted";
 
   async function handleStart() {
+    if (!consentData) return;
     setIsSubmitting(true);
-    await createAssessmentSession();
+    try {
+      await createAssessmentSession(consentData);
+    } catch (err: unknown) {
+      // redirect() from Next.js throws a special internal error that must
+      // be re-thrown so the router can handle the navigation.
+      if (isRedirectError(err)) throw err;
+      // Any other error is a real failure; reset the button so the user
+      // can retry rather than being stuck in a frozen submitting state.
+      setIsSubmitting(false);
+    }
   }
 
+  // Step 1: Consent gate
+  if (step === "consent") {
+    return <ConsentGate onAccept={handleConsentAccepted} />;
+  }
+
+  // Step 2: Equipment check
   return (
     <div className="flex min-h-dvh items-center justify-center px-4 py-12">
       <MobileWarningDialog
@@ -224,13 +255,13 @@ export function SetupClient() {
 
           {/* Denied state — retry button */}
           {(cameraStatus === "denied" || micStatus === "denied") && (
-            <p className="text-[length:var(--text-fluid-sm)] text-secondary">
+            <p className="text-[length:var(--text-fluid-sm)] text-text-secondary">
               Please allow camera and microphone access in your browser settings,
               then{" "}
               <button
                 type="button"
                 onClick={retryPermissions}
-                className="underline underline-offset-2 hover:text-secondary-hover"
+                className="underline underline-offset-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >
                 try again
               </button>
@@ -240,6 +271,7 @@ export function SetupClient() {
 
           {/* Start button */}
           <Button
+            type="button"
             size="lg"
             className="w-full"
             disabled={!isReady || isSubmitting}

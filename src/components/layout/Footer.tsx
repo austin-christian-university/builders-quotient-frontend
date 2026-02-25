@@ -19,6 +19,14 @@ function Footer() {
             </li>
             <li>
               <Link
+                href="/biometric-policy"
+                className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+              >
+                Biometric Policy
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/terms"
                 className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >

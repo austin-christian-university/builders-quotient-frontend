@@ -100,12 +100,8 @@ async function completeSessionInDb(): Promise<{
       // Stale cookie -- clear it and fall through to Path B (create fresh)
       await clearSessionCookie();
     } else {
-      // If already completed, just return success
-      if (session.status === "completed") {
-        return { success: true, sessionId: session.id };
-      }
-
-      // Upsert dummy responses for all 4 vignettes
+      // Upsert dummy responses for all 4 vignettes (even if already completed,
+      // to ensure the complete page's step-count guard passes)
       const allVignetteIds = [
         ...session.practical_vignette_ids.map((id: string) => ({
           id,
@@ -149,21 +145,23 @@ async function completeSessionInDb(): Promise<{
         };
       }
 
-      // Mark session as completed
-      const { error: updateError } = await supabase
-        .from("assessment_sessions")
-        .update({
-          status: "completed",
-          started_at: session.started_at ?? now,
-          completed_at: now,
-        })
-        .eq("id", session.id);
+      // Mark session as completed (no-op if already completed)
+      if (session.status !== "completed") {
+        const { error: updateError } = await supabase
+          .from("assessment_sessions")
+          .update({
+            status: "completed",
+            started_at: session.started_at ?? now,
+            completed_at: now,
+          })
+          .eq("id", session.id);
 
-      if (updateError) {
-        return {
-          success: false,
-          error: `Failed to update session: ${updateError.message}`,
-        };
+        if (updateError) {
+          return {
+            success: false,
+            error: `Failed to update session: ${updateError.message}`,
+          };
+        }
       }
 
       return { success: true, sessionId: session.id };
@@ -195,8 +193,22 @@ async function completeSessionInDb(): Promise<{
       .order("created_at"),
   ]);
 
+  if (piResult.error || ciResult.error) {
+    return {
+      success: false,
+      error: `Failed to fetch vignettes: ${piResult.error?.message ?? ciResult.error?.message}`,
+    };
+  }
+
   const piIds = (piResult.data ?? []).map((v) => v.id);
   const ciIds = (ciResult.data ?? []).map((v) => v.id);
+
+  if (piIds.length < 2 || ciIds.length < 2) {
+    return {
+      success: false,
+      error: `Need ≥2 active vignettes per type (got ${piIds.length} PI, ${ciIds.length} CI)`,
+    };
+  }
 
   // Create completed session
   const { data: session, error: sessionError } = await supabase
