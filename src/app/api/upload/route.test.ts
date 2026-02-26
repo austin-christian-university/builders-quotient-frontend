@@ -8,9 +8,9 @@ vi.mock("@/lib/assessment/session-cookie", () => ({
   readSessionCookie: (...args: unknown[]) => mockReadSessionCookie(...(args as [])),
 }));
 
-const mockGetActiveSession = vi.fn<(id: string) => Promise<Record<string, unknown> | null>>();
+const mockGetSessionById = vi.fn<(id: string) => Promise<Record<string, unknown> | null>>();
 vi.mock("@/lib/queries/session", () => ({
-  getActiveSession: (...args: unknown[]) => mockGetActiveSession(...(args as [string])),
+  getSessionById: (...args: unknown[]) => mockGetSessionById(...(args as [string])),
 }));
 
 const mockCreateSignedUploadUrl = vi.fn<(path: string) => Promise<{ signedUrl: string; token: string }>>();
@@ -47,20 +47,20 @@ describe("POST /api/upload", () => {
     expect(body.error).toBe("Not authenticated");
   });
 
-  it("returns 401 when session is not active", async () => {
+  it("returns 401 when session not found", async () => {
     mockReadSessionCookie.mockResolvedValue(TEST_SESSION_ID);
-    mockGetActiveSession.mockResolvedValue(null);
+    mockGetSessionById.mockResolvedValue(null);
 
     const res = await POST(makeRequest({ vignetteType: "practical", step: 1 }) as never);
     const body = await res.json();
 
     expect(res.status).toBe(401);
-    expect(body.error).toBe("No active session");
+    expect(body.error).toBe("Session not found");
   });
 
   it("returns 400 for invalid JSON body", async () => {
     mockReadSessionCookie.mockResolvedValue(TEST_SESSION_ID);
-    mockGetActiveSession.mockResolvedValue(TEST_SESSION);
+    mockGetSessionById.mockResolvedValue(TEST_SESSION);
 
     const req = new Request("http://localhost/api/upload", {
       method: "POST",
@@ -77,7 +77,7 @@ describe("POST /api/upload", () => {
 
   it("returns 400 for invalid vignetteType", async () => {
     mockReadSessionCookie.mockResolvedValue(TEST_SESSION_ID);
-    mockGetActiveSession.mockResolvedValue(TEST_SESSION);
+    mockGetSessionById.mockResolvedValue(TEST_SESSION);
 
     const res = await POST(makeRequest({ vignetteType: "invalid", step: 1 }) as never);
     const body = await res.json();
@@ -88,7 +88,7 @@ describe("POST /api/upload", () => {
 
   it("returns 400 for step out of range", async () => {
     mockReadSessionCookie.mockResolvedValue(TEST_SESSION_ID);
-    mockGetActiveSession.mockResolvedValue(TEST_SESSION);
+    mockGetSessionById.mockResolvedValue(TEST_SESSION);
 
     const res = await POST(makeRequest({ vignetteType: "practical", step: 5 }) as never);
     const body = await res.json();
@@ -99,7 +99,7 @@ describe("POST /api/upload", () => {
 
   it("returns 400 for step = 0", async () => {
     mockReadSessionCookie.mockResolvedValue(TEST_SESSION_ID);
-    mockGetActiveSession.mockResolvedValue(TEST_SESSION);
+    mockGetSessionById.mockResolvedValue(TEST_SESSION);
 
     const res = await POST(makeRequest({ vignetteType: "practical", step: 0 }) as never);
     const body = await res.json();
@@ -110,7 +110,7 @@ describe("POST /api/upload", () => {
 
   it("returns signed URL for valid practical request", async () => {
     mockReadSessionCookie.mockResolvedValue(TEST_SESSION_ID);
-    mockGetActiveSession.mockResolvedValue(TEST_SESSION);
+    mockGetSessionById.mockResolvedValue(TEST_SESSION);
     mockCreateSignedUploadUrl.mockResolvedValue({
       signedUrl: "https://storage.example.com/upload?token=abc",
       token: "abc",
@@ -128,7 +128,7 @@ describe("POST /api/upload", () => {
 
   it("returns signed URL for valid creative request", async () => {
     mockReadSessionCookie.mockResolvedValue(TEST_SESSION_ID);
-    mockGetActiveSession.mockResolvedValue(TEST_SESSION);
+    mockGetSessionById.mockResolvedValue(TEST_SESSION);
     mockCreateSignedUploadUrl.mockResolvedValue({
       signedUrl: "https://storage.example.com/upload?token=def",
       token: "def",
@@ -143,7 +143,7 @@ describe("POST /api/upload", () => {
 
   it("returns 500 when storage URL creation fails", async () => {
     mockReadSessionCookie.mockResolvedValue(TEST_SESSION_ID);
-    mockGetActiveSession.mockResolvedValue(TEST_SESSION);
+    mockGetSessionById.mockResolvedValue(TEST_SESSION);
     mockCreateSignedUploadUrl.mockRejectedValue(new Error("Supabase error"));
 
     const res = await POST(makeRequest({ vignetteType: "practical", step: 1 }) as never);

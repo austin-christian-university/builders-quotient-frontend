@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readSessionCookie } from "@/lib/assessment/session-cookie";
-import { getActiveSession } from "@/lib/queries/session";
+import { getSessionById } from "@/lib/queries/session";
 import { createSignedUploadUrl } from "@/lib/supabase/storage";
 
 export async function POST(request: NextRequest) {
@@ -12,10 +12,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const session = await getActiveSession(sessionId);
+  const session = await getSessionById(sessionId);
   if (!session) {
-    console.warn(`[BQ Upload API] No active session for id: ${sessionId.slice(0, 8)}...`);
-    return NextResponse.json({ error: "No active session" }, { status: 401 });
+    console.warn(`[BQ Upload API] Session not found for id: ${sessionId.slice(0, 8)}...`);
+    return NextResponse.json({ error: "Session not found" }, { status: 401 });
   }
 
   let body: { vignetteType: string; step: number; responsePhase?: number };
