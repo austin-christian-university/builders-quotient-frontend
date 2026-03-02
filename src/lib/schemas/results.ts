@@ -46,6 +46,44 @@ export const statsSchema = z.object({
   corpusSize: z.number().int(),
 });
 
+// --- Entrepreneur match sub-schemas ---
+
+export const categoryProfilePointSchema = z.object({
+  category: z.string(),
+  value: z.number(),
+});
+
+export const sharedTraitSchema = z.object({
+  name: z.string(),
+  value: z.number(),
+});
+
+export const traitDifferenceSchema = z.object({
+  name: z.string(),
+  studentValue: z.number(),
+  entrepreneurValue: z.number(),
+});
+
+export const runnerUpSchema = z.object({
+  name: z.string(),
+  similarity: z.number(),
+});
+
+export const entrepreneurMatchSchema = z.object({
+  entrepreneurName: z.string(),
+  entrepreneurId: z.string(),
+  cosineSimilarity: z.number(),
+  bioSnippet: z.string().nullable(),
+  category: z.string(),
+  companies: z.array(z.string()),
+  industries: z.array(z.string()),
+  studentProfile: z.array(categoryProfilePointSchema),
+  entrepreneurProfile: z.array(categoryProfilePointSchema),
+  topSharedTraits: z.array(sharedTraitSchema),
+  biggestDifferences: z.array(traitDifferenceSchema),
+  runnersUp: z.array(runnerUpSchema),
+});
+
 // --- Personality sub-schemas ---
 
 export const personalityFacetScoreSchema = z.object({
@@ -91,6 +129,7 @@ export const resultsPageDataSchema = z.object({
     ciSummaries: z.array(z.string()),
   }),
   personality: personalityDataSchema.nullable(),
+  entrepreneurMatch: entrepreneurMatchSchema.nullable(),
 });
 
 // --- Exported types ---
@@ -104,3 +143,4 @@ export type GrowthEdge = z.infer<typeof growthEdgeSchema>;
 export type ResultsStats = z.infer<typeof statsSchema>;
 export type PersonalityFacetScore = z.infer<typeof personalityFacetScoreSchema>;
 export type PersonalityData = z.infer<typeof personalityDataSchema>;
+export type EntrepreneurMatch = z.infer<typeof entrepreneurMatchSchema>;

@@ -9,6 +9,8 @@ import { ArchetypeSlide } from "./slides/ArchetypeSlide";
 import { IntelligenceSlide } from "./slides/IntelligenceSlide";
 import { HighlightSlide } from "./slides/HighlightSlide";
 import { PersonalitySlide } from "./slides/PersonalitySlide";
+import { EntrepreneurMatchSlide } from "./slides/EntrepreneurMatchSlide";
+import { EntrepreneurComparisonSlide } from "./slides/EntrepreneurComparisonSlide";
 import { RadarSlide } from "./slides/RadarSlide";
 import { StatsSlide } from "./slides/StatsSlide";
 import { ShareSlide } from "./slides/ShareSlide";
@@ -140,6 +142,13 @@ export function ResultsExperience({ data }: Props) {
 
     if (data.personality) {
       s.push(<PersonalitySlide key="personality" data={data.personality} />);
+    }
+
+    if (data.entrepreneurMatch) {
+      s.push(
+        <EntrepreneurMatchSlide key="entrepreneurMatch" data={data.entrepreneurMatch} />,
+        <EntrepreneurComparisonSlide key="entrepreneurComparison" data={data.entrepreneurMatch} />,
+      );
     }
 
     if (data.signatureMoves.length > 0) {

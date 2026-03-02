@@ -7,10 +7,16 @@ import {
   ENTREPRENEURIAL_FACETS,
   type PersonalityFacet,
 } from "@/lib/assessment/personality-bank";
+import {
+  averageByCategory,
+  PERSONALITY_DIMENSION_NAMES,
+} from "@/lib/assessment/personality-dimensions";
+import type { PersonalityVector } from "@/lib/assessment/personality-dimensions";
 import type {
   ResultsPageData,
   CategoryScore,
   PersonalityData,
+  EntrepreneurMatch,
   SignatureMove,
   RarestMove,
   GrowthEdge,
@@ -337,6 +343,96 @@ export async function getResultsByToken(
     }
   }
 
+  // 12. Entrepreneur personality match (nullable -- only present after pipeline matching)
+  let entrepreneurMatch: EntrepreneurMatch | null = null;
+
+  const { data: studentProfile } = await supabase
+    .from("student_personality_profiles")
+    .select(
+      "matched_entrepreneur_id, matched_entrepreneur_name, matched_cosine_similarity, matched_bio_snippet, top_5_matches, personality_vector",
+    )
+    .eq("session_id", session.id)
+    .single();
+
+  if (studentProfile?.matched_entrepreneur_id) {
+    // Fetch entrepreneur details
+    const { data: entrepreneur } = await supabase
+      .from("entrepreneurs")
+      .select("category, companies, industries")
+      .eq("id", studentProfile.matched_entrepreneur_id)
+      .single();
+
+    // Fetch entrepreneur's personality vector for comparison
+    const { data: entrepreneurProfile } = await supabase
+      .from("entrepreneur_personality_profiles")
+      .select("personality_vector")
+      .eq("entrepreneur_id", studentProfile.matched_entrepreneur_id)
+      .single();
+
+    const studentVector =
+      (studentProfile.personality_vector as PersonalityVector | null) ?? {};
+    const entrepreneurVector =
+      (entrepreneurProfile?.personality_vector as PersonalityVector | null) ??
+      {};
+
+    // Average both vectors by 5 categories for radar chart
+    const studentCategoryProfile = averageByCategory(studentVector);
+    const entrepreneurCategoryProfile = averageByCategory(entrepreneurVector);
+
+    // Top 3 shared traits: smallest absolute difference where both score notably
+    const dimensionDiffs = Object.keys(studentVector)
+      .filter((k) => studentVector[k] != null && entrepreneurVector[k] != null)
+      .map((k) => ({
+        key: k,
+        name: PERSONALITY_DIMENSION_NAMES[k] ?? k,
+        studentValue: studentVector[k],
+        entrepreneurValue: entrepreneurVector[k],
+        diff: Math.abs(studentVector[k] - entrepreneurVector[k]),
+        avgValue: (studentVector[k] + entrepreneurVector[k]) / 2,
+      }));
+
+    const topSharedTraits = dimensionDiffs
+      .slice()
+      .sort((a, b) => a.diff - b.diff)
+      .slice(0, 3)
+      .map((d) => ({ name: d.name, value: Math.round(d.avgValue * 100) }));
+
+    const biggestDifferences = dimensionDiffs
+      .slice()
+      .sort((a, b) => b.diff - a.diff)
+      .slice(0, 3)
+      .map((d) => ({
+        name: d.name,
+        studentValue: Math.round(d.studentValue * 100),
+        entrepreneurValue: Math.round(d.entrepreneurValue * 100),
+      }));
+
+    // Runners-up from top_5_matches (skip the first which is the primary match)
+    const top5 =
+      (studentProfile.top_5_matches as
+        | { entrepreneur_id: string; name: string; cosine_similarity: number }[]
+        | null) ?? [];
+    const runnersUp = top5.slice(1, 5).map((e) => ({
+      name: e.name,
+      similarity: Math.round(e.cosine_similarity * 100),
+    }));
+
+    entrepreneurMatch = {
+      entrepreneurName: studentProfile.matched_entrepreneur_name,
+      entrepreneurId: studentProfile.matched_entrepreneur_id,
+      cosineSimilarity: studentProfile.matched_cosine_similarity,
+      bioSnippet: studentProfile.matched_bio_snippet ?? null,
+      category: entrepreneur?.category ?? "entrepreneur",
+      companies: (entrepreneur?.companies as string[]) ?? [],
+      industries: (entrepreneur?.industries as string[]) ?? [],
+      studentProfile: studentCategoryProfile,
+      entrepreneurProfile: entrepreneurCategoryProfile,
+      topSharedTraits,
+      biggestDifferences,
+      runnersUp,
+    };
+  }
+
   return {
     applicant: {
       displayName: applicant.display_name ?? null,
@@ -368,5 +464,6 @@ export async function getResultsByToken(
       ciSummaries,
     },
     personality,
+    entrepreneurMatch,
   };
 }
