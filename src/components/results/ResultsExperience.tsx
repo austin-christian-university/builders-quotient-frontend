@@ -13,6 +13,7 @@ import { EntrepreneurMatchSlide } from "./slides/EntrepreneurMatchSlide";
 import { EntrepreneurComparisonSlide } from "./slides/EntrepreneurComparisonSlide";
 import { RadarSlide } from "./slides/RadarSlide";
 import { StatsSlide } from "./slides/StatsSlide";
+import { DisclaimerSlide } from "./slides/DisclaimerSlide";
 import { ShareSlide } from "./slides/ShareSlide";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
@@ -184,6 +185,7 @@ export function ResultsExperience({ data }: Props) {
         }}
       />,
       <StatsSlide key="stats" data={data.stats} />,
+      <DisclaimerSlide key="disclaimer" />,
       <ShareSlide
         key="share"
         data={{
