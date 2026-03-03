@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 type StreamStatus = "idle" | "acquiring" | "active" | "error" | "stopped";
 
 export function useMediaStream() {
   const streamRef = useRef<MediaStream | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<StreamStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +33,7 @@ export function useMediaStream() {
       // Stop any previous stream
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = stream;
+      setStream(stream);
       setStatus("active");
 
       // Monitor track ended events (camera disconnection)
@@ -56,21 +58,12 @@ export function useMediaStream() {
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    setStream(null);
     setStatus("stopped");
   }, []);
 
-  // Acquire on mount, stop on unmount
-  useEffect(() => {
-    acquire();
-    return () => {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return {
-    stream: streamRef.current,
+    stream,
     streamRef,
     status,
     error,

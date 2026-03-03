@@ -9,7 +9,7 @@ import { VignetteNarrator } from "./VignetteNarrator";
 import { ProcessingBuffer } from "./ProcessingBuffer";
 import { VideoRecorder } from "./VideoRecorder";
 import { CameraPip } from "./CameraPip";
-import { useMediaStream } from "@/lib/assessment/use-media-stream";
+import { useMediaStreamContext } from "@/lib/assessment/media-stream-context";
 import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
 import { reserveResponse } from "@/lib/actions/response-upload";
 import { useUploadQueue } from "@/lib/assessment/upload-queue";
@@ -84,7 +84,15 @@ export function VignetteExperience({
   // survives the ready->narrating phase transition without being destroyed.
   const audio = useAudioNarrator(audioUrl, audioTiming);
 
-  const { stream, streamRef, status: streamStatus, error: streamError, retry: retryStream } = useMediaStream();
+  const { stream, status: streamStatus, error: streamError, retry: retryStream } = useMediaStreamContext();
+
+  // Acquire camera/mic when vignette mounts (not earlier in the assessment flow)
+  useEffect(() => {
+    if (streamStatus === "idle") {
+      retryStream();
+    }
+  }, [streamStatus, retryStream]);
+
   const recorder = useVideoRecorder(stream);
   const [buffer1Remaining, setBuffer1Remaining] = useState(BUFFER_1_SECONDS);
   const [recording1Remaining, setRecording1Remaining] = useState(RECORDING_1_SECONDS);
@@ -726,7 +734,7 @@ export function VignetteExperience({
                     </Button>
                   </div>
 
-                  <CameraPip stream={streamRef.current} />
+                  <CameraPip stream={stream} />
                 </motion.div>
               )}
 
@@ -885,7 +893,7 @@ export function VignetteExperience({
                       )}
 
                       {/* Camera PiP during active phases */}
-                      <CameraPip stream={streamRef.current} />
+                      <CameraPip stream={stream} />
                     </div>
                   </div>
                 </motion.div>
