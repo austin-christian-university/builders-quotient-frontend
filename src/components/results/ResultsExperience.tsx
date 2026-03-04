@@ -117,7 +117,7 @@ export function ResultsExperience({ data }: Props) {
         key="reveal"
         data={{
           displayName: data.applicant.displayName,
-          bqPercentile: data.overall.bqPercentile,
+          bqScore: data.overall.bqScore,
         }}
       />,
       <ArchetypeSlide key="archetype" data={data.archetype} />,
@@ -126,7 +126,7 @@ export function ResultsExperience({ data }: Props) {
         title="Practical Intelligence"
         variant="pi"
         data={{
-          headline: data.overall.piHeadlinePercentile,
+          headline: data.overall.piHeadlineScore,
           categories: data.piCategories,
         }}
       />,
@@ -135,7 +135,7 @@ export function ResultsExperience({ data }: Props) {
         title="Creative Intelligence"
         variant="ci"
         data={{
-          headline: data.overall.ciHeadlinePercentile,
+          headline: data.overall.ciHeadlineScore,
           categories: data.ciCategories,
         }}
       />,
@@ -176,11 +176,11 @@ export function ResultsExperience({ data }: Props) {
         data={{
           pi: data.piCategories.map((c) => ({
             category: c.category,
-            percentile: c.percentile,
+            score: c.score,
           })),
           ci: data.ciCategories.map((c) => ({
             category: c.category,
-            percentile: c.percentile,
+            score: c.score,
           })),
         }}
       />,
@@ -190,7 +190,7 @@ export function ResultsExperience({ data }: Props) {
         key="share"
         data={{
           displayName: data.applicant.displayName,
-          bqPercentile: data.overall.bqPercentile,
+          bqScore: data.overall.bqScore,
           archetype: data.archetype.name,
         }}
       />

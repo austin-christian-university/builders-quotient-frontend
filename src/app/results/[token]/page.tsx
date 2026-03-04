@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const name = data.applicant.displayName;
   const title = name ? `${name}'s BQ Results` : "Your BQ Results";
-  const description = `Builder's Quotient: ${Math.round(data.overall.bqPercentile)}th percentile. Archetype: ${data.archetype.name}.`;
+  const description = `Builder's Quotient: ${Math.round(data.overall.bqScore)}%. Archetype: ${data.archetype.name}.`;
 
   return {
     title: `${title} | BQ`,

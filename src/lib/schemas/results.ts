@@ -4,11 +4,11 @@ import { z } from "zod";
 
 export const categoryScoreSchema = z.object({
   category: z.string(),
-  percentile: z.number().min(0).max(100),
-  movesPresent: z.number().int().min(0),
-  movesApplicable: z.number().int().min(0),
-  entrepreneurMean: z.number(),
-  entrepreneurStd: z.number(),
+  score: z.number().min(0).max(100),
+  movesMatched: z.number().int().min(0),
+  movesScored: z.number().int().min(0),
+  movesMissed: z.number().int().min(0),
+  movesExcluded: z.number().int().min(0),
 });
 
 export const archetypeSchema = z.object({
@@ -20,13 +20,13 @@ export const archetypeSchema = z.object({
 
 export const signatureMoveSchema = z.object({
   description: z.string(),
-  rarityPercent: z.number(),
+  agreementPercent: z.number(),
   categoryName: z.string(),
 });
 
 export const rarestMoveSchema = z.object({
   description: z.string(),
-  rarityFraction: z.string(),
+  agreementPercent: z.number(),
   categoryName: z.string(),
 });
 
@@ -38,9 +38,10 @@ export const growthEdgeSchema = z.object({
 export const statsSchema = z.object({
   piCategoriesAboveAvg: z.number().int(),
   ciCategoriesAboveAvg: z.number().int(),
+  totalCategories: z.number().int(),
   strongestCategory: z.object({
     name: z.string(),
-    percentile: z.number(),
+    score: z.number(),
   }),
   biggestGap: z.number(),
   corpusSize: z.number().int(),
@@ -113,9 +114,9 @@ export const resultsPageDataSchema = z.object({
     assessmentType: z.enum(["public", "admissions"]),
   }),
   overall: z.object({
-    bqPercentile: z.number(),
-    piHeadlinePercentile: z.number(),
-    ciHeadlinePercentile: z.number(),
+    bqScore: z.number(),
+    piHeadlineScore: z.number(),
+    ciHeadlineScore: z.number(),
   }),
   piCategories: z.array(categoryScoreSchema),
   ciCategories: z.array(categoryScoreSchema),

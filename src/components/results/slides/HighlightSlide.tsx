@@ -6,8 +6,7 @@ type HighlightData = {
     title: string;
     items: Array<{
         description: string;
-        rarityPercent?: number;
-        rarityFraction?: string;
+        agreementPercent: number;
         categoryName: string;
     }>;
 };
@@ -46,7 +45,7 @@ export function HighlightSlide({ data }: Props) {
 
                         <div className="inline-flex items-center justify-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
                             <span className="text-secondary font-bold">
-                                {item.rarityPercent !== undefined ? `Only ${item.rarityPercent}%` : `Only ${item.rarityFraction}`}
+                                {item.agreementPercent}% agreement
                             </span>
                             <span className="w-1.5 h-1.5 bg-white/30 rounded-full" />
                             <span className="text-white/70 text-sm uppercase tracking-wide">{item.categoryName}</span>

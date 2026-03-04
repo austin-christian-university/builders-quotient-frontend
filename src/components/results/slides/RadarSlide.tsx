@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 
-type ProfilePoint = { category: string; percentile: number };
+type ProfilePoint = { category: string; score: number };
 
 type Props = {
     data: {
@@ -32,7 +32,7 @@ export function RadarSlide({ data }: Props) {
 
     const polygonPath = allPoints
         .map((p, i) => {
-            const { x, y } = getCoordinatesForPercent(p.percentile, i);
+            const { x, y } = getCoordinatesForPercent(p.score, i);
             return `${x},${y}`;
         })
         .join(" ");
@@ -96,7 +96,7 @@ export function RadarSlide({ data }: Props) {
 
                         {/* Points / Dots on the Polygon */}
                         {allPoints.map((p, i) => {
-                            const { x, y } = getCoordinatesForPercent(p.percentile, i);
+                            const { x, y } = getCoordinatesForPercent(p.score, i);
                             return (
                                 <motion.circle
                                     key={i}

@@ -22,37 +22,32 @@ import type {
   GrowthEdge,
 } from "@/lib/schemas/results";
 
-// --- Raw JSONB types from the Python pipeline ---
+// --- Raw JSONB types from the Python pipeline (consensus-based scoring) ---
 
 type RawCategoryScore = {
   category: string;
-  percentile: number;
-  moves_present: number;
-  moves_applicable: number;
-  entrepreneur_mean: number;
-  entrepreneur_std: number;
+  similarity_score: number;
+  moves_matched: number;
+  moves_scored: number;
+  moves_missed: number;
+  moves_excluded: number;
 };
 
 type RawMoveDetail = {
   move_key: string;
   move_name: string;
   category: string;
-  present: boolean;
-  applicable: boolean;
-  entrepreneur_frequency: number;
-  status: string;
+  student_present: boolean;
+  in_consensus: boolean;
+  agreement_rate: number;
 };
 
 type RawScoringResult = {
-  headline_percentile: number;
-  category_scores: RawCategoryScore[];
+  headline_score: number;
+  track1_category_scores: RawCategoryScore[];
   move_details: RawMoveDetail[];
   summary_text: string;
-  moves_present_total: number;
-  moves_applicable_total: number;
-  // PI uses n_entrepreneur_incidents, CI uses n_entrepreneur_episodes
-  n_entrepreneur_incidents?: number;
-  n_entrepreneur_episodes?: number;
+  track1_n_experts?: number;
 };
 
 type ScoredResponse = {
@@ -74,38 +69,45 @@ function aggregateCategories(
   const acc = new Map<
     string,
     {
-      percentileSum: number;
-      movesPresentMax: number;
-      movesApplicableMax: number;
-      entrepreneurMeanSum: number;
-      entrepreneurStdSum: number;
+      scoreSum: number;
+      movesMatchedMax: number;
+      movesScoredMax: number;
+      movesMissedMax: number;
+      movesExcludedMax: number;
       count: number;
     }
   >();
 
   for (const r of typed) {
-    for (const cs of r.scoring_result.category_scores) {
+    if (!Array.isArray(r.scoring_result.track1_category_scores)) continue;
+    for (const cs of r.scoring_result.track1_category_scores) {
       const existing = acc.get(cs.category);
       if (existing) {
-        existing.percentileSum += cs.percentile;
-        existing.movesPresentMax = Math.max(
-          existing.movesPresentMax,
-          cs.moves_present
+        existing.scoreSum += cs.similarity_score * 100;
+        existing.movesMatchedMax = Math.max(
+          existing.movesMatchedMax,
+          cs.moves_matched
         );
-        existing.movesApplicableMax = Math.max(
-          existing.movesApplicableMax,
-          cs.moves_applicable
+        existing.movesScoredMax = Math.max(
+          existing.movesScoredMax,
+          cs.moves_scored
         );
-        existing.entrepreneurMeanSum += cs.entrepreneur_mean;
-        existing.entrepreneurStdSum += cs.entrepreneur_std;
+        existing.movesMissedMax = Math.max(
+          existing.movesMissedMax,
+          cs.moves_missed
+        );
+        existing.movesExcludedMax = Math.max(
+          existing.movesExcludedMax,
+          cs.moves_excluded
+        );
         existing.count += 1;
       } else {
         acc.set(cs.category, {
-          percentileSum: cs.percentile,
-          movesPresentMax: cs.moves_present,
-          movesApplicableMax: cs.moves_applicable,
-          entrepreneurMeanSum: cs.entrepreneur_mean,
-          entrepreneurStdSum: cs.entrepreneur_std,
+          scoreSum: cs.similarity_score * 100,
+          movesMatchedMax: cs.moves_matched,
+          movesScoredMax: cs.moves_scored,
+          movesMissedMax: cs.moves_missed,
+          movesExcludedMax: cs.moves_excluded,
           count: 1,
         });
       }
@@ -113,18 +115,17 @@ function aggregateCategories(
   }
 
   // Preserve original category order from first response
-  const firstCategories = typed[0].scoring_result.category_scores;
+  const firstCategories =
+    typed[0].scoring_result.track1_category_scores ?? [];
   return firstCategories.map((cs) => {
     const a = acc.get(cs.category)!;
     return {
       category: cs.category,
-      percentile: Math.round((a.percentileSum / a.count) * 10) / 10,
-      movesPresent: a.movesPresentMax,
-      movesApplicable: a.movesApplicableMax,
-      entrepreneurMean:
-        Math.round((a.entrepreneurMeanSum / a.count) * 100) / 100,
-      entrepreneurStd:
-        Math.round((a.entrepreneurStdSum / a.count) * 100) / 100,
+      score: Math.round((a.scoreSum / a.count) * 10) / 10,
+      movesMatched: a.movesMatchedMax,
+      movesScored: a.movesScoredMax,
+      movesMissed: a.movesMissedMax,
+      movesExcluded: a.movesExcludedMax,
     };
   });
 }
@@ -134,11 +135,12 @@ function unionMoveDetails(responses: ScoredResponse[]): RawMoveDetail[] {
   const map = new Map<string, RawMoveDetail>();
 
   for (const r of responses) {
+    if (!Array.isArray(r.scoring_result.move_details)) continue;
     for (const md of r.scoring_result.move_details) {
       const existing = map.get(md.move_key);
       if (!existing) {
         map.set(md.move_key, { ...md });
-      } else if (md.present && !existing.present) {
+      } else if (md.student_present && !existing.student_present) {
         // Upgrade: demonstrated in this response but not the other
         map.set(md.move_key, { ...md });
       }
@@ -148,45 +150,40 @@ function unionMoveDetails(responses: ScoredResponse[]): RawMoveDetail[] {
   return Array.from(map.values());
 }
 
-/** Extract signature moves (status === "impressive"), strip keys, cap at 3. */
+/** Extract signature moves: student demonstrated but NOT in consensus (unique insights). */
 function extractSignatureMoves(moves: RawMoveDetail[]): SignatureMove[] {
   return moves
-    .filter((m) => m.status === "impressive")
-    .sort((a, b) => a.entrepreneur_frequency - b.entrepreneur_frequency)
+    .filter((m) => m.student_present && !m.in_consensus)
+    .sort((a, b) => a.agreement_rate - b.agreement_rate)
     .slice(0, 3)
     .map((m) => ({
       description: m.move_name,
-      rarityPercent: Math.round(m.entrepreneur_frequency * 100),
+      agreementPercent: Math.round(m.agreement_rate * 100),
       categoryName: m.category,
     }));
 }
 
-/** Find the single rarest present move. */
+/** Find the single rarest present move (lowest agreement rate where student demonstrated). */
 function extractRarestMove(moves: RawMoveDetail[]): RarestMove | null {
-  const present = moves.filter((m) => m.present && m.applicable);
+  const present = moves.filter((m) => m.student_present);
   if (present.length === 0) return null;
 
   const rarest = present.reduce((min, m) =>
-    m.entrepreneur_frequency < min.entrepreneur_frequency ? m : min
+    m.agreement_rate < min.agreement_rate ? m : min
   );
-
-  // Convert frequency to human-readable fraction
-  const freq = rarest.entrepreneur_frequency;
-  const denominator = freq > 0 ? Math.round(1 / freq) : 100;
-  const fraction = `1 in ${denominator}`;
 
   return {
     description: rarest.move_name,
-    rarityFraction: fraction,
+    agreementPercent: Math.round(rarest.agreement_rate * 100),
     categoryName: rarest.category,
   };
 }
 
-/** Extract growth edges (status === "gap"), strip keys, cap at 3. */
+/** Extract growth edges: in consensus but student missed (high-value gaps). */
 function extractGrowthEdges(moves: RawMoveDetail[]): GrowthEdge[] {
   return moves
-    .filter((m) => m.status === "gap")
-    .sort((a, b) => b.entrepreneur_frequency - a.entrepreneur_frequency)
+    .filter((m) => !m.student_present && m.in_consensus)
+    .sort((a, b) => b.agreement_rate - a.agreement_rate)
     .slice(0, 3)
     .map((m) => ({
       description: m.move_name,
@@ -194,9 +191,9 @@ function extractGrowthEdges(moves: RawMoveDetail[]): GrowthEdge[] {
     }));
 }
 
-/** Count categories above the entrepreneur average (percentile > 50). */
+/** Count categories above average (score > 50). */
 function countAboveAvg(categories: CategoryScore[]): number {
-  return categories.filter((c) => c.percentile > 50).length;
+  return categories.filter((c) => c.score > 50).length;
 }
 
 // --- Main query ---
@@ -252,18 +249,18 @@ export async function getResultsByToken(
   const piCategories = aggregateCategories(scored, "practical");
   const ciCategories = aggregateCategories(scored, "creative");
 
-  // 6. Compute headline percentiles
+  // 6. Compute headline scores (already percentages from pipeline)
   const piHeadline =
     piResponses.reduce(
-      (sum, r) => sum + r.scoring_result.headline_percentile,
+      (sum, r) => sum + r.scoring_result.headline_score,
       0
     ) / piResponses.length;
   const ciHeadline =
     ciResponses.reduce(
-      (sum, r) => sum + r.scoring_result.headline_percentile,
+      (sum, r) => sum + r.scoring_result.headline_score,
       0
     ) / ciResponses.length;
-  const bqPercentile = (piHeadline + ciHeadline) / 2;
+  const bqScore = (piHeadline + ciHeadline) / 2;
 
   // 7. Union moves across all responses, then derive
   const allPiMoves = unionMoveDetails(piResponses);
@@ -280,16 +277,16 @@ export async function getResultsByToken(
   // 9. Stats
   const allCategories = [...piCategories, ...ciCategories];
   const strongest = allCategories.reduce((best, c) =>
-    c.percentile > best.percentile ? c : best
+    c.score > best.score ? c : best
   );
   const weakest = allCategories.reduce((min, c) =>
-    c.percentile < min.percentile ? c : min
+    c.score < min.score ? c : min
   );
 
-  // Corpus size from the first PI response (n_entrepreneur_incidents)
+  // Corpus size from the first PI response (track1_n_experts)
   const corpusSize =
-    piResponses[0].scoring_result.n_entrepreneur_incidents ??
-    ciResponses[0].scoring_result.n_entrepreneur_episodes ??
+    piResponses[0].scoring_result.track1_n_experts ??
+    ciResponses[0].scoring_result.track1_n_experts ??
     274;
 
   // 10. Narratives
@@ -439,9 +436,9 @@ export async function getResultsByToken(
       assessmentType: (session.assessment_type as "public" | "admissions") ?? "public",
     },
     overall: {
-      bqPercentile: Math.round(bqPercentile * 10) / 10,
-      piHeadlinePercentile: Math.round(piHeadline * 10) / 10,
-      ciHeadlinePercentile: Math.round(ciHeadline * 10) / 10,
+      bqScore: Math.round(bqScore * 10) / 10,
+      piHeadlineScore: Math.round(piHeadline * 10) / 10,
+      ciHeadlineScore: Math.round(ciHeadline * 10) / 10,
     },
     piCategories,
     ciCategories,
@@ -452,11 +449,12 @@ export async function getResultsByToken(
     stats: {
       piCategoriesAboveAvg: countAboveAvg(piCategories),
       ciCategoriesAboveAvg: countAboveAvg(ciCategories),
+      totalCategories: allCategories.length,
       strongestCategory: {
         name: strongest.category,
-        percentile: strongest.percentile,
+        score: strongest.score,
       },
-      biggestGap: Math.round((strongest.percentile - weakest.percentile) * 10) / 10,
+      biggestGap: Math.round((strongest.score - weakest.score) * 10) / 10,
       corpusSize,
     },
     narrative: {

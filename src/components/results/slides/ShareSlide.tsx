@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 type Props = {
     data: {
         displayName: string | null;
-        bqPercentile: number;
+        bqScore: number;
         archetype: string;
     };
 };
@@ -18,7 +18,7 @@ export function ShareSlide({ data }: Props) {
             try {
                 await navigator.share({
                     title: "My Builder's Quotient Results",
-                    text: `I scored in the ${data.bqPercentile}th percentile and got the ${data.archetype} archetype!`,
+                    text: `I scored ${Math.round(data.bqScore)}% on the Builder's Quotient and got the ${data.archetype} archetype!`,
                     url: window.location.href,
                 });
             } catch (err) {
@@ -61,9 +61,9 @@ export function ShareSlide({ data }: Props) {
 
                     <div className="flex flex-col gap-6">
                         <div>
-                            <div className="text-white/50 text-sm uppercase tracking-wide">Overall Percentile</div>
+                            <div className="text-white/50 text-sm uppercase tracking-wide">Overall Score</div>
                             <div className="font-display font-bold text-[length:var(--text-fluid-4xl)] text-white">
-                                {Math.round(data.bqPercentile)}%
+                                {Math.round(data.bqScore)}%
                             </div>
                         </div>
 

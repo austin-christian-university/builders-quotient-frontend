@@ -13,14 +13,14 @@ type Props = {
     variant: "pi" | "ci";
 };
 
-function ProgressLine({ category, percentile, index, variant }: { category: string, percentile: number, index: number, variant: "pi" | "ci" }) {
+function ProgressLine({ category, score, index, variant }: { category: string, score: number, index: number, variant: "pi" | "ci" }) {
     const [width, setWidth] = useState(0);
 
     useEffect(() => {
         // Delay slightly based on index
-        const timer = setTimeout(() => setWidth(percentile), 500 + index * 150);
+        const timer = setTimeout(() => setWidth(score), 500 + index * 150);
         return () => clearTimeout(timer);
-    }, [percentile, index]);
+    }, [score, index]);
 
     const colorClass = variant === "pi" ? "bg-primary" : "bg-secondary";
 
@@ -28,7 +28,7 @@ function ProgressLine({ category, percentile, index, variant }: { category: stri
         <div className="flex flex-col gap-2">
             <div className="flex justify-between text-sm">
                 <span className="text-white/90 font-medium">{category}</span>
-                <span className="text-white/60">{percentile}th</span>
+                <span className="text-white/60">{Math.round(score)}%</span>
             </div>
             <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                 <motion.div
@@ -58,7 +58,7 @@ export function IntelligenceSlide({ data, title, variant }: Props) {
                     </h2>
                     <span className="text-[length:var(--text-fluid-xl)] text-white/50 mb-1 font-light">%</span>
                 </div>
-                <p className="text-text-secondary">Your overall percentile in {title}.</p>
+                <p className="text-text-secondary">Your overall score in {title}.</p>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 mt-8">
@@ -71,7 +71,7 @@ export function IntelligenceSlide({ data, title, variant }: Props) {
                     >
                         <ProgressLine
                             category={cat.category}
-                            percentile={cat.percentile}
+                            score={cat.score}
                             index={i}
                             variant={variant}
                         />

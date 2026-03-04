@@ -41,7 +41,7 @@ export function StatsSlide({ data }: Props) {
                 <StatBox
                     delay={0.2}
                     label="Categories Above Average"
-                    value={<>{data.piCategoriesAboveAvg + data.ciCategoriesAboveAvg}<span className="text-2xl text-white/50">/10</span></>}
+                    value={<>{data.piCategoriesAboveAvg + data.ciCategoriesAboveAvg}<span className="text-2xl text-white/50">/{data.totalCategories}</span></>}
                 />
                 <div className="col-span-2 lg:col-span-2 row-span-2 bg-gradient-to-br from-primary/10 to-transparent border border-white/10 rounded-2xl p-8 backdrop-blur-md flex flex-col justify-between overflow-hidden relative">
                     <motion.div
@@ -76,10 +76,10 @@ export function StatsSlide({ data }: Props) {
                         className="text-right"
                     >
                         <div className="flex items-baseline justify-end gap-1">
-                            <span className="font-display font-bold text-[length:var(--text-fluid-5xl)] text-white">{Math.round(data.strongestCategory.percentile)}</span>
+                            <span className="font-display font-bold text-[length:var(--text-fluid-5xl)] text-white">{Math.round(data.strongestCategory.score)}</span>
                             <span className="text-xl text-white/50">%</span>
                         </div>
-                        <div className="text-white/60 text-sm">Percentile</div>
+                        <div className="text-white/60 text-sm">Score</div>
                     </motion.div>
                 </div>
 

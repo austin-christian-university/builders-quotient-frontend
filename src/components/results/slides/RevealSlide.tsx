@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 type Props = {
     data: {
         displayName: string | null;
-        bqPercentile: number;
+        bqScore: number;
     };
 };
 
@@ -14,7 +14,7 @@ export function RevealSlide({ data }: Props) {
     const [count, setCount] = useState(0);
 
     useEffect(() => {
-        const end = data.bqPercentile;
+        const end = data.bqScore;
         if (end === 0) {
             // Reset count when percentile is 0 (e.g., component reused with new data)
             // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -38,7 +38,7 @@ export function RevealSlide({ data }: Props) {
         animationFrameId = window.requestAnimationFrame(step);
 
         return () => window.cancelAnimationFrame(animationFrameId);
-    }, [data.bqPercentile]);
+    }, [data.bqScore]);
 
     return (
         <section className="flex h-full flex-col items-center justify-center px-6 relative overflow-hidden">
@@ -84,7 +84,7 @@ export function RevealSlide({ data }: Props) {
                     transition={{ delay: 2.5, duration: 1 }}
                 >
                     <p className="max-w-md mx-auto text-text-secondary text-[length:var(--text-fluid-base)]">
-                        You scored higher than <span className="text-white font-semibold">{data.bqPercentile}%</span> of the population.
+                        Your similarity score: <span className="text-white font-semibold">{data.bqScore}%</span>
                     </p>
                 </motion.div>
             </div>
