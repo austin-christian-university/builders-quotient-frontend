@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Action, Phase, State } from "@/lib/assessment/vignette-reducer";
-import { devSkipToComplete } from "@/lib/actions/dev";
+import { devSkipToComplete, devSkipStep } from "@/lib/actions/dev";
 
 const PHASES: Phase[] = [
   "ready",
@@ -48,6 +49,10 @@ type DevToolbarProps = {
   recorderStatus: string;
   streamStatus: string;
   sessionId: string;
+  step: number;
+  totalSteps: number;
+  vignetteId: string;
+  vignetteType: "practical" | "creative";
 };
 
 export function DevToolbar({
@@ -63,10 +68,16 @@ export function DevToolbar({
   recording3Remaining,
   recorderStatus,
   streamStatus,
-  sessionId: _sessionId, // eslint-disable-line @typescript-eslint/no-unused-vars -- kept for future dev toolbar features
+  sessionId,
+  step,
+  totalSteps,
+  vignetteId,
+  vignetteType,
 }: DevToolbarProps) {
+  const router = useRouter();
   const [visible, setVisible] = useState(true);
   const [skipping, setSkipping] = useState(false);
+  const [skippingStep, setSkippingStep] = useState(false);
 
   const toggle = useCallback(() => setVisible((v) => !v), []);
 
@@ -226,19 +237,42 @@ export function DevToolbar({
       {/* Navigation */}
       <div className="mt-2 border-t border-green-500/20 pt-2">
         <div className="mb-1 text-[10px] text-green-500/60">Navigation</div>
-        <button
-          type="button"
-          disabled={skipping}
-          onClick={async () => {
-            setSkipping(true);
-            const result = await devSkipToComplete();
-            setSkipping(false);
-            console.error("[DEV] Skip failed:", result.error);
-          }}
-          className="w-full rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-50"
-        >
-          {skipping ? "Skipping\u2026" : "Skip to Complete"}
-        </button>
+        <div className="flex gap-1">
+          <button
+            type="button"
+            disabled={skippingStep}
+            onClick={async () => {
+              setSkippingStep(true);
+              const result = await devSkipStep(sessionId, vignetteId, vignetteType, step);
+              setSkippingStep(false);
+              if (result.success) {
+                if (result.complete) {
+                  router.push("/assess/complete");
+                } else if (result.nextStep) {
+                  router.push(`/assess/${result.nextStep}`);
+                }
+              } else {
+                console.error("[DEV] Skip step failed:", result.error);
+              }
+            }}
+            className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-50"
+          >
+            {skippingStep ? "Skipping\u2026" : `Skip Step ${step}`}
+          </button>
+          <button
+            type="button"
+            disabled={skipping}
+            onClick={async () => {
+              setSkipping(true);
+              const result = await devSkipToComplete();
+              setSkipping(false);
+              console.error("[DEV] Skip failed:", result.error);
+            }}
+            className="flex-1 rounded bg-green-900/50 px-1.5 py-1 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-50"
+          >
+            {skipping ? "Skipping\u2026" : "Skip to Complete"}
+          </button>
+        </div>
       </div>
 
       {/* Keyboard shortcut hint */}

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { VignetteNarrator } from "./VignetteNarrator";
@@ -709,7 +709,6 @@ export function VignetteExperience({
 
   return (
     <>
-      <LayoutGroup>
         <div className="relative flex min-h-dvh flex-col">
           <AmbientBackground phase={state.phase} prefersReducedMotion={prefersReducedMotion} />
 
@@ -983,7 +982,6 @@ export function VignetteExperience({
             </AnimatePresence>
           </div>
         </div>
-      </LayoutGroup>
 
       {DevToolbar && (
         <DevToolbar
@@ -1000,6 +998,10 @@ export function VignetteExperience({
           recorderStatus={recorder.status}
           streamStatus={streamStatus}
           sessionId={sessionId}
+          step={step}
+          totalSteps={totalSteps}
+          vignetteId={vignetteId}
+          vignetteType={vignetteType}
         />
       )}
     </>

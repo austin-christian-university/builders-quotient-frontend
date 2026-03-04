@@ -271,6 +271,64 @@ async function completeSessionInDb(): Promise<{
   return { success: true, sessionId: session.id };
 }
 
+/**
+ * Inserts dummy responses for a single step (all 3 phases) so the next
+ * vignette becomes accessible. Returns the next step number or `complete`.
+ */
+export async function devSkipStep(
+  sessionId: string,
+  vignetteId: string,
+  vignetteType: "practical" | "creative",
+  step: number
+): Promise<{ success: boolean; nextStep?: number; complete?: boolean; error?: string }> {
+  if (process.env.NODE_ENV !== "development") {
+    return { success: false, error: "Only available in development" };
+  }
+
+  const cookieSessionId = await readSessionCookie();
+  if (cookieSessionId !== sessionId) {
+    return { success: false, error: "Session mismatch" };
+  }
+
+  const supabase = createServiceClient();
+  const now = new Date().toISOString();
+
+  // Upsert dummy responses for all 3 phases of this step
+  for (const phase of [1, 2, 3]) {
+    const { error } = await supabase.from("student_responses").upsert(
+      {
+        session_id: sessionId,
+        vignette_id: vignetteId,
+        vignette_type: vignetteType,
+        response_phase: phase,
+        response_text: "",
+        video_storage_path: `dev/dummy-${sessionId}-${vignetteId}-p${phase}.webm`,
+        video_duration_seconds: 30,
+        vignette_served_at: now,
+        recording_started_at: now,
+        response_submitted_at: now,
+        upload_status: "uploaded",
+        needs_scoring: true,
+      },
+      { onConflict: "session_id,vignette_id,response_phase" }
+    );
+    if (error) {
+      return { success: false, error: `Failed to upsert phase ${phase}: ${error.message}` };
+    }
+  }
+
+  // If final step (4), mark session as completed
+  if (step === 4) {
+    await supabase
+      .from("assessment_sessions")
+      .update({ status: "completed", completed_at: now })
+      .eq("id", sessionId);
+    return { success: true, complete: true };
+  }
+
+  return { success: true, nextStep: step + 1 };
+}
+
 export async function devSkipToComplete(): Promise<{
   success: boolean;
   error?: string;
