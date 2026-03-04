@@ -12,6 +12,19 @@ export const reserveResponseSchema = z.object({
 
 export type ReserveResponse = z.infer<typeof reserveResponseSchema>;
 
+export const suspicionEventSchema = z.object({
+  type: z.string().min(1),
+  timestamp: z.string().datetime(),
+  phase: z.string().min(1),
+});
+
+export const reportSuspicionEventsSchema = z.object({
+  sessionId: z.string().uuid(),
+  events: z.array(suspicionEventSchema).min(1).max(500),
+});
+
+export type ReportSuspicionEvents = z.infer<typeof reportSuspicionEventsSchema>;
+
 export const confirmUploadSchema = z.object({
   sessionId: z.string().uuid(),
   vignetteId: z.string().uuid(),

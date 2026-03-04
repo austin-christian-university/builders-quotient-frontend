@@ -677,7 +677,7 @@ function ScrollableTextBox({
 
         <div
           ref={scrollContainerRef}
-          className="max-h-[50vh] space-y-3 overflow-y-auto pr-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
+          className="max-h-[50vh] select-none space-y-3 overflow-y-auto pr-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
         >
           {children}
         </div>
@@ -710,7 +710,7 @@ function PromptSection({
       initial={{ opacity: 0, scale: 0.95, y: -10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-2xl border border-secondary/30 bg-secondary/5 p-5 mt-4"
+      className="select-none rounded-2xl border border-secondary/30 bg-secondary/5 p-5 mt-4"
     >
       <p className="mb-1 text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-secondary">
         {label}

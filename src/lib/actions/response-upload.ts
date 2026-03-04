@@ -5,6 +5,7 @@ import { readSessionCookie } from "@/lib/assessment/session-cookie";
 import {
   reserveResponseSchema,
   confirmUploadSchema,
+  reportSuspicionEventsSchema,
 } from "@/lib/schemas/response";
 
 /**
@@ -139,4 +140,35 @@ export async function reportUploadFailure(data: {
   }
 
   return { success: true };
+}
+
+/**
+ * Append suspicion events (copy attempts, tab switches, etc.) to the
+ * assessment_sessions.suspicion_flags JSONB array. Uses array concatenation
+ * so flags from earlier vignettes aren't overwritten.
+ *
+ * Fire-and-forget from the client — failure here shouldn't block navigation.
+ */
+export async function reportSuspicionEvents(data: {
+  sessionId: string;
+  events: { type: string; timestamp: string; phase: string }[];
+}): Promise<void> {
+  const cookieSessionId = await readSessionCookie();
+  if (cookieSessionId !== data.sessionId) {
+    throw new Error("Session mismatch");
+  }
+
+  const parsed = reportSuspicionEventsSchema.parse(data);
+  const supabase = createServiceClient();
+
+  // Append to existing array using jsonb concatenation
+  const { error } = await supabase.rpc("append_suspicion_flags", {
+    p_session_id: parsed.sessionId,
+    p_new_flags: parsed.events,
+  });
+
+  if (error) {
+    // Log but don't throw — this is best-effort telemetry
+    console.error("[BQ] Failed to report suspicion events:", error.message);
+  }
 }

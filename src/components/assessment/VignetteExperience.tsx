@@ -11,7 +11,8 @@ import { VideoRecorder } from "./VideoRecorder";
 import { CameraPip } from "./CameraPip";
 import { useMediaStreamContext } from "@/lib/assessment/media-stream-context";
 import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
-import { reserveResponse } from "@/lib/actions/response-upload";
+import { reserveResponse, reportSuspicionEvents } from "@/lib/actions/response-upload";
+import { useContentProtection } from "@/lib/assessment/use-content-protection";
 import { useUploadQueue } from "@/lib/assessment/upload-queue";
 import { Button } from "@/components/ui/button";
 import { reducer, type Phase } from "@/lib/assessment/vignette-reducer";
@@ -86,9 +87,10 @@ export function VignetteExperience({
 
   const { stream, status: streamStatus, error: streamError, retry: retryStream } = useMediaStreamContext();
 
-  // Acquire camera/mic when vignette mounts (not earlier in the assessment flow)
+  // Acquire camera/mic when vignette mounts (not earlier in the assessment flow).
+  // Also handle "stopped" status (e.g., after strict mode cleanup in the provider).
   useEffect(() => {
-    if (streamStatus === "idle") {
+    if (streamStatus === "idle" || streamStatus === "stopped") {
       retryStream();
     }
   }, [streamStatus, retryStream]);
@@ -108,6 +110,20 @@ export function VignetteExperience({
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioPlayRef = useRef(audio.play);
   audioPlayRef.current = audio.play;
+
+  // Anti-cheat: block copy/paste/context menu, track tab visibility changes
+  const contentProtectionActive =
+    state.phase === "narrating" ||
+    state.phase === "buffer_1" ||
+    state.phase === "recording_1" ||
+    state.phase === "buffer_2" ||
+    state.phase === "recording_2" ||
+    state.phase === "buffer_3" ||
+    state.phase === "recording_3";
+  const { getEvents: getSuspicionEvents } = useContentProtection(
+    contentProtectionActive,
+    state.phase
+  );
   const playedTonesRef = useRef(new Set<number>());
   const phase1BlobRef = useRef<Blob | null>(null);
   const phase1StartTimeRef = useRef<string | null>(null);
@@ -625,6 +641,17 @@ export function VignetteExperience({
         });
 
         phase3BlobRef.current = null;
+
+        // Fire-and-forget: report any suspicion events (don't block navigation)
+        const suspicionEvents = getSuspicionEvents();
+        if (suspicionEvents.length > 0) {
+          reportSuspicionEvents({
+            sessionId,
+            events: suspicionEvents,
+          }).catch((err) => {
+            console.error("[BQ] Failed to report suspicion events:", err);
+          });
+        }
 
         dispatch({ type: "SUBMIT_COMPLETE" });
 
