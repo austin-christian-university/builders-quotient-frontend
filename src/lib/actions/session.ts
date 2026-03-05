@@ -7,13 +7,14 @@ import {
   createSessionCookie,
   readSessionCookie,
 } from "@/lib/assessment/session-cookie";
-import { getActiveSession } from "@/lib/queries/session";
+import { getSessionById } from "@/lib/queries/session";
 import {
   consentDataSchema,
   consentTypes,
   type ConsentData,
 } from "@/lib/schemas/consent";
 import { createHash } from "crypto";
+import { selectAssessmentForm } from "@/lib/queries/vignettes";
 
 const IP_HASH_SALT = process.env.IP_HASH_SALT;
 if (!IP_HASH_SALT && process.env.NODE_ENV === "production") {
@@ -41,9 +42,40 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
   // Resume existing session if cookie is still valid
   const existingSessionId = await readSessionCookie();
   if (existingSessionId) {
-    const existing = await getActiveSession(existingSessionId);
-    if (existing) {
+    const existing = await getSessionById(existingSessionId);
+
+    if (
+      existing?.status === "assigned" ||
+      existing?.status === "in_progress"
+    ) {
       redirect("/assess/1");
+    }
+
+    if (existing?.status === "completed" && existing.completed_at) {
+      const until = new Date(
+        new Date(existing.completed_at).getTime() + 2 * 60 * 60 * 1000
+      ).toISOString();
+
+      const supabase = createServiceClient();
+      const { data: applicant } = await supabase
+        .from("applicants")
+        .select("email, lead_type")
+        .eq("id", existing.applicant_id)
+        .single();
+
+      if (applicant?.email) {
+        const path =
+          applicant.lead_type === "prospective_student"
+            ? "student"
+            : "general";
+        redirect(
+          `/assess/thank-you?path=${path}&cooldown=true&until=${encodeURIComponent(until)}`
+        );
+      } else {
+        redirect(
+          `/assess/complete?cooldown=true&until=${encodeURIComponent(until)}`
+        );
+      }
     }
   }
 
@@ -67,26 +99,8 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
     throw new Error("Failed to create applicant");
   }
 
-  // 2. Fetch active vignettes for assignment
-  const [piResult, ciResult] = await Promise.all([
-    supabase
-      .from("pi_vignettes")
-      .select("id")
-      .eq("active", true)
-      .order("created_at"),
-    supabase
-      .from("ci_vignettes")
-      .select("id")
-      .eq("active", true)
-      .order("created_at"),
-  ]);
-
-  if (piResult.error || ciResult.error) {
-    throw new Error("Failed to fetch vignettes for assignment");
-  }
-
-  const piIds = (piResult.data ?? []).map((v) => v.id);
-  const ciIds = (ciResult.data ?? []).map((v) => v.id);
+  // 2. Select a random assessment form (pre-built vignette pair)
+  const { piVignetteIds, ciVignetteIds } = await selectAssessmentForm();
 
   // 3. Create the assessment session
   const { data: session, error: sessionError } = await supabase
@@ -95,8 +109,8 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
       applicant_id: applicant.id,
       status: "assigned",
       assessment_type: "public",
-      practical_vignette_ids: piIds,
-      creative_vignette_ids: ciIds,
+      practical_vignette_ids: piVignetteIds,
+      creative_vignette_ids: ciVignetteIds,
     })
     .select("id")
     .single();

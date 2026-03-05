@@ -4,6 +4,39 @@ import { createServiceClient } from "@/lib/supabase/server";
 import type { SessionRow } from "@/lib/schemas/session";
 import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
 
+/**
+ * Randomly selects an active assessment form (a pre-built pair of 2 PI + 2 CI vignettes).
+ * Throws if no active forms exist.
+ */
+export async function selectAssessmentForm(): Promise<{
+  formCode: string;
+  piVignetteIds: string[];
+  ciVignetteIds: string[];
+}> {
+  const supabase = createServiceClient();
+
+  const { data, error } = await supabase
+    .from("assessment_forms")
+    .select("form_code, pi_vignette_ids, ci_vignette_ids")
+    .eq("active", true);
+
+  if (error) {
+    throw new Error(`Failed to fetch assessment forms: ${error.message}`);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error("No active assessment forms available");
+  }
+
+  const form = data[Math.floor(Math.random() * data.length)];
+
+  return {
+    formCode: form.form_code,
+    piVignetteIds: form.pi_vignette_ids,
+    ciVignetteIds: form.ci_vignette_ids,
+  };
+}
+
 /** Safe columns to expose to the client — never include scoring anchors, moves, or exemplars. */
 const PI_SAFE_COLUMNS =
   "id, vignette_text, phase_1_prompt, phase_2_prompt, phase_3_prompt, situation_type, audio_storage_path, audio_timing, estimated_narration_seconds" as const;

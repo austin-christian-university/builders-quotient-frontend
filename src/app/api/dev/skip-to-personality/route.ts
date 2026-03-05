@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getActiveSession, getSessionById } from "@/lib/queries/session";
+import { selectAssessmentForm } from "@/lib/queries/vignettes";
 import { SignJWT } from "jose";
 
 export async function GET(request: Request) {
@@ -113,21 +114,18 @@ export async function GET(request: Request) {
     );
   }
 
-  const [piResult, ciResult] = await Promise.all([
-    supabase
-      .from("pi_vignettes")
-      .select("id")
-      .eq("active", true)
-      .order("created_at"),
-    supabase
-      .from("ci_vignettes")
-      .select("id")
-      .eq("active", true)
-      .order("created_at"),
-  ]);
-
-  const piIds = (piResult.data ?? []).map((v) => v.id);
-  const ciIds = (ciResult.data ?? []).map((v) => v.id);
+  let piIds: string[];
+  let ciIds: string[];
+  try {
+    const form = await selectAssessmentForm();
+    piIds = form.piVignetteIds;
+    ciIds = form.ciVignetteIds;
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Failed to select assessment form" },
+      { status: 500 }
+    );
+  }
 
   const { data: session, error: sessionError } = await supabase
     .from("assessment_sessions")

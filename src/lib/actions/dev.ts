@@ -8,6 +8,7 @@ import {
   clearSessionCookie,
 } from "@/lib/assessment/session-cookie";
 import { getActiveSession, getSessionById } from "@/lib/queries/session";
+import { selectAssessmentForm } from "@/lib/queries/vignettes";
 import {
   PERSONALITY_ITEMS,
   type LikertValue,
@@ -179,34 +180,17 @@ async function completeSessionInDb(): Promise<{
     return { success: false, error: "Failed to create applicant" };
   }
 
-  // Fetch active vignettes
-  const [piResult, ciResult] = await Promise.all([
-    supabase
-      .from("pi_vignettes")
-      .select("id")
-      .eq("active", true)
-      .order("created_at"),
-    supabase
-      .from("ci_vignettes")
-      .select("id")
-      .eq("active", true)
-      .order("created_at"),
-  ]);
-
-  if (piResult.error || ciResult.error) {
+  // Select a random assessment form
+  let piIds: string[];
+  let ciIds: string[];
+  try {
+    const form = await selectAssessmentForm();
+    piIds = form.piVignetteIds;
+    ciIds = form.ciVignetteIds;
+  } catch (e) {
     return {
       success: false,
-      error: `Failed to fetch vignettes: ${piResult.error?.message ?? ciResult.error?.message}`,
-    };
-  }
-
-  const piIds = (piResult.data ?? []).map((v) => v.id);
-  const ciIds = (ciResult.data ?? []).map((v) => v.id);
-
-  if (piIds.length < 2 || ciIds.length < 2) {
-    return {
-      success: false,
-      error: `Need ≥2 active vignettes per type (got ${piIds.length} PI, ${ciIds.length} CI)`,
+      error: e instanceof Error ? e.message : "Failed to select assessment form",
     };
   }
 
