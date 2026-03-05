@@ -8,6 +8,7 @@ import {
 import { createServiceClient } from "@/lib/supabase/server";
 import { EmailCapture } from "@/components/assessment/EmailCapture";
 import { UploadGate } from "@/components/assessment/UploadGate";
+import { CooldownBanner } from "@/components/assessment/CooldownBanner";
 
 export const metadata = {
   title: "Assessment Complete — Builders Quotient",
@@ -57,6 +58,7 @@ export default async function CompletePage() {
 
   return (
     <UploadGate>
+      <CooldownBanner />
       <EmailCapture />
     </UploadGate>
   );

@@ -4,18 +4,9 @@ import { useActionState, useCallback, useEffect, useRef, useState } from "react"
 import { captureEmail } from "@/lib/actions/applicant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { LeadType } from "@/lib/schemas/applicant";
+import type { LeadType, CaptureEmailResult } from "@/lib/schemas/applicant";
 
-type FormState =
-  | { success: true }
-  | {
-      success: false;
-      error: string;
-      fieldErrors?: Partial<
-        Record<"email" | "firstName" | "phone" | "leadType", string>
-      >;
-    }
-  | null;
+type FormState = CaptureEmailResult | null;
 
 function Spinner() {
   return (
@@ -62,9 +53,9 @@ export function EmailCapture() {
   const phoneRef = useRef<HTMLInputElement>(null);
   const leadTypeRef = useRef<HTMLFieldSetElement>(null);
 
-  // Focus first invalid field on error
+  // Focus first invalid field on error (skip for duplicate notice)
   useEffect(() => {
-    if (!state || state.success) return;
+    if (!state || state.success || "duplicateFound" in state) return;
     if (state.fieldErrors?.email) {
       emailRef.current?.focus();
     } else if (state.fieldErrors?.firstName) {
@@ -76,7 +67,11 @@ export function EmailCapture() {
     }
   }, [state]);
 
-  const failState = state && !state.success ? state : null;
+  // Derive duplicate vs error states
+  const duplicateState =
+    state && !state.success && "duplicateFound" in state ? state : null;
+  const failState =
+    state && !state.success && !("duplicateFound" in state) ? state : null;
   const emailError = failState?.fieldErrors?.email;
   const firstNameError = failState?.fieldErrors?.firstName;
   const phoneError = failState?.fieldErrors?.phone;
@@ -119,6 +114,26 @@ export function EmailCapture() {
 
         {/* Form */}
         <form action={formAction} className="space-y-4" noValidate>
+          {/* Duplicate notice */}
+          {duplicateState && (
+            <>
+              <div
+                role="status"
+                className="rounded-xl border border-secondary/30 bg-secondary/10 px-4 py-3 text-sm leading-relaxed text-secondary"
+              >
+                {duplicateState.duplicateEmail
+                  ? "We found an existing profile with this email address. Submitting will link this assessment to your existing profile."
+                  : "We found an existing profile with this phone number. Submitting will link this assessment to your existing profile."}
+              </div>
+              <input type="hidden" name="confirmDuplicate" value="true" />
+              <input
+                type="hidden"
+                name="existingApplicantId"
+                value={duplicateState.existingApplicantId}
+              />
+            </>
+          )}
+
           {/* General error */}
           {generalError && (
             <div
@@ -303,8 +318,10 @@ export function EmailCapture() {
             {isPending ? (
               <>
                 <Spinner />
-                Request My Results
+                {duplicateState ? "Linking Results\u2026" : "Request My Results"}
               </>
+            ) : duplicateState ? (
+              "Confirm & Link Results"
             ) : (
               "Request My Results"
             )}

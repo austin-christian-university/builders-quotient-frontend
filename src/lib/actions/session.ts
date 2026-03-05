@@ -14,7 +14,11 @@ import {
   type ConsentData,
 } from "@/lib/schemas/consent";
 import { createHash } from "crypto";
-import { selectAssessmentForm } from "@/lib/queries/vignettes";
+import {
+  selectAssessmentForm,
+  getCompletedSteps,
+  findNextIncomplete,
+} from "@/lib/queries/vignettes";
 
 const IP_HASH_SALT = process.env.IP_HASH_SALT;
 if (!IP_HASH_SALT && process.env.NODE_ENV === "production") {
@@ -48,7 +52,12 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
       existing?.status === "assigned" ||
       existing?.status === "in_progress"
     ) {
-      redirect("/assess/1");
+      const completedSteps = await getCompletedSteps(
+        existingSessionId,
+        existing
+      );
+      const nextStep = findNextIncomplete(completedSteps) ?? 1;
+      redirect(`/assess/${nextStep}?resume=true`);
     }
 
     if (existing?.status === "completed" && existing.completed_at) {

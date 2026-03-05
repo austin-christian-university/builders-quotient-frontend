@@ -5,17 +5,121 @@ import { nanoid } from "nanoid";
 import { createServiceClient } from "@/lib/supabase/server";
 import { readSessionCookie } from "@/lib/assessment/session-cookie";
 import { getSessionById } from "@/lib/queries/session";
-import { emailCaptureSchema } from "@/lib/schemas/applicant";
+import {
+  emailCaptureSchema,
+  type CaptureEmailResult,
+} from "@/lib/schemas/applicant";
 
-type CaptureEmailResult =
-  | { success: true }
-  | {
-      success: false;
-      error: string;
-      fieldErrors?: Partial<
-        Record<"email" | "firstName" | "phone" | "leadType", string>
-      >;
-    };
+/**
+ * Find an existing applicant matching the given email or phone,
+ * excluding the current anonymous applicant.
+ */
+async function findDuplicateApplicant(
+  email: string,
+  phone: string,
+  excludeId: string
+) {
+  const supabase = createServiceClient();
+
+  // Check email match first (stronger identity signal)
+  const { data: emailMatch } = await supabase
+    .from("applicants")
+    .select("id")
+    .eq("email", email)
+    .neq("id", excludeId)
+    .limit(1)
+    .maybeSingle();
+
+  if (emailMatch) {
+    return { applicantId: emailMatch.id, emailMatch: true, phoneMatch: false };
+  }
+
+  // Check phone match
+  const { data: phoneMatch } = await supabase
+    .from("applicants")
+    .select("id")
+    .eq("phone", phone)
+    .neq("id", excludeId)
+    .limit(1)
+    .maybeSingle();
+
+  if (phoneMatch) {
+    return { applicantId: phoneMatch.id, emailMatch: false, phoneMatch: true };
+  }
+
+  return null;
+}
+
+/**
+ * Merge the current session under an existing applicant:
+ * 1. Re-point assessment_sessions.applicant_id
+ * 2. Re-point consent_records.applicant_id
+ * 3. Update existing applicant with new info (don't overwrite email/phone/token)
+ * 4. Delete orphaned anonymous applicant (only if email IS NULL for safety)
+ */
+async function mergeIntoExistingApplicant(
+  existingApplicantId: string,
+  anonymousApplicantId: string,
+  sessionId: string,
+  data: {
+    displayName: string | undefined;
+    leadType: string;
+    smsMarketingConsent: boolean;
+    emailMarketingConsent: boolean;
+  }
+) {
+  const supabase = createServiceClient();
+  const now = new Date().toISOString();
+
+  // Re-point session
+  const { error: sessionErr } = await supabase
+    .from("assessment_sessions")
+    .update({ applicant_id: existingApplicantId })
+    .eq("id", sessionId);
+
+  if (sessionErr) throw new Error("Failed to link session to existing profile");
+
+  // Re-point consent records
+  const { error: consentErr } = await supabase
+    .from("consent_records")
+    .update({ applicant_id: existingApplicantId })
+    .eq("applicant_id", anonymousApplicantId);
+
+  if (consentErr) throw new Error("Failed to re-point consent records");
+
+  // Update existing applicant with new info (preserve email, phone, results_token)
+  const updates: Record<string, unknown> = {
+    lead_type: data.leadType,
+  };
+  if (data.displayName) {
+    updates.display_name = data.displayName;
+  }
+  if (data.smsMarketingConsent) {
+    updates.sms_marketing_consent_at = now;
+  }
+  if (data.emailMarketingConsent) {
+    updates.email_marketing_consent_at = now;
+  }
+
+  const { error: updateErr } = await supabase
+    .from("applicants")
+    .update(updates)
+    .eq("id", existingApplicantId);
+
+  if (updateErr) throw new Error("Failed to update existing applicant");
+
+  // Delete orphaned anonymous applicant (safety: only if email IS NULL)
+  const { error: deleteErr } = await supabase
+    .from("applicants")
+    .delete()
+    .eq("id", anonymousApplicantId)
+    .is("email", null);
+
+  if (deleteErr) {
+    // Non-fatal: orphan remains but merge succeeded
+    console.error("Failed to clean up orphaned applicant:", deleteErr);
+  }
+}
 
 export async function captureEmail(
   formData: FormData
@@ -64,6 +168,62 @@ export async function captureEmail(
     };
   }
 
+  // --- Duplicate detection ---
+  const confirmDuplicate = formData.get("confirmDuplicate") === "true";
+  const submittedExistingId = formData.get("existingApplicantId") as
+    | string
+    | null;
+
+  const duplicate = await findDuplicateApplicant(
+    parsed.data.email,
+    parsed.data.phone,
+    session.applicant_id
+  );
+
+  if (duplicate && !confirmDuplicate) {
+    // Step 1: Show notice, ask for confirmation
+    return {
+      success: false,
+      duplicateFound: true,
+      duplicateEmail: duplicate.emailMatch,
+      duplicatePhone: duplicate.phoneMatch,
+      existingApplicantId: duplicate.applicantId,
+    };
+  }
+
+  if (duplicate && confirmDuplicate) {
+    // Safety: verify the submitted existingApplicantId still matches
+    // If user changed input between submits, the duplicate may have changed
+    if (submittedExistingId !== duplicate.applicantId) {
+      // Re-run fresh — the match changed
+      return {
+        success: false,
+        duplicateFound: true,
+        duplicateEmail: duplicate.emailMatch,
+        duplicatePhone: duplicate.phoneMatch,
+        existingApplicantId: duplicate.applicantId,
+      };
+    }
+
+    // Step 2: Merge
+    await mergeIntoExistingApplicant(
+      duplicate.applicantId,
+      session.applicant_id,
+      session.id,
+      {
+        displayName: parsed.data.firstName,
+        leadType: parsed.data.leadType,
+        smsMarketingConsent: parsed.data.smsMarketingConsent,
+        emailMarketingConsent: parsed.data.emailMarketingConsent,
+      }
+    );
+
+    const path =
+      parsed.data.leadType === "prospective_student" ? "student" : "general";
+    redirect(`/assess/thank-you?path=${path}`);
+  }
+
+  // --- No duplicate: normal flow ---
   const resultsToken = nanoid(21);
   const supabase = createServiceClient();
 

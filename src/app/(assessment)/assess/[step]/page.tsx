@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { readSessionCookie } from "@/lib/assessment/session-cookie";
-import { getActiveSession } from "@/lib/queries/session";
+import { getSessionById } from "@/lib/queries/session";
 import {
   getVignetteForStep,
   getCompletedSteps,
@@ -43,10 +43,14 @@ export default async function StepPage({
     redirect("/assess/setup");
   }
 
-  // 3. Validate active session
-  const session = await getActiveSession(sessionId);
-  if (!session) {
+  // 3. Validate session exists and is active (only assigned/in_progress)
+  const session = await getSessionById(sessionId);
+  if (!session || session.status === "abandoned") {
     redirect("/assess/setup");
+  }
+
+  if (session.status === "completed") {
+    redirect("/assess/complete");
   }
 
   // 4. Enforce linear progression

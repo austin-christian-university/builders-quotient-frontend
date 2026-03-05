@@ -15,6 +15,7 @@ import { reserveResponse, reportSuspicionEvents } from "@/lib/actions/response-u
 import { useContentProtection } from "@/lib/assessment/use-content-protection";
 import { useUploadQueue } from "@/lib/assessment/upload-queue";
 import { Button } from "@/components/ui/button";
+import { ResumeBanner } from "./ResumeBanner";
 import { reducer, type Phase } from "@/lib/assessment/vignette-reducer";
 import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
 import { playCountdownTone } from "@/lib/assessment/countdown-tone";
@@ -715,6 +716,8 @@ export function VignetteExperience({
           <ProgressIndicator step={step} totalSteps={totalSteps} />
 
           <div className="relative z-10 flex flex-1 flex-col px-4 pb-8">
+            <ResumeBanner />
+
             {/* Camera error banner */}
             {streamStatus === "error" && state.phase !== "submitting" && state.phase !== "transitioning" && (
               <div className="mx-auto mb-4 w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center">

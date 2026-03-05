@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
 import { SplashSequence } from "@/components/assessment/SplashSequence";
+import { CooldownBanner } from "@/components/assessment/CooldownBanner";
 
 type Variant = "student" | "general" | "default";
 
@@ -401,6 +402,7 @@ export function ThankYouContent({ variant }: { variant: Variant }) {
             variants={prefersReducedMotion ? { hidden: {}, visible: {} } : stagger}
             className="flex w-full flex-col items-center px-4 md:px-8"
           >
+            <CooldownBanner />
             {variant === "student" && <StudentVariant />}
             {variant === "general" && <GeneralVariant />}
             {variant === "default" && <DefaultVariant />}

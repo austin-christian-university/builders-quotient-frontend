@@ -38,3 +38,20 @@ export const emailCaptureSchema = z.object({
 });
 
 export type EmailCaptureInput = z.infer<typeof emailCaptureSchema>;
+
+export type CaptureEmailResult =
+  | { success: true }
+  | {
+      success: false;
+      error: string;
+      fieldErrors?: Partial<
+        Record<"email" | "firstName" | "phone" | "leadType", string>
+      >;
+    }
+  | {
+      success: false;
+      duplicateFound: true;
+      duplicateEmail: boolean;
+      duplicatePhone: boolean;
+      existingApplicantId: string;
+    };
