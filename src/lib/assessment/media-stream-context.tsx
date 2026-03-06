@@ -10,10 +10,13 @@ const MediaStreamContext = createContext<MediaStreamContextValue | null>(null);
 export function MediaStreamProvider({ children }: { children: ReactNode }) {
   const mediaStream = useMediaStream();
 
-  // Stop all tracks on unmount (leaving assessment flow)
+  // Stop all tracks on unmount (leaving assessment flow).
+  // Use ref-based cleanup (not mediaStream.stop()) to avoid setting state
+  // during React strict mode's simulated unmount — state updates there
+  // persist and prevent re-acquisition when a vignette page mounts later.
   useEffect(() => {
     return () => {
-      mediaStream.stop();
+      mediaStream.streamRef.current?.getTracks().forEach((t) => t.stop());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
