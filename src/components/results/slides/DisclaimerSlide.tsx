@@ -59,7 +59,7 @@ export function DisclaimerSlide() {
           <p className="text-white/50 text-[length:var(--text-fluid-sm)] italic">
             (And then, send us an{" "}
             <a
-              href="mailto:bq@austinchristianu.org"
+              href="mailto:enrollment@austinchristianu.org"
               className="underline underline-offset-2 decoration-white/30 hover:decoration-white/60 transition-colors text-white/60 hover:text-white/80"
             >
               email

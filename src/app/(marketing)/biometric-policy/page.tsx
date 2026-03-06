@@ -124,10 +124,10 @@ export default function BiometricPolicyPage() {
               You may request information about or deletion of your biometric
               data at any time by contacting{" "}
               <a
-                href="mailto:bq@austinchristianu.org"
+                href="mailto:enrollment@austinchristianu.org"
                 className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
-                bq@austinchristianu.org
+                enrollment@austinchristianu.org
               </a>
               . We will respond to your request within 30&nbsp;days.
             </p>
@@ -141,10 +141,10 @@ export default function BiometricPolicyPage() {
             <p>
               For questions about this policy, contact us at{" "}
               <a
-                href="mailto:bq@austinchristianu.org"
+                href="mailto:enrollment@austinchristianu.org"
                 className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
-                bq@austinchristianu.org
+                enrollment@austinchristianu.org
               </a>
               .
             </p>

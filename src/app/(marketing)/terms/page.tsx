@@ -163,10 +163,10 @@ export default function TermsPage() {
             <p>
               You may request deletion of your personal data by emailing{" "}
               <a
-                href="mailto:bq@austinchristianu.org"
+                href="mailto:enrollment@austinchristianu.org"
                 className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
-                bq@austinchristianu.org
+                enrollment@austinchristianu.org
               </a>
               . Requests are processed within 30&nbsp;days. De-identified data
               previously used for academic research may be retained after
@@ -224,10 +224,10 @@ export default function TermsPage() {
             <p>
               For questions about these terms, contact us at{" "}
               <a
-                href="mailto:bq@austinchristianu.org"
+                href="mailto:enrollment@austinchristianu.org"
                 className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
-                bq@austinchristianu.org
+                enrollment@austinchristianu.org
               </a>
               .
             </p>

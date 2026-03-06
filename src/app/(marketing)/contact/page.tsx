@@ -29,10 +29,10 @@ export default function ContactPage() {
           <p>
             Email us at{" "}
             <a
-              href="mailto:bq@austinchristianu.org"
+              href="mailto:enrollment@austinchristianu.org"
               className="text-primary underline underline-offset-4 hover:text-primary/80"
             >
-              bq@austinchristianu.org
+              enrollment@austinchristianu.org
             </a>
           </p>
           <p>

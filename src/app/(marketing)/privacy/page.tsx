@@ -349,10 +349,10 @@ export default function PrivacyPage() {
               <li>
                 You may also contact us at{" "}
                 <a
-                  href="mailto:bq@austinchristianu.org"
+                  href="mailto:enrollment@austinchristianu.org"
                   className="text-primary underline underline-offset-4 hover:text-primary/80"
                 >
-                  bq@austinchristianu.org
+                  enrollment@austinchristianu.org
                 </a>{" "}
                 to manage your communication preferences.
               </li>
@@ -371,10 +371,10 @@ export default function PrivacyPage() {
               promptly delete it. If you believe we have inadvertently collected
               data from a child under 13, please contact us at{" "}
               <a
-                href="mailto:bq@austinchristianu.org"
+                href="mailto:enrollment@austinchristianu.org"
                 className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
-                bq@austinchristianu.org
+                enrollment@austinchristianu.org
               </a>
               .
             </p>
@@ -463,10 +463,10 @@ export default function PrivacyPage() {
               You may request deletion of your personal data at any time by
               emailing{" "}
               <a
-                href="mailto:bq@austinchristianu.org"
+                href="mailto:enrollment@austinchristianu.org"
                 className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
-                bq@austinchristianu.org
+                enrollment@austinchristianu.org
               </a>
               . We will process your request within 30&nbsp;days. Note that
               de-identified data used for academic research may be retained even
@@ -482,10 +482,10 @@ export default function PrivacyPage() {
             <p>
               For questions about this policy, contact us at{" "}
               <a
-                href="mailto:bq@austinchristianu.org"
+                href="mailto:enrollment@austinchristianu.org"
                 className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
-                bq@austinchristianu.org
+                enrollment@austinchristianu.org
               </a>
               .
             </p>
