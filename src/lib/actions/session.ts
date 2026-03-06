@@ -6,6 +6,8 @@ import { createServiceClient } from "@/lib/supabase/server";
 import {
   createSessionCookie,
   readSessionCookie,
+  clearSessionCookie,
+  COOLDOWN_MS,
 } from "@/lib/assessment/session-cookie";
 import { getSessionById } from "@/lib/queries/session";
 import {
@@ -61,29 +63,35 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
     }
 
     if (existing?.status === "completed" && existing.completed_at) {
-      const until = new Date(
-        new Date(existing.completed_at).getTime() + 2 * 60 * 60 * 1000
-      ).toISOString();
+      const cooldownExpiresAt =
+        new Date(existing.completed_at).getTime() + COOLDOWN_MS;
 
-      const supabase = createServiceClient();
-      const { data: applicant } = await supabase
-        .from("applicants")
-        .select("email, lead_type")
-        .eq("id", existing.applicant_id)
-        .single();
+      if (Date.now() < cooldownExpiresAt) {
+        const until = new Date(cooldownExpiresAt).toISOString();
 
-      if (applicant?.email) {
-        const path =
-          applicant.lead_type === "prospective_student"
-            ? "student"
-            : "general";
-        redirect(
-          `/assess/thank-you?path=${path}&cooldown=true&until=${encodeURIComponent(until)}`
-        );
+        const supabase = createServiceClient();
+        const { data: applicant } = await supabase
+          .from("applicants")
+          .select("email, lead_type")
+          .eq("id", existing.applicant_id)
+          .single();
+
+        if (applicant?.email) {
+          const path =
+            applicant.lead_type === "prospective_student"
+              ? "student"
+              : "general";
+          redirect(
+            `/assess/thank-you?path=${path}&cooldown=true&until=${encodeURIComponent(until)}`
+          );
+        } else {
+          redirect(
+            `/assess/complete?cooldown=true&until=${encodeURIComponent(until)}`
+          );
+        }
       } else {
-        redirect(
-          `/assess/complete?cooldown=true&until=${encodeURIComponent(until)}`
-        );
+        // Cooldown expired — clear stale cookie so a new session is created below
+        await clearSessionCookie();
       }
     }
   }

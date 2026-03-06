@@ -3,6 +3,8 @@ import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
+export const COOLDOWN_MS = 2 * 60 * 60 * 1000; // 2 hours
+
 const COOKIE_NAME = "bq-session";
 const ISSUER = "bq:assess";
 const AUDIENCE = "bq:assess";
