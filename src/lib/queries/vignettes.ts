@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/server";
+import { createSignedDownloadUrl } from "@/lib/supabase/storage";
 import type { SessionRow } from "@/lib/schemas/session";
 import type { AudioWordTiming } from "@/lib/assessment/narration-timer";
 
@@ -161,6 +162,95 @@ export async function getCompletedSteps(
   });
 
   return steps;
+}
+
+export type ReviewVignette = {
+  id: string;
+  vignette_text: string;
+  phase_1_prompt: string | null;
+  phase_2_prompt: string | null;
+  phase_3_prompt: string | null;
+  type_label: string;
+  vignette_type: "practical" | "creative";
+  active: boolean;
+  audio_url: string | null;
+  estimated_narration_seconds: number | null;
+};
+
+/**
+ * Fetches all PI and CI vignettes for the review page.
+ * Generates signed audio download URLs for each vignette that has audio.
+ */
+export async function getAllVignettesForReview(): Promise<{
+  pi: ReviewVignette[];
+  ci: ReviewVignette[];
+}> {
+  const supabase = createServiceClient();
+
+  const [piResult, ciResult] = await Promise.all([
+    supabase
+      .from("pi_vignettes")
+      .select(
+        "id, vignette_text, phase_1_prompt, phase_2_prompt, phase_3_prompt, situation_type, active, audio_storage_path, estimated_narration_seconds"
+      )
+      .order("id"),
+    supabase
+      .from("ci_vignettes")
+      .select(
+        "id, vignette_text, phase_1_prompt, phase_2_prompt, phase_3_prompt, episode_type, active, audio_storage_path, estimated_narration_seconds"
+      )
+      .order("id"),
+  ]);
+
+  if (piResult.error) throw new Error(`PI fetch failed: ${piResult.error.message}`);
+  if (ciResult.error) throw new Error(`CI fetch failed: ${ciResult.error.message}`);
+
+  async function withAudioUrl(
+    row: {
+      id: string;
+      vignette_text: string;
+      phase_1_prompt: string | null;
+      phase_2_prompt: string | null;
+      phase_3_prompt: string | null;
+      active: boolean;
+      audio_storage_path: string | null;
+      estimated_narration_seconds: number | null;
+    },
+    typeLabel: string,
+    vignetteType: "practical" | "creative"
+  ): Promise<ReviewVignette> {
+    const audio_url = row.audio_storage_path
+      ? await createSignedDownloadUrl("vignette-audio", row.audio_storage_path)
+      : null;
+
+    return {
+      id: row.id,
+      vignette_text: row.vignette_text,
+      phase_1_prompt: row.phase_1_prompt,
+      phase_2_prompt: row.phase_2_prompt,
+      phase_3_prompt: row.phase_3_prompt,
+      type_label: typeLabel,
+      vignette_type: vignetteType,
+      active: row.active,
+      audio_url,
+      estimated_narration_seconds: row.estimated_narration_seconds,
+    };
+  }
+
+  const [pi, ci] = await Promise.all([
+    Promise.all(
+      (piResult.data ?? []).map((row) =>
+        withAudioUrl(row, row.situation_type, "practical")
+      )
+    ),
+    Promise.all(
+      (ciResult.data ?? []).map((row) =>
+        withAudioUrl(row, row.episode_type, "creative")
+      )
+    ),
+  ]);
+
+  return { pi, ci };
 }
 
 const DEFAULT_TOTAL_STEPS = 4;
