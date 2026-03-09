@@ -305,6 +305,9 @@ function StudentVariant() {
           {/* Radar chart */}
           <div className="w-full max-w-[360px] shrink-0 md:w-[360px]">
             <PersonalityRadarChart />
+            <p className="mt-1 text-center text-[length:var(--text-fluid-xs)] uppercase tracking-widest text-text-secondary/40">
+              Example data
+            </p>
           </div>
 
           {/* Copy */}
@@ -315,7 +318,7 @@ function StudentVariant() {
 
             <div className="mt-4 space-y-4">
               <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
-                Beyond intelligence, the most successful entrepreneurs share a unique blend of personality traits &mdash; grit, risk tolerance, innovativeness, and more. Our personality profile measures 9&nbsp;key dimensions that define great founders.
+                Beyond intelligence, the most successful entrepreneurs share a unique blend of personality traits &mdash; grit, risk tolerance, innovativeness, and more. Our personality profile measures 8&nbsp;key dimensions that define great founders.
               </p>
               <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
                 Complete it now and we&rsquo;ll <strong className="font-medium text-text-primary">include your personality profile when your Builders Quotient is ready</strong>. It&rsquo;s also the next step in the ACU&nbsp;application.
