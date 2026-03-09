@@ -201,7 +201,7 @@ function GeneralVariant() {
         <ExploreCard
           icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
           heading="Explore Curriculum"
-          body="See the programs and courses designed to build the next generation of entrepreneurial leaders."
+          body="See the programs and courses designed to build the next generation of entrepreneurs."
           buttonLabel="View Curriculum"
           href="https://austinchristianu.org/curriculum"
           external

@@ -66,12 +66,12 @@ export function EmailCapture() {
   // Focus first invalid field on error (skip for duplicate notice)
   useEffect(() => {
     if (!state || state.success || "duplicateFound" in state) return;
-    if (state.fieldErrors?.email) {
+    if (state.fieldErrors?.phone) {
+      phoneRef.current?.focus();
+    } else if (state.fieldErrors?.email) {
       emailRef.current?.focus();
     } else if (state.fieldErrors?.firstName) {
       firstNameRef.current?.focus();
-    } else if (state.fieldErrors?.phone) {
-      phoneRef.current?.focus();
     } else if (state.fieldErrors?.leadType) {
       leadTypeRef.current?.focus();
     }
@@ -158,8 +158,9 @@ export function EmailCapture() {
             Get Your Results
           </h1>
           <p className="mt-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+            Our algorithms take some time to process your results.
             Enter your details to receive your personalized Builders Quotient
-            profile via email and text within 24&nbsp;hours.
+            profile via email and text within the next 24&nbsp;hours.
           </p>
         </div>
 
@@ -174,6 +175,48 @@ export function EmailCapture() {
               {generalError}
             </div>
           )}
+
+          {/* Phone */}
+          <div>
+            <label
+              htmlFor="phone"
+              className="mb-1.5 block text-[length:var(--text-fluid-sm)] font-medium text-text-primary"
+            >
+              Phone number
+            </label>
+            <Input
+              ref={phoneRef}
+              id="phone"
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(512) 555-1234"
+              aria-invalid={phoneError ? "true" : undefined}
+              aria-describedby={
+                phoneError ? "phone-error" : "phone-disclosure"
+              }
+            />
+            {phoneError && (
+              <p
+                id="phone-error"
+                role="alert"
+                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-red-400"
+              >
+                {phoneError}
+              </p>
+            )}
+            <p
+              id="phone-disclosure"
+              className="mt-1.5 text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary"
+            >
+              We&rsquo;ll text you once when your results are ready. No spam,
+              ever. Message&nbsp;&amp;&nbsp;data rates may apply.
+            </p>
+          </div>
 
           {/* Email */}
           <div>
@@ -243,48 +286,6 @@ export function EmailCapture() {
             )}
           </div>
 
-          {/* Phone */}
-          <div>
-            <label
-              htmlFor="phone"
-              className="mb-1.5 block text-[length:var(--text-fluid-sm)] font-medium text-text-primary"
-            >
-              Phone number
-            </label>
-            <Input
-              ref={phoneRef}
-              id="phone"
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="(512) 555-1234"
-              aria-invalid={phoneError ? "true" : undefined}
-              aria-describedby={
-                phoneError ? "phone-error" : "phone-disclosure"
-              }
-            />
-            {phoneError && (
-              <p
-                id="phone-error"
-                role="alert"
-                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-red-400"
-              >
-                {phoneError}
-              </p>
-            )}
-            <p
-              id="phone-disclosure"
-              className="mt-1.5 text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary"
-            >
-              We&rsquo;ll text you once when your results are ready. No spam,
-              ever. Message&nbsp;&amp;&nbsp;data rates may apply.
-            </p>
-          </div>
-
           {/* Lead type toggle */}
           <fieldset
             ref={leadTypeRef}
@@ -326,9 +327,11 @@ export function EmailCapture() {
                 className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
               />
               <span className="text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
-                I&rsquo;d love for you to send me more info about ACU via
-                text. No more than two texts per month. Message and data rates
-                may apply. Reply STOP anytime.
+                I agree to receive promotional SMS messages from Austin
+                Christian University about programs and enrollment
+                opportunities at the phone number provided. Approx.
+                2&nbsp;msgs/month. Msg&nbsp;&amp;&nbsp;data rates may apply.
+                Reply HELP for help or STOP to unsubscribe.
               </span>
             </label>
 
