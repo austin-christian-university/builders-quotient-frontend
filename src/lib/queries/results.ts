@@ -216,17 +216,30 @@ export async function getResultsByToken(
 
   if (applicantError || !applicant) return null;
 
-  // 2. Find their completed/scored session
-  const { data: session, error: sessionError } = await supabase
+  // 2. Find their scored/completed session (prefer "scored" over "completed")
+  const { data: scoredSession } = await supabase
     .from("assessment_sessions")
     .select("id, assessment_type")
     .eq("applicant_id", applicant.id)
-    .in("status", ["completed", "scored"])
+    .eq("status", "scored")
     .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
-  if (sessionError || !session) return null;
+  const session =
+    scoredSession ??
+    (
+      await supabase
+        .from("assessment_sessions")
+        .select("id, assessment_type")
+        .eq("applicant_id", applicant.id)
+        .eq("status", "completed")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single()
+    ).data;
+
+  if (!session) return null;
 
   // 3. Fetch scored responses (phase 1 only — pipeline writes combined score there)
   const { data: responses, error: responsesError } = await supabase
