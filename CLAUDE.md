@@ -66,7 +66,21 @@ Environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON
 
 ## Assessment Domain Context
 
-The assessment flow goes: intake → practical intelligence → creative intelligence → personality quiz. **Practical Intelligence (PI)** uses vignettes extracted from real entrepreneur interviews; students respond in free text, scored against 26 reasoning moves across 5 categories (diagnosing, reasoning, acting, people, meta-reasoning). **Creative Intelligence (CI)** uses episode-based vignettes; scored against 24 thinking moves across 5 categories (observing, reframing, articulating, evaluating, communicating). **Personality** measures 9 entrepreneur dimensions (Ambition, Risk Tolerance, Innovativeness, Autonomy, Self-Efficacy, Stress Tolerance, Internal Locus of Control, Grit, plus Attention Checks) via a like/dislike interaction pattern. All data persists to the shared Supabase instance (tables: `applicants`, `assessment_sessions`, `student_responses`, `personality_responses`, `personality_scores`, `pi_vignettes`, `ci_vignettes`, etc.).
+The assessment flow goes: intake → practical intelligence → creative intelligence → personality quiz. **Practical Intelligence (PI)** uses vignettes extracted from real entrepreneur interviews; students respond via video, scored against 26 reasoning moves across 5 categories (diagnosing, reasoning, acting, people, meta-reasoning). **Creative Intelligence (CI)** uses episode-based vignettes; scored against 24 thinking moves across 5 categories (observing, reframing, articulating, evaluating, communicating). **Personality** measures 9 entrepreneur dimensions (Ambition, Risk Tolerance, Innovativeness, Autonomy, Self-Efficacy, Stress Tolerance, Internal Locus of Control, Grit, plus Attention Checks) via a like/dislike interaction pattern.
+
+### Intelligence scoring data model (PI/CI)
+
+Each vignette has **3 response phases** (observe → diagnose → act), each stored as a separate row in `student_responses`. The Python scoring pipeline in `triarchic-databank` combines all 3 phase transcripts into one text, scores it once, and writes the result to the **phase 1 row only** (`scoring_result`, `detected_moves`, `headline_percentile`). Phase 2 and 3 rows get `needs_scoring=false` and `scored_in_response_id` pointing to their phase 1 row — they carry no scoring data themselves.
+
+**When querying scored responses, always filter `response_phase = 1`** (as `src/lib/queries/results.ts` already does). Phase 2/3 rows are intentionally empty of scoring data; this is by design, not a bug.
+
+### Key results tables
+
+- **`student_responses`** — Intelligence scoring lives on phase-1 rows only (see above)
+- **`student_personality_profiles`** — Video-based personality analysis: 20-dimension vector + entrepreneur match (populated by the Python pipeline)
+- **`personality_responses` / `personality_scores`** — Likert-based personality quiz data (admissions path only, separate from video analysis)
+
+All data persists to the shared Supabase instance (tables: `applicants`, `assessment_sessions`, `student_responses`, `personality_responses`, `personality_scores`, `pi_vignettes`, `ci_vignettes`, etc.).
 
 ## Related Projects
 
