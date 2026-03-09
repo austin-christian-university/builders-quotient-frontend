@@ -8,6 +8,7 @@ import { getSessionById } from "@/lib/queries/session";
 import {
   emailCaptureSchema,
   type CaptureEmailResult,
+  type LeadType,
 } from "@/lib/schemas/applicant";
 
 /**
@@ -169,19 +170,13 @@ export async function captureEmail(
   }
 
   // --- Duplicate detection ---
-  const confirmDuplicate = formData.get("confirmDuplicate") === "true";
-  const submittedExistingId = formData.get("existingApplicantId") as
-    | string
-    | null;
-
   const duplicate = await findDuplicateApplicant(
     parsed.data.email,
     parsed.data.phone,
     session.applicant_id
   );
 
-  if (duplicate && !confirmDuplicate) {
-    // Step 1: Show notice, ask for confirmation
+  if (duplicate) {
     return {
       success: false,
       duplicateFound: true,
@@ -189,38 +184,6 @@ export async function captureEmail(
       duplicatePhone: duplicate.phoneMatch,
       existingApplicantId: duplicate.applicantId,
     };
-  }
-
-  if (duplicate && confirmDuplicate) {
-    // Safety: verify the submitted existingApplicantId still matches
-    // If user changed input between submits, the duplicate may have changed
-    if (submittedExistingId !== duplicate.applicantId) {
-      // Re-run fresh — the match changed
-      return {
-        success: false,
-        duplicateFound: true,
-        duplicateEmail: duplicate.emailMatch,
-        duplicatePhone: duplicate.phoneMatch,
-        existingApplicantId: duplicate.applicantId,
-      };
-    }
-
-    // Step 2: Merge
-    await mergeIntoExistingApplicant(
-      duplicate.applicantId,
-      session.applicant_id,
-      session.id,
-      {
-        displayName: parsed.data.firstName,
-        leadType: parsed.data.leadType,
-        smsMarketingConsent: parsed.data.smsMarketingConsent,
-        emailMarketingConsent: parsed.data.emailMarketingConsent,
-      }
-    );
-
-    const path =
-      parsed.data.leadType === "prospective_student" ? "student" : "general";
-    redirect(`/assess/thank-you?path=${path}`);
   }
 
   // --- No duplicate: normal flow ---
@@ -254,5 +217,58 @@ export async function captureEmail(
 
   const path =
     parsed.data.leadType === "prospective_student" ? "student" : "general";
+  redirect(`/assess/thank-you?path=${path}`);
+}
+
+/**
+ * Link an assessment session to an existing applicant profile.
+ * Called from the duplicate-detection modal when the user chooses
+ * "Save to my existing profile".
+ */
+export async function linkToExistingProfile(
+  existingApplicantId: string,
+  email: string,
+  phone: string,
+  leadType: LeadType,
+  displayName?: string,
+  smsMarketingConsent?: boolean,
+  emailMarketingConsent?: boolean,
+): Promise<{ success: true } | { success: false; error: string }> {
+  const sessionId = await readSessionCookie();
+  if (!sessionId) {
+    return { success: false, error: "Session expired. Please start over." };
+  }
+
+  const session = await getSessionById(sessionId);
+  if (!session || session.status !== "completed") {
+    return {
+      success: false,
+      error: "Assessment not completed. Please finish all steps first.",
+    };
+  }
+
+  // Re-verify the duplicate match server-side to prevent forged applicant IDs
+  const duplicate = await findDuplicateApplicant(email, phone, session.applicant_id);
+  if (!duplicate || duplicate.applicantId !== existingApplicantId) {
+    return { success: false, error: "Profile match has changed. Please try again." };
+  }
+
+  try {
+    await mergeIntoExistingApplicant(
+      existingApplicantId,
+      session.applicant_id,
+      session.id,
+      {
+        displayName,
+        leadType,
+        smsMarketingConsent: smsMarketingConsent ?? false,
+        emailMarketingConsent: emailMarketingConsent ?? false,
+      }
+    );
+  } catch {
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+
+  const path = leadType === "prospective_student" ? "student" : "general";
   redirect(`/assess/thank-you?path=${path}`);
 }

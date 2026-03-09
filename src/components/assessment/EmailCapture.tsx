@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useRef, useState } from "react";
-import { captureEmail } from "@/lib/actions/applicant";
+import { captureEmail, linkToExistingProfile } from "@/lib/actions/applicant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { LeadType, CaptureEmailResult } from "@/lib/schemas/applicant";
@@ -47,11 +47,21 @@ export function EmailCapture() {
   );
 
   const [leadType, setLeadType] = useState<LeadType | null>(null);
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
+  const [emailConsent, setEmailConsent] = useState(false);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const firstNameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const leadTypeRef = useRef<HTMLFieldSetElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [isLinking, setIsLinking] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
   // Focus first invalid field on error (skip for duplicate notice)
   useEffect(() => {
@@ -78,6 +88,47 @@ export function EmailCapture() {
   const leadTypeError = failState?.fieldErrors?.leadType;
   const generalError =
     failState?.error && !failState.fieldErrors ? failState.error : null;
+
+  // Open modal when duplicate is detected
+  useEffect(() => {
+    if (duplicateState) {
+      setShowDuplicateModal(true);
+      setLinkError(null);
+    }
+  }, [duplicateState]);
+
+  const handleLinkToExisting = useCallback(async () => {
+    if (!duplicateState || !leadType) return;
+    setIsLinking(true);
+    setLinkError(null);
+    try {
+      const result = await linkToExistingProfile(
+        duplicateState.existingApplicantId,
+        email,
+        phone,
+        leadType,
+        firstName.trim() || undefined,
+        smsConsent,
+        emailConsent,
+      );
+      if (!result.success) {
+        setLinkError(result.error);
+        setIsLinking(false);
+      }
+    } catch (err: unknown) {
+      // Re-throw Next.js redirect errors
+      if (err && typeof err === "object" && "digest" in err) throw err;
+      setLinkError("Something went wrong. Please try again.");
+      setIsLinking(false);
+    }
+  }, [duplicateState, leadType, email, phone, firstName, smsConsent, emailConsent]);
+
+  const handleCloseModal = useCallback(() => {
+    setShowDuplicateModal(false);
+    setIsLinking(false);
+    setLinkError(null);
+    submitRef.current?.focus();
+  }, []);
 
   return (
     <div className="flex min-h-dvh items-center justify-center px-4 py-12">
@@ -114,26 +165,6 @@ export function EmailCapture() {
 
         {/* Form */}
         <form action={formAction} className="space-y-4" noValidate>
-          {/* Duplicate notice */}
-          {duplicateState && (
-            <>
-              <div
-                role="status"
-                className="rounded-xl border border-secondary/30 bg-secondary/10 px-4 py-3 text-sm leading-relaxed text-secondary"
-              >
-                {duplicateState.duplicateEmail
-                  ? "We found an existing profile with this email address. Submitting will link this assessment to your existing profile."
-                  : "We found an existing profile with this phone number. Submitting will link this assessment to your existing profile."}
-              </div>
-              <input type="hidden" name="confirmDuplicate" value="true" />
-              <input
-                type="hidden"
-                name="existingApplicantId"
-                value={duplicateState.existingApplicantId}
-              />
-            </>
-          )}
-
           {/* General error */}
           {generalError && (
             <div
@@ -161,6 +192,8 @@ export function EmailCapture() {
               autoComplete="email"
               spellCheck={false}
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               aria-invalid={emailError ? "true" : undefined}
               aria-describedby={emailError ? "email-error" : undefined}
@@ -191,6 +224,8 @@ export function EmailCapture() {
               name="firstName"
               type="text"
               autoComplete="given-name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
               placeholder="Your first name&hellip;"
               aria-invalid={firstNameError ? "true" : undefined}
               aria-describedby={
@@ -224,6 +259,8 @@ export function EmailCapture() {
               inputMode="tel"
               autoComplete="tel"
               required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               placeholder="(512) 555-1234"
               aria-invalid={phoneError ? "true" : undefined}
               aria-describedby={
@@ -284,6 +321,8 @@ export function EmailCapture() {
                 type="checkbox"
                 name="smsMarketingConsent"
                 value="true"
+                checked={smsConsent}
+                onChange={(e) => setSmsConsent(e.target.checked)}
                 className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
               />
               <span className="text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
@@ -298,6 +337,8 @@ export function EmailCapture() {
                 type="checkbox"
                 name="emailMarketingConsent"
                 value="true"
+                checked={emailConsent}
+                onChange={(e) => setEmailConsent(e.target.checked)}
                 className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
               />
               <span className="text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
@@ -309,6 +350,7 @@ export function EmailCapture() {
 
           {/* Submit */}
           <Button
+            ref={submitRef}
             type="submit"
             size="lg"
             className="w-full"
@@ -317,10 +359,8 @@ export function EmailCapture() {
             {isPending ? (
               <>
                 <Spinner />
-                {duplicateState ? "Linking Results\u2026" : "Request My Results"}
+                Request My Results
               </>
-            ) : duplicateState ? (
-              "Confirm & Link Results"
             ) : (
               "Request My Results"
             )}
@@ -345,6 +385,146 @@ export function EmailCapture() {
             .
           </p>
         </form>
+
+        {/* Duplicate profile modal */}
+        {showDuplicateModal && duplicateState && (
+          <DuplicateModal
+            matchedField={duplicateState.duplicateEmail ? "email" : "phone"}
+            matchedValue={duplicateState.duplicateEmail ? email : phone}
+            onClose={handleCloseModal}
+            onConfirm={handleLinkToExisting}
+            isLinking={isLinking}
+            linkError={linkError}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// --- Duplicate profile modal ---
+
+function DuplicateModal({
+  matchedField,
+  matchedValue,
+  onClose,
+  onConfirm,
+  isLinking,
+  linkError,
+}: {
+  matchedField: "email" | "phone";
+  matchedValue: string;
+  onClose: () => void;
+  onConfirm: () => void;
+  isLinking: boolean;
+  linkError: string | null;
+}) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Focus trap: focus first button on mount, restore focus on unmount
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
+    const firstButton =
+      modalRef.current?.querySelector<HTMLElement>("button");
+    firstButton?.focus();
+
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (!isLinking) onClose();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        const focusable = modalRef.current?.querySelectorAll<HTMLElement>(
+          "button:not([disabled])"
+        );
+        if (!focusable?.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    },
+    [onClose, isLinking]
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isLinking) onClose();
+      }}
+      onKeyDown={handleKeyDown}
+      role="presentation"
+    >
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="duplicate-modal-title"
+        className="mx-4 w-full max-w-md rounded-2xl border border-border-glass bg-bg-elevated/95 p-6 shadow-2xl backdrop-blur-xl"
+      >
+        <h2
+          id="duplicate-modal-title"
+          className="font-display text-lg font-semibold tracking-[-0.01em] text-text-primary"
+        >
+          Existing Profile Found
+        </h2>
+        <p className="mt-2 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+          The {matchedField === "email" ? "email address" : "phone number"}{" "}
+          <strong className="text-text-primary">{matchedValue}</strong> is
+          already linked to an existing profile. Would you like to save this
+          assessment to that profile, or go back and use different details?
+        </p>
+
+        {linkError && (
+          <div
+            role="alert"
+            className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+          >
+            {linkError}
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-col gap-3">
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={onConfirm}
+            disabled={isLinking}
+          >
+            {isLinking ? (
+              <>
+                <Spinner />
+                Saving&hellip;
+              </>
+            ) : (
+              "Save to my existing profile"
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={onClose}
+            disabled={isLinking}
+          >
+            Use different details
+          </Button>
+        </div>
       </div>
     </div>
   );
