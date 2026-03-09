@@ -27,10 +27,10 @@ const transition = {
 
 // --- Icons ---
 
-function HeartIcon({ className = "h-8 w-8 text-secondary" }: { className?: string }) {
+function CheckIcon({ className = "h-8 w-8 text-secondary" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
     </svg>
   );
 }
@@ -76,9 +76,7 @@ function RocketIcon({ className = "h-6 w-6 text-primary" }: { className?: string
 }
 
 const intelligenceLoadingSteps = [
-  "Securing your responses\u2026",
-  "Analyzing your intelligence profile\u2026",
-  "Preparing your personalized results\u2026",
+  "Submitting your responses\u2026",
 ];
 
 // --- Card Components (Bento Style) ---
@@ -137,117 +135,245 @@ function ExploreCard({
   );
 }
 
-// --- Student variant (warm splash → personality CTA) ---
+// --- Radar chart for personality dimensions ---
 
-function StudentVariant() {
-  const [showCTA, setShowCTA] = useState(false);
+const personalityDimensions = [
+  { label: "Ambition", value: 82 },
+  { label: "Risk Tolerance", value: 68 },
+  { label: "Innovativeness", value: 91 },
+  { label: "Autonomy", value: 75 },
+  { label: "Self-Efficacy", value: 88 },
+  { label: "Stress Tolerance", value: 64 },
+  { label: "Locus of Control", value: 79 },
+  { label: "Grit", value: 85 },
+];
+
+function PersonalityRadarChart() {
+  const cx = 250;
+  const cy = 200;
+  const maxR = 110;
+  const levels = 4;
+  const n = personalityDimensions.length;
+
+  function polarToXY(angle: number, r: number) {
+    // Start from top (-90deg), go clockwise
+    const rad = ((angle - 90) * Math.PI) / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+
+  const angleStep = 360 / n;
+
+  // Grid rings
+  const rings = Array.from({ length: levels }, (_, i) => {
+    const r = (maxR / levels) * (i + 1);
+    const points = Array.from({ length: n }, (_, j) => {
+      const { x, y } = polarToXY(j * angleStep, r);
+      return `${x},${y}`;
+    }).join(" ");
+    return points;
+  });
+
+  // Data polygon
+  const dataPoints = personalityDimensions.map((d, i) => {
+    const r = (d.value / 100) * maxR;
+    const { x, y } = polarToXY(i * angleStep, r);
+    return `${x},${y}`;
+  }).join(" ");
+
+  // Axis lines
+  const axes = Array.from({ length: n }, (_, i) => {
+    const { x, y } = polarToXY(i * angleStep, maxR);
+    return { x, y };
+  });
+
+  // Label positions pushed further out, with dynamic anchor
+  const labels = personalityDimensions.map((d, i) => {
+    const angleDeg = i * angleStep;
+    const { x, y } = polarToXY(angleDeg, maxR + 22);
+    // Anchor based on which side of the chart the label sits on
+    const dx = x - cx;
+    let anchor: "start" | "middle" | "end" = "middle";
+    if (dx > 10) anchor = "start";
+    else if (dx < -10) anchor = "end";
+    return { ...d, x, y, anchor };
+  });
 
   return (
-    <div className="w-full max-w-6xl">
-      {/* Warm welcome splash */}
+    <svg viewBox="0 0 500 410" className="mx-auto h-full w-full max-w-[432px]" aria-hidden="true">
+      {/* Grid rings */}
+      {rings.map((points, i) => (
+        <polygon
+          key={i}
+          points={points}
+          fill="none"
+          stroke="currentColor"
+          className="text-white/[0.06]"
+          strokeWidth={0.75}
+        />
+      ))}
+
+      {/* Axis lines */}
+      {axes.map((a, i) => (
+        <line
+          key={i}
+          x1={cx}
+          y1={cy}
+          x2={a.x}
+          y2={a.y}
+          stroke="currentColor"
+          className="text-white/[0.06]"
+          strokeWidth={0.75}
+        />
+      ))}
+
+      {/* Data fill */}
+      <polygon
+        points={dataPoints}
+        className="fill-primary/15 stroke-primary/60"
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+      />
+
+      {/* Data points */}
+      {personalityDimensions.map((d, i) => {
+        const r = (d.value / 100) * maxR;
+        const { x, y } = polarToXY(i * angleStep, r);
+        return (
+          <circle
+            key={i}
+            cx={x}
+            cy={y}
+            r={2.5}
+            className="fill-primary"
+          />
+        );
+      })}
+
+      {/* Labels */}
+      {labels.map((l, i) => (
+        <text
+          key={i}
+          x={l.x}
+          y={l.y}
+          textAnchor={l.anchor}
+          dominantBaseline="central"
+          className="fill-text-secondary/60 text-[16px]"
+        >
+          {l.label}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+// --- Student variant (confirmation → personality CTA → explore) ---
+
+function StudentVariant() {
+  return (
+    <motion.div className="w-full max-w-5xl" variants={stagger}>
+      {/* Section A: Confirmation */}
       <motion.div
         variants={fadeUp}
         transition={transition}
-        className="mx-auto mb-20 text-center sm:mb-28"
+        className="mx-auto mb-16 text-center sm:mb-20"
       >
-        <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full border border-secondary/20 bg-gradient-to-tr from-secondary/10 to-transparent shadow-[0_0_40px_rgba(var(--color-secondary),0.15)] relative">
-          <div className="absolute inset-0 rounded-full bg-secondary/5 blur-xl animate-pulse motion-reduce:animate-none" />
-          <HeartIcon className="h-12 w-12 text-secondary relative z-10" />
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-secondary/30 bg-secondary/10">
+          <CheckIcon className="h-8 w-8 text-secondary" />
         </div>
-        <p className="text-[length:var(--text-fluid-sm)] font-bold uppercase tracking-[0.4em] text-secondary/90">
+        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.4em] text-secondary/90">
           Assessment Complete
         </p>
-        <h1 className="mt-5 font-display text-[length:var(--text-fluid-5xl)] font-semibold tracking-tight text-text-primary">
-          We&rsquo;re Glad You&rsquo;re Here
+        <h1 className="mt-3 font-display text-[length:var(--text-fluid-3xl)] font-semibold tracking-tight text-text-primary">
+          You&rsquo;re All Set
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-[length:var(--text-fluid-xl)] leading-relaxed text-text-secondary font-light">
-          Thank you for taking the time to complete your intelligence assessment. We&rsquo;re excited you&rsquo;re considering ACU, and we&rsquo;d love to get to know you a&nbsp;little&nbsp;better.
+        <p className="mx-auto mt-4 max-w-xl text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+          Thanks for taking the Builders Quotient. We&rsquo;ll get your scores back to you soon. While you wait, let&rsquo;s dive deeper:
         </p>
       </motion.div>
 
-      <div className="grid gap-8 md:grid-cols-12 md:gap-10">
-        {/* Personality profile intro - Premium Bento CTA */}
-        <motion.div
-          variants={fadeUp}
-          transition={transition}
-          onAnimationComplete={() => setShowCTA(true)}
-          className="group relative col-span-12 overflow-hidden rounded-[3rem] border border-primary/20 bg-bg-surface/60 p-10 shadow-[0_8px_40px_-12px_rgba(var(--color-primary),0.1)] backdrop-blur-3xl sm:p-14 md:col-span-8 lg:p-16 transition-all duration-700 hover:shadow-[0_20px_60px_-12px_rgba(var(--color-primary),0.2)] hover:border-primary/40 hover:bg-bg-surface/80"
-        >
-          {/* Subtle slow moving gradients */}
-          <div className="pointer-events-none absolute -right-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-primary/20 blur-[130px] transition-transform duration-1000 group-hover:scale-110 group-hover:bg-primary/30" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-secondary/10 blur-[120px] transition-transform duration-1000 group-hover:-translate-y-16 group-hover:translate-x-16 group-hover:bg-secondary/20" aria-hidden="true" />
+      {/* Section B: Personality CTA */}
+      <motion.div
+        variants={fadeUp}
+        transition={transition}
+        className="group relative mx-auto mb-16 overflow-hidden rounded-2xl border border-primary/20 bg-bg-surface/60 p-8 shadow-[0_8px_40px_-12px_rgba(var(--color-primary),0.1)] backdrop-blur-3xl sm:p-10 transition-all duration-700 hover:shadow-[0_20px_60px_-12px_rgba(var(--color-primary),0.15)] hover:border-primary/30"
+      >
+        {/* Gradient blobs */}
+        <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-primary/15 blur-[100px]" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-32 -left-32 h-[20rem] w-[20rem] rounded-full bg-secondary/8 blur-[80px]" aria-hidden="true" />
 
-          {/* Inner ring decoration */}
-          <div className="pointer-events-none absolute right-0 top-0 h-full w-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.03),transparent_60%)]" />
+        <div className="relative z-10 flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-10">
+          {/* Radar chart */}
+          <div className="w-full max-w-[360px] shrink-0 md:w-[360px]">
+            <PersonalityRadarChart />
+          </div>
 
-          <div className="relative z-10 flex h-full flex-col justify-center">
-            <div className="mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-primary/30 bg-primary/10 shadow-[inset_0_0_20px_rgba(var(--color-primary),0.2)] backdrop-blur-xl">
-              <BrainIcon className="h-10 w-10 text-primary drop-shadow-[0_0_12px_rgba(var(--color-primary),0.6)]" />
-            </div>
-
-            <h2 className="font-display text-[length:var(--text-fluid-3xl)] font-bold tracking-tight text-text-primary">
-              Your Entrepreneur Personality Profile
+          {/* Copy */}
+          <div className="flex-1">
+            <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-tight text-text-primary">
+              Discover Your Mindset
             </h2>
 
-            <div className="mt-6 max-w-xl space-y-5">
-              <p className="text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary/90 font-light">
-                At ACU, we believe great entrepreneurs aren&rsquo;t just smart &mdash; they have a unique blend of personality traits that drives them. Our personality profile measures 9&nbsp;key dimensions like grit, risk tolerance, and innovativeness that define successful founders.
+            <div className="mt-4 space-y-4">
+              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+                Beyond intelligence, the most successful entrepreneurs share a unique blend of personality traits &mdash; grit, risk tolerance, innovativeness, and more. Our personality profile measures 9&nbsp;key dimensions that define great founders.
               </p>
-              <p className="text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary/90 font-light">
-                We use this alongside your intelligence scores to understand who you are and how we can best support your&nbsp;journey.
+              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+                Complete it now and we&rsquo;ll <strong className="font-medium text-text-primary">include your personality profile when your Builders Quotient is ready</strong>. It&rsquo;s also the next step in the ACU&nbsp;application.
               </p>
             </div>
 
-            <AnimatePresence>
-              {showCTA && (
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-                  className="mt-12 flex flex-col gap-6 sm:flex-row sm:items-center"
-                >
-                  <Button as="a" href="/assess/personality" size="lg" className="px-10 py-7 text-lg shadow-[0_0_40px_-10px_rgba(var(--color-primary),0.6)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_-10px_rgba(var(--color-primary),0.8)] rounded-2xl relative overflow-hidden group/btn">
-                    <span className="relative z-10">Start Personality Profile</span>
-                  </Button>
-                  <span className="text-[length:var(--text-fluid-base)] font-medium text-text-secondary/70 uppercase tracking-widest">
-                    Takes about 5&nbsp;minutes
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+              <Button as="a" href="/assess/personality" size="lg" className="shadow-[0_0_30px_-8px_rgba(var(--color-primary),0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_-8px_rgba(var(--color-primary),0.7)] rounded-xl">
+                Start Personality Profile
+              </Button>
+              <span className="text-[length:var(--text-fluid-xs)] font-medium text-text-secondary/60 uppercase tracking-widest">
+                ~5&nbsp;minutes
+              </span>
+            </div>
 
-        {/* Secondary: Curriculum - Slim Sidebar Bento */}
-        <motion.div
-          variants={fadeUp}
-          transition={transition}
-          className="group relative col-span-12 flex flex-col overflow-hidden rounded-[3rem] border border-border-glass bg-bg-elevated/30 p-10 shadow-lg backdrop-blur-2xl transition-all duration-700 hover:bg-bg-elevated/60 hover:shadow-xl md:col-span-4 lg:p-12 hover:border-primary/20"
-        >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
-          <div className="mb-10 flex h-16 w-16 items-center justify-center rounded-2xl border border-border-glass bg-bg-surface shadow-[0_2px_15px_rgba(0,0,0,0.1)] transition-transform duration-700 group-hover:scale-110">
-            <AcademicCapIcon className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-tight text-text-primary">
-            Explore Our Curriculum
-          </h2>
-          <p className="mt-4 flex-grow text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90 font-light">
-            See the programs and courses designed to build the next generation of entrepreneurial leaders that make ACU different.
-          </p>
-          <div className="mt-12">
-            <Button
-              as="a"
-              href="/curriculum"
-              variant="outline"
-              size="lg"
-              className="w-full bg-transparent border-primary/20 hover:bg-primary/5 hover:border-primary/40 rounded-xl transition-all duration-300"
-            >
-              View Curriculum
-            </Button>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+        </div>
+      </motion.div>
+
+      {/* Section C: Explore Cards */}
+      <motion.div
+        variants={fadeUp}
+        transition={transition}
+        id="explore"
+        className="scroll-mt-8"
+      >
+        <p className="mb-8 text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+          Not ready for another quiz right now? Explore what else we have to&nbsp;offer.
+        </p>
+        <div className="grid gap-8 md:grid-cols-2 lg:gap-10">
+          <ExploreCard
+            icon={<GlobeIcon className="h-8 w-8 text-primary" />}
+            heading="Discover ACU"
+            body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
+            buttonLabel="Visit Our Home"
+            href="https://austinchristianu.org"
+            external
+          />
+          <ExploreCard
+            icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
+            heading="Explore Curriculum"
+            body="See the programs and courses designed to build the next generation of entrepreneurs."
+            buttonLabel="View Curriculum"
+            href="https://austinchristianu.org/curriculum"
+            external
+          />
+        </div>
+      </motion.div>
+
+      {/* Closing text */}
+      <motion.p
+        variants={fadeUp}
+        transition={transition}
+        className="mt-16 text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary/60"
+      >
+        Other than that, you&rsquo;re all done. We&rsquo;ll reach out when your results are ready.
+      </motion.p>
+    </motion.div>
   );
 }
 
@@ -293,7 +419,7 @@ function GeneralVariant() {
           <ExploreCard
             icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
             heading="Explore Curriculum"
-            body="See the programs and courses designed to build the next generation of entrepreneurial leaders."
+            body="See the programs and courses designed to build the next generation of entrepreneurs."
             buttonLabel="View Curriculum"
             href="https://austinchristianu.org/curriculum"
             external
@@ -351,7 +477,7 @@ function DefaultVariant() {
         <ExploreCard
           icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
           heading="Explore Curriculum"
-          body="See the programs designed to build the next generation of entrepreneurial leaders."
+          body="See the programs designed to build the next generation of entrepreneurs."
           buttonLabel="View Curriculum"
           href="https://austinchristianu.org/curriculum"
           external
@@ -407,16 +533,18 @@ export function ThankYouContent({ variant }: { variant: Variant }) {
             {variant === "general" && <GeneralVariant />}
             {variant === "default" && <DefaultVariant />}
 
-            {/* Back to home */}
-            <motion.div
-              variants={fadeUp}
-              transition={{ ...transition, delay: 0.4 }}
-              className="mt-20 text-center"
-            >
-              <Button as="a" href="/" variant="ghost" size="lg" className="rounded-full px-8 text-text-secondary hover:text-text-primary">
-                Back to Home
-              </Button>
-            </motion.div>
+            {/* Back to home (non-student variants only) */}
+            {variant !== "student" && (
+              <motion.div
+                variants={fadeUp}
+                transition={{ ...transition, delay: 0.4 }}
+                className="mt-20 text-center"
+              >
+                <Button as="a" href="/" variant="ghost" size="lg" className="rounded-full px-8 text-text-secondary hover:text-text-primary">
+                  Back to Home
+                </Button>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
