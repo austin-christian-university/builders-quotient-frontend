@@ -106,6 +106,57 @@ export const personalityDataSchema = z.object({
   summary: personalitySummarySchema,
 });
 
+// --- New narrative and corpus schemas ---
+
+export const narrativeBlockSchema = z.object({
+  category: z.string(),
+  type: z.enum(["strength", "growth"]),
+  text: z.string(),
+});
+
+export const corpusAverageCategorySchema = z.object({
+  category: z.string(),
+  averageScore: z.number().min(0).max(100),
+});
+
+export const corpusAverageSchema = z.object({
+  categories: z.array(corpusAverageCategorySchema),
+});
+
+// --- New match schemas ---
+
+export const matchRunnerUpSchema = z.object({
+  entrepreneurName: z.string(),
+  bioSnippet: z.string().nullable(),
+  companies: z.array(z.string()),
+  industries: z.array(z.string()),
+  categoryScores: z.array(
+    z.object({
+      category: z.string(),
+      score: z.number(),
+    })
+  ),
+});
+
+export const reasoningMatchSchema = z.object({
+  entrepreneurName: z.string(),
+  bioSnippet: z.string().nullable(),
+  companies: z.array(z.string()),
+  industries: z.array(z.string()),
+  studentCategoryScores: z.array(
+    z.object({ category: z.string(), score: z.number() })
+  ),
+  entrepreneurCategoryScores: z.array(
+    z.object({ category: z.string(), score: z.number() })
+  ),
+  topSharedStrengths: z.array(sharedTraitSchema),
+  biggestDifferences: z.array(traitDifferenceSchema),
+  runnersUp: z.array(matchRunnerUpSchema),
+});
+
+// communicationMatch reuses the existing entrepreneurMatchSchema shape
+export const communicationMatchSchema = entrepreneurMatchSchema;
+
 // --- Main schema ---
 
 export const resultsPageDataSchema = z.object({
@@ -113,24 +164,25 @@ export const resultsPageDataSchema = z.object({
     displayName: z.string().nullable(),
     assessmentType: z.enum(["public", "admissions"]),
   }),
-  overall: z.object({
-    bqScore: z.number(),
-    piHeadlineScore: z.number(),
-    ciHeadlineScore: z.number(),
-  }),
   piCategories: z.array(categoryScoreSchema),
   ciCategories: z.array(categoryScoreSchema),
+  piCorpusAverage: corpusAverageSchema.nullable(),
+  ciCorpusAverage: corpusAverageSchema.nullable(),
   archetype: archetypeSchema,
-  signatureMoves: z.array(signatureMoveSchema),
-  rarestMove: rarestMoveSchema.nullable(),
-  growthEdges: z.array(growthEdgeSchema),
-  stats: statsSchema,
+  intelligenceNarrative: z.array(narrativeBlockSchema),
+  reasoningMatch: reasoningMatchSchema.nullable(),
+  communicationProfile: z
+    .array(z.object({ category: z.string(), value: z.number() }))
+    .nullable(),
+  communicationCorpusAverage: corpusAverageSchema.nullable(),
+  communicationNarrative: z.array(narrativeBlockSchema),
+  communicationMatch: communicationMatchSchema.nullable(),
+  personality: personalityDataSchema.nullable(),
+  personalityNarrative: z.array(narrativeBlockSchema),
   narrative: z.object({
     piSummaries: z.array(z.string()),
     ciSummaries: z.array(z.string()),
   }),
-  personality: personalityDataSchema.nullable(),
-  entrepreneurMatch: entrepreneurMatchSchema.nullable(),
 });
 
 // --- Exported types ---
@@ -145,3 +197,9 @@ export type ResultsStats = z.infer<typeof statsSchema>;
 export type PersonalityFacetScore = z.infer<typeof personalityFacetScoreSchema>;
 export type PersonalityData = z.infer<typeof personalityDataSchema>;
 export type EntrepreneurMatch = z.infer<typeof entrepreneurMatchSchema>;
+export type NarrativeBlock = z.infer<typeof narrativeBlockSchema>;
+export type CorpusAverageCategory = z.infer<typeof corpusAverageCategorySchema>;
+export type CorpusAverage = z.infer<typeof corpusAverageSchema>;
+export type MatchRunnerUp = z.infer<typeof matchRunnerUpSchema>;
+export type ReasoningMatch = z.infer<typeof reasoningMatchSchema>;
+export type CommunicationMatch = z.infer<typeof communicationMatchSchema>;
