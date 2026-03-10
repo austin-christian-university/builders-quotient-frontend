@@ -39,32 +39,30 @@ export function DisclaimerSlide() {
           variants={fadeUp}
           className="font-display font-bold text-[length:var(--text-fluid-2xl)] text-white leading-tight text-balance"
         >
-          Take these results with a grain of salt.
+          This is a snapshot, not a verdict.
         </motion.h2>
 
         <motion.div variants={fadeUp} className="flex flex-col gap-4 text-text-secondary text-[length:var(--text-fluid-base)] leading-relaxed text-balance">
           <p>
-            This exam is still in beta and we{"\u2019"}re continuing to refine our
-            models as we collect more data. Don{"\u2019"}t put too much weight in
-            these numbers just yet.
+            Your Builder Profile captures how you reason, communicate, and
+            approach problems{" "}<em>right now</em>. It measures where you are
+            today&mdash;not your ceiling.
           </p>
 
           <p>
-            If you didn{"\u2019"}t score how you expected&mdash;don{"\u2019"}t worry.
-            If you think you{"\u2019"}re a human with immense entrepreneurial potential
-            rivaling the best to ever do it, great. Go build something
-            beautiful and prove the test wrong.
+            Every entrepreneur you were compared to started somewhere.
+            Strengths can be sharpened. Growth areas can be developed.
+            What matters most is what you do next.
           </p>
 
           <p className="text-white/50 text-[length:var(--text-fluid-sm)] italic">
-            (And then, send us an{" "}
+            Questions? Reach out to{" "}
             <a
               href="mailto:enrollment@austinchristianu.org"
               className="underline underline-offset-2 decoration-white/30 hover:decoration-white/60 transition-colors text-white/60 hover:text-white/80"
             >
-              email
-            </a>{" "}
-            so we can adjust our models based on your undeniable success.)
+              enrollment@austinchristianu.org
+            </a>
           </p>
         </motion.div>
       </motion.div>
