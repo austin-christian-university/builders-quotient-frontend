@@ -29,12 +29,22 @@ export const metadata: Metadata = {
       "Measure your entrepreneurial intelligence through AI-narrated vignettes and personality profiling.",
     siteName: "Builders Quotient",
     type: "website",
+    url: "https://bq.austinchristianu.org",
+    images: [
+      {
+        url: "https://bq.austinchristianu.org/og-image.jpg",
+        width: 1200,
+        height: 800,
+        alt: "Austin Christian University",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Builders Quotient | Austin Christian University",
     description:
       "Measure your entrepreneurial intelligence through AI-narrated vignettes and personality profiling.",
+    images: ["https://bq.austinchristianu.org/og-image.jpg"],
   },
 };
 

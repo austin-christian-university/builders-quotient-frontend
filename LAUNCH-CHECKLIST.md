@@ -60,16 +60,16 @@ Links with `target="_blank"` need `rel="noopener noreferrer"` to prevent window.
 
 ## 5. OG Image and Social Meta
 **Priority: Should-fix**
-**Status: Not started**
+**Status: Complete**
 
 Social shares currently have no preview image.
 
-- [ ] Design/source an OG image (1200x630)
-- [ ] Place in `/public/og-image.png`
-- [ ] Add `og:image` and `twitter:image` to root layout metadata
-- [ ] Add `og:url` (canonical)
+- [x] Design/source an OG image (1200x800) — reused ACU website photo, resized to 235 KB
+- [x] Place in `/public/og-image.jpg`
+- [x] Add `og:image` and `twitter:image` to root layout metadata
+- [x] Add `og:url` (canonical)
 - [ ] Add `twitter:site` handle if ACU has one
-- [ ] Test with https://opengraph.xyz or Twitter card validator
+- [ ] Test with https://opengraph.xyz or Twitter card validator after deploy
 
 ---
 
