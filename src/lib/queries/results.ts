@@ -10,16 +10,21 @@ import {
 import {
   averageByCategory,
   PERSONALITY_DIMENSION_NAMES,
+  PERSONALITY_DIMENSION_KEYS,
 } from "@/lib/assessment/personality-dimensions";
 import type { PersonalityVector } from "@/lib/assessment/personality-dimensions";
+import {
+  getIntelligenceNarrative,
+  getCommunicationNarrative,
+  getPersonalityNarrative,
+} from "@/lib/assessment/narrative-templates";
 import type {
   ResultsPageData,
   CategoryScore,
   PersonalityData,
   EntrepreneurMatch,
-  SignatureMove,
-  RarestMove,
-  GrowthEdge,
+  NarrativeBlock,
+  CorpusAverage,
 } from "@/lib/schemas/results";
 
 // --- Raw JSONB types from the Python pipeline (consensus-based scoring) ---
@@ -31,6 +36,8 @@ type RawCategoryScore = {
   moves_scored: number;
   moves_missed: number;
   moves_excluded: number;
+  entrepreneur_mean?: number;
+  entrepreneur_std?: number;
 };
 
 type RawMoveDetail = {
@@ -150,50 +157,52 @@ function unionMoveDetails(responses: ScoredResponse[]): RawMoveDetail[] {
   return Array.from(map.values());
 }
 
-/** Extract signature moves: student demonstrated but NOT in consensus (unique insights). */
-function extractSignatureMoves(moves: RawMoveDetail[]): SignatureMove[] {
-  return moves
-    .filter((m) => m.student_present && !m.in_consensus)
-    .sort((a, b) => a.agreement_rate - b.agreement_rate)
-    .slice(0, 3)
-    .map((m) => ({
-      description: m.move_name,
-      agreementPercent: Math.round(m.agreement_rate * 100),
-      categoryName: m.category,
-    }));
-}
+/**
+ * Extract corpus averages from raw category scores.
+ * Returns null if no entrepreneur_mean data is available.
+ */
+function extractCorpusAverage(
+  responses: ScoredResponse[],
+  type: "practical" | "creative"
+): CorpusAverage | null {
+  const typed = responses.filter((r) => r.vignette_type === type);
+  if (typed.length === 0) return null;
 
-/** Find the single rarest present move (lowest agreement rate where student demonstrated). */
-function extractRarestMove(moves: RawMoveDetail[]): RarestMove | null {
-  const present = moves.filter((m) => m.student_present);
-  if (present.length === 0) return null;
+  // Accumulate entrepreneur_mean per category across responses
+  const acc = new Map<string, { sum: number; count: number }>();
+  let hasAnyMean = false;
 
-  const rarest = present.reduce((min, m) =>
-    m.agreement_rate < min.agreement_rate ? m : min
-  );
+  for (const r of typed) {
+    if (!Array.isArray(r.scoring_result.track1_category_scores)) continue;
+    for (const cs of r.scoring_result.track1_category_scores) {
+      if (cs.entrepreneur_mean == null) continue;
+      hasAnyMean = true;
+      const existing = acc.get(cs.category);
+      if (existing) {
+        existing.sum += cs.entrepreneur_mean * 100;
+        existing.count += 1;
+      } else {
+        acc.set(cs.category, { sum: cs.entrepreneur_mean * 100, count: 1 });
+      }
+    }
+  }
 
-  return {
-    description: rarest.move_name,
-    agreementPercent: Math.round(rarest.agreement_rate * 100),
-    categoryName: rarest.category,
-  };
-}
+  if (!hasAnyMean) return null;
 
-/** Extract growth edges: in consensus but student missed (high-value gaps). */
-function extractGrowthEdges(moves: RawMoveDetail[]): GrowthEdge[] {
-  return moves
-    .filter((m) => !m.student_present && m.in_consensus)
-    .sort((a, b) => b.agreement_rate - a.agreement_rate)
-    .slice(0, 3)
-    .map((m) => ({
-      description: m.move_name,
-      categoryName: m.category,
-    }));
-}
+  // Preserve original category order
+  const firstCategories =
+    typed[0].scoring_result.track1_category_scores ?? [];
+  const categories = firstCategories
+    .filter((cs) => acc.has(cs.category))
+    .map((cs) => {
+      const a = acc.get(cs.category)!;
+      return {
+        category: cs.category,
+        averageScore: Math.round((a.sum / a.count) * 10) / 10,
+      };
+    });
 
-/** Count categories above average (score > 50). */
-function countAboveAvg(categories: CategoryScore[]): number {
-  return categories.filter((c) => c.score > 50).length;
+  return categories.length > 0 ? { categories } : null;
 }
 
 // --- Main query ---
@@ -262,52 +271,23 @@ export async function getResultsByToken(
   const piCategories = aggregateCategories(scored, "practical");
   const ciCategories = aggregateCategories(scored, "creative");
 
-  // 6. Compute headline scores (already percentages from pipeline)
-  const piHeadline =
-    piResponses.reduce(
-      (sum, r) => sum + r.scoring_result.headline_score,
-      0
-    ) / piResponses.length;
-  const ciHeadline =
-    ciResponses.reduce(
-      (sum, r) => sum + r.scoring_result.headline_score,
-      0
-    ) / ciResponses.length;
-  const bqScore = (piHeadline + ciHeadline) / 2;
+  // 6. Extract corpus averages from entrepreneur_mean in JSONB (graceful degradation)
+  const piCorpusAverage = extractCorpusAverage(scored, "practical");
+  const ciCorpusAverage = extractCorpusAverage(scored, "creative");
 
-  // 7. Union moves across all responses, then derive
-  const allPiMoves = unionMoveDetails(piResponses);
-  const allCiMoves = unionMoveDetails(ciResponses);
-  const allMoves = [...allPiMoves, ...allCiMoves];
-
-  const signatureMoves = extractSignatureMoves(allMoves);
-  const rarestMove = extractRarestMove(allMoves);
-  const growthEdges = extractGrowthEdges(allMoves);
-
-  // 8. Archetype
+  // 7. Archetype
   const archetype = deriveArchetype(piCategories, ciCategories);
 
-  // 9. Stats
-  const allCategories = [...piCategories, ...ciCategories];
-  const strongest = allCategories.reduce((best, c) =>
-    c.score > best.score ? c : best
-  );
-  const weakest = allCategories.reduce((min, c) =>
-    c.score < min.score ? c : min
-  );
+  // 8. Intelligence narrative
+  const intelligenceNarrative = getIntelligenceNarrative(piCategories, ciCategories);
 
-  // Corpus size from the first PI response (track1_n_experts)
-  const corpusSize =
-    piResponses[0].scoring_result.track1_n_experts ??
-    ciResponses[0].scoring_result.track1_n_experts ??
-    274;
-
-  // 10. Narratives
+  // 9. Pipeline-generated narrative summaries (kept for reference)
   const piSummaries = piResponses.map((r) => r.scoring_result.summary_text);
   const ciSummaries = ciResponses.map((r) => r.scoring_result.summary_text);
 
-  // 11. Personality data (nullable -- only present when quiz was taken)
+  // 10. Personality data (nullable -- only present when quiz was taken)
   let personality: PersonalityData | null = null;
+  let personalityNarrative: NarrativeBlock[] = [];
 
   const { data: personalityScores } = await supabase
     .from("personality_scores")
@@ -350,11 +330,16 @@ export async function getResultsByToken(
           infrequencyFail: summary.infrequencyFail ?? false,
         },
       };
+
+      // Generate personality narrative from facet scores
+      personalityNarrative = getPersonalityNarrative(facetScores);
     }
   }
 
-  // 12. Entrepreneur personality match (nullable -- only present after pipeline matching)
-  let entrepreneurMatch: EntrepreneurMatch | null = null;
+  // 11. Communication match (was entrepreneurMatch) + communication profile
+  let communicationMatch: EntrepreneurMatch | null = null;
+  let communicationProfile: { category: string; value: number }[] | null = null;
+  let communicationNarrative: NarrativeBlock[] = [];
 
   const { data: studentProfile } = await supabase
     .from("student_personality_profiles")
@@ -373,7 +358,7 @@ export async function getResultsByToken(
       .single();
 
     // Fetch entrepreneur's personality vector for comparison
-    const { data: entrepreneurProfile } = await supabase
+    const { data: entrepreneurProfileRow } = await supabase
       .from("entrepreneur_personality_profiles")
       .select("personality_vector")
       .eq("entrepreneur_id", studentProfile.matched_entrepreneur_id)
@@ -382,8 +367,25 @@ export async function getResultsByToken(
     const studentVector =
       (studentProfile.personality_vector as PersonalityVector | null) ?? {};
     const entrepreneurVector =
-      (entrepreneurProfile?.personality_vector as PersonalityVector | null) ??
+      (entrepreneurProfileRow?.personality_vector as PersonalityVector | null) ??
       {};
+
+    // Build full 20-dim communication profile from student vector
+    communicationProfile = PERSONALITY_DIMENSION_KEYS
+      .filter((k) => studentVector[k] != null)
+      .map((k) => ({
+        category: k,
+        value: studentVector[k],
+      }));
+
+    if (communicationProfile.length === 0) {
+      communicationProfile = null;
+    }
+
+    // Generate communication narrative from full 20-dim profile
+    if (communicationProfile) {
+      communicationNarrative = getCommunicationNarrative(communicationProfile);
+    }
 
     // Average both vectors by 5 categories for radar chart
     const studentCategoryProfile = averageByCategory(studentVector);
@@ -427,7 +429,7 @@ export async function getResultsByToken(
       similarity: Math.round(e.cosine_similarity * 100),
     }));
 
-    entrepreneurMatch = {
+    communicationMatch = {
       entrepreneurName: studentProfile.matched_entrepreneur_name,
       entrepreneurId: studentProfile.matched_entrepreneur_id,
       cosineSimilarity: studentProfile.matched_cosine_similarity,
@@ -448,33 +450,22 @@ export async function getResultsByToken(
       displayName: applicant.display_name ?? null,
       assessmentType: (session.assessment_type as "public" | "admissions") ?? "public",
     },
-    overall: {
-      bqScore: Math.round(bqScore * 10) / 10,
-      piHeadlineScore: Math.round(piHeadline * 10) / 10,
-      ciHeadlineScore: Math.round(ciHeadline * 10) / 10,
-    },
     piCategories,
     ciCategories,
+    piCorpusAverage,
+    ciCorpusAverage,
     archetype,
-    signatureMoves,
-    rarestMove,
-    growthEdges,
-    stats: {
-      piCategoriesAboveAvg: countAboveAvg(piCategories),
-      ciCategoriesAboveAvg: countAboveAvg(ciCategories),
-      totalCategories: allCategories.length,
-      strongestCategory: {
-        name: strongest.category,
-        score: strongest.score,
-      },
-      biggestGap: Math.round((strongest.score - weakest.score) * 10) / 10,
-      corpusSize,
-    },
+    intelligenceNarrative,
+    reasoningMatch: null,
+    communicationProfile,
+    communicationCorpusAverage: null,
+    communicationNarrative,
+    communicationMatch,
+    personality,
+    personalityNarrative,
     narrative: {
       piSummaries,
       ciSummaries,
     },
-    personality,
-    entrepreneurMatch,
   };
 }
