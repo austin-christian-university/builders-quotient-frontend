@@ -7,6 +7,7 @@ import { readSessionCookie } from "@/lib/assessment/session-cookie";
 import { getSessionById } from "@/lib/queries/session";
 import {
   emailCaptureSchema,
+  normalizeUSPhone,
   type CaptureEmailResult,
   type LeadType,
 } from "@/lib/schemas/applicant";
@@ -248,7 +249,11 @@ export async function linkToExistingProfile(
   }
 
   // Re-verify the duplicate match server-side to prevent forged applicant IDs
-  const duplicate = await findDuplicateApplicant(email, phone, session.applicant_id);
+  const normalizedPhone = normalizeUSPhone(phone);
+  if (!normalizedPhone) {
+    return { success: false, error: "Invalid phone number." };
+  }
+  const duplicate = await findDuplicateApplicant(email, normalizedPhone, session.applicant_id);
   if (!duplicate || duplicate.applicantId !== existingApplicantId) {
     return { success: false, error: "Profile match has changed. Please try again." };
   }
