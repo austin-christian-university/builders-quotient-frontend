@@ -2,21 +2,51 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import type { ResultsPageData } from "@/lib/schemas/results";
+import type { ResultsPageData, CategoryScore } from "@/lib/schemas/results";
+import { PI_TEMPLATES, CI_TEMPLATES } from "@/lib/assessment/narrative-templates";
 
-import { RevealSlide } from "./slides/RevealSlide";
 import { ArchetypeSlide } from "./slides/ArchetypeSlide";
-import { IntelligenceSlide } from "./slides/IntelligenceSlide";
-import { HighlightSlide } from "./slides/HighlightSlide";
-import { PersonalitySlide } from "./slides/PersonalitySlide";
-import { EntrepreneurMatchSlide } from "./slides/EntrepreneurMatchSlide";
-import { EntrepreneurComparisonSlide } from "./slides/EntrepreneurComparisonSlide";
-import { RadarSlide } from "./slides/RadarSlide";
-import { StatsSlide } from "./slides/StatsSlide";
+import { ReasoningHighlightsSlide } from "./slides/ReasoningHighlightsSlide";
+import { IntelligenceRadarSlide } from "./slides/IntelligenceRadarSlide";
+import { IntelligenceNarrativeSlide } from "./slides/IntelligenceNarrativeSlide";
+import { ReasoningMatchSlide } from "./slides/ReasoningMatchSlide";
+import { CommunicationRadarSlide } from "./slides/CommunicationRadarSlide";
+import { CommunicationNarrativeSlide } from "./slides/CommunicationNarrativeSlide";
+import { CommunicationMatchSlide } from "./slides/CommunicationMatchSlide";
+import { PersonalityRadarSlide } from "./slides/PersonalityRadarSlide";
+import { PersonalityNarrativeSlide } from "./slides/PersonalityNarrativeSlide";
 import { DisclaimerSlide } from "./slides/DisclaimerSlide";
-import { ShareSlide } from "./slides/ShareSlide";
+import { ShareApplySlide } from "./slides/ShareApplySlide";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import * as analytics from "@/lib/analytics/events";
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Extract first sentence from template text for use as a punchy tagline */
+function truncateToFirstSentence(text: string): string {
+  const match = text.match(/^[^.!]+[.!]/);
+  return match ? match[0] : text;
+}
+
+function buildHighlights(
+  piCategories: CategoryScore[],
+  ciCategories: CategoryScore[]
+): { category: string; tagline: string; variant: "pi" | "ci" }[] {
+  const combined = [
+    ...piCategories.map((c) => ({ ...c, variant: "pi" as const })),
+    ...ciCategories.map((c) => ({ ...c, variant: "ci" as const })),
+  ];
+  combined.sort((a, b) => b.score - a.score);
+  return combined.slice(0, 4).map((c) => ({
+    category: c.category,
+    tagline: truncateToFirstSentence(
+      PI_TEMPLATES[c.category]?.strength ?? CI_TEMPLATES[c.category]?.strength ?? ""
+    ),
+    variant: c.variant,
+  }));
+}
 
 // ---------------------------------------------------------------------------
 // Hooks
@@ -68,7 +98,6 @@ function NavArrow({ direction, onClick, isDesktop }: NavArrowProps) {
       aria-label={label}
       className={`absolute z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/10 backdrop-blur-sm transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${position}`}
     >
-      {/* Chevron: points right/left on mobile, down/up on desktop via md:rotate-90 */}
       <svg
         width="20"
         height="20"
@@ -116,90 +145,97 @@ export function ResultsExperience({ data }: Props) {
     analytics.resultsViewed();
   }, []);
 
-  // Build components array based on data presence
   const sections = useMemo(() => {
     const s: React.ReactNode[] = [
-      <RevealSlide
-        key="reveal"
-        data={{
-          displayName: data.applicant.displayName,
-          bqScore: data.overall.bqScore,
-        }}
-      />,
+      // 1. Archetype Reveal
       <ArchetypeSlide key="archetype" data={data.archetype} />,
-      <IntelligenceSlide
-        key="pi"
-        title="Practical Intelligence"
-        variant="pi"
-        data={{
-          headline: data.overall.piHeadlineScore,
-          categories: data.piCategories,
-        }}
+
+      // 2. Reasoning Highlights
+      <ReasoningHighlightsSlide
+        key="highlights"
+        data={{ highlights: buildHighlights(data.piCategories, data.ciCategories) }}
       />,
-      <IntelligenceSlide
-        key="ci"
-        title="Creative Intelligence"
+
+      // 3. Practical Intelligence Radar
+      <IntelligenceRadarSlide
+        key="pi-radar"
+        data={{ categories: data.piCategories, corpusAverage: data.piCorpusAverage }}
+        title="Your Reasoning Profile"
+        eyebrow="PRACTICAL INTELLIGENCE"
+        variant="pi"
+      />,
+
+      // 4. Creative Intelligence Radar
+      <IntelligenceRadarSlide
+        key="ci-radar"
+        data={{ categories: data.ciCategories, corpusAverage: data.ciCorpusAverage }}
+        title="Your Thinking Profile"
+        eyebrow="CREATIVE INTELLIGENCE"
         variant="ci"
-        data={{
-          headline: data.overall.ciHeadlineScore,
-          categories: data.ciCategories,
-        }}
+      />,
+
+      // 5. Intelligence Strengths & Growth Areas
+      <IntelligenceNarrativeSlide
+        key="intel-narrative"
+        data={{ narrative: data.intelligenceNarrative }}
+      />,
+
+      // 6. Reasoning Match (stubbed if null)
+      <ReasoningMatchSlide
+        key="reasoning-match"
+        data={data.reasoningMatch}
+        studentPiCategories={data.piCategories}
       />,
     ];
 
+    // 7-9. Communication domain (conditional — if profile data exists)
+    if (data.communicationProfile) {
+      s.push(
+        <CommunicationRadarSlide
+          key="comm-radar"
+          data={{
+            profile: data.communicationProfile,
+            corpusAverage: data.communicationCorpusAverage,
+          }}
+        />,
+        <CommunicationNarrativeSlide
+          key="comm-narrative"
+          data={{ narrative: data.communicationNarrative }}
+        />,
+      );
+
+      if (data.communicationMatch) {
+        s.push(
+          <CommunicationMatchSlide
+            key="comm-match"
+            data={data.communicationMatch}
+            studentProfile={data.communicationMatch.studentProfile}
+          />,
+        );
+      }
+    }
+
+    // 10-11. Personality domain (conditional — admissions only)
     if (data.personality) {
-      s.push(<PersonalitySlide key="personality" data={data.personality} />);
-    }
-
-    if (data.entrepreneurMatch) {
       s.push(
-        <EntrepreneurMatchSlide key="entrepreneurMatch" data={data.entrepreneurMatch} />,
-        <EntrepreneurComparisonSlide key="entrepreneurComparison" data={data.entrepreneurMatch} />,
+        <PersonalityRadarSlide key="personality-radar" data={data.personality} />,
+        <PersonalityNarrativeSlide
+          key="personality-narrative"
+          data={{ narrative: data.personalityNarrative }}
+        />,
       );
     }
 
-    if (data.signatureMoves.length > 0) {
-      s.push(
-        <HighlightSlide
-          key="signatureMoves"
-          data={{ title: "Your Signature Moves", items: data.signatureMoves }}
-        />
-      );
-    }
+    // 12. Disclaimer
+    s.push(<DisclaimerSlide key="disclaimer" />);
 
-    if (data.rarestMove) {
-      s.push(
-        <HighlightSlide
-          key="rarestMove"
-          data={{ title: "The Rarest Thing You Did", items: [data.rarestMove] }}
-        />
-      );
-    }
-
+    // 13. Share / Apply CTA
     s.push(
-      <RadarSlide
-        key="radar"
-        data={{
-          pi: data.piCategories.map((c) => ({
-            category: c.category,
-            score: c.score,
-          })),
-          ci: data.ciCategories.map((c) => ({
-            category: c.category,
-            score: c.score,
-          })),
-        }}
-      />,
-      <StatsSlide key="stats" data={data.stats} />,
-      <DisclaimerSlide key="disclaimer" />,
-      <ShareSlide
+      <ShareApplySlide
         key="share"
-        data={{
-          displayName: data.applicant.displayName,
-          bqScore: data.overall.bqScore,
-          archetype: data.archetype.name,
-        }}
-      />
+        archetype={data.archetype}
+        assessmentType={data.applicant.assessmentType}
+      />,
     );
 
     return s;
@@ -227,7 +263,6 @@ export function ResultsExperience({ data }: Props) {
   // Keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Don't capture if user is in an input/textarea
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
