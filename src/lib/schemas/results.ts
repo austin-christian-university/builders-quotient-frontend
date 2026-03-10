@@ -19,35 +19,6 @@ export const archetypeSchema = z.object({
   variant: z.enum(["pi", "ci"]),
 });
 
-export const signatureMoveSchema = z.object({
-  description: z.string(),
-  agreementPercent: z.number(),
-  categoryName: z.string(),
-});
-
-export const rarestMoveSchema = z.object({
-  description: z.string(),
-  agreementPercent: z.number(),
-  categoryName: z.string(),
-});
-
-export const growthEdgeSchema = z.object({
-  description: z.string(),
-  categoryName: z.string(),
-});
-
-export const statsSchema = z.object({
-  piCategoriesAboveAvg: z.number().int(),
-  ciCategoriesAboveAvg: z.number().int(),
-  totalCategories: z.number().int(),
-  strongestCategory: z.object({
-    name: z.string(),
-    score: z.number(),
-  }),
-  biggestGap: z.number(),
-  corpusSize: z.number().int(),
-});
-
 // --- Entrepreneur match sub-schemas ---
 
 export const categoryProfilePointSchema = z.object({
@@ -191,10 +162,6 @@ export const resultsPageDataSchema = z.object({
 export type ResultsPageData = z.infer<typeof resultsPageDataSchema>;
 export type CategoryScore = z.infer<typeof categoryScoreSchema>;
 export type Archetype = z.infer<typeof archetypeSchema>;
-export type SignatureMove = z.infer<typeof signatureMoveSchema>;
-export type RarestMove = z.infer<typeof rarestMoveSchema>;
-export type GrowthEdge = z.infer<typeof growthEdgeSchema>;
-export type ResultsStats = z.infer<typeof statsSchema>;
 export type PersonalityFacetScore = z.infer<typeof personalityFacetScoreSchema>;
 export type PersonalityData = z.infer<typeof personalityDataSchema>;
 export type EntrepreneurMatch = z.infer<typeof entrepreneurMatchSchema>;

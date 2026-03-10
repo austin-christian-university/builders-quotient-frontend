@@ -339,6 +339,7 @@ describe("resultsPageDataSchema", () => {
   const baseArchetype = {
     name: "The Optimizer",
     tagline: "You find the best path through any problem.",
+    description: "Your natural instinct is to weigh every option and find the most efficient route forward.",
     basedOnCategory: "Decision Architecture",
     variant: "pi" as const,
   };
