@@ -20,17 +20,17 @@ Add `error.tsx` files so crashes during the exam show a recovery UI instead of a
 
 ## 2. Security Headers via Middleware
 **Priority: Must-fix**
-**Status: Not started**
+**Status: Complete**
 
 Create `middleware.ts` at project root to set response headers on all routes.
 
-- [ ] Content-Security-Policy (script-src, style-src, connect-src, media-src, frame-ancestors)
-- [ ] X-Frame-Options: DENY
-- [ ] X-Content-Type-Options: nosniff
-- [ ] Referrer-Policy: strict-origin-when-cross-origin
-- [ ] Permissions-Policy (camera, microphone — allow self only)
-- [ ] `poweredByHeader: false` in next.config.ts
-- [ ] Test that CSP doesn't break Supabase connections, Google Fonts, or video recording
+- [x] Content-Security-Policy (script-src, style-src, connect-src, media-src, frame-ancestors)
+- [x] X-Frame-Options: DENY
+- [x] X-Content-Type-Options: nosniff
+- [x] Referrer-Policy: strict-origin-when-cross-origin
+- [x] Permissions-Policy (camera, microphone — allow self only)
+- [x] `poweredByHeader: false` in next.config.ts
+- [x] Test that CSP doesn't break Supabase connections, Google Fonts, or video recording
 
 ---
 
