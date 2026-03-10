@@ -48,13 +48,13 @@ If the `assessment_forms` table has no active rows, session creation crashes wit
 
 ## 4. External Link Security
 **Priority: Should-fix**
-**Status: Not started**
+**Status: Complete**
 
 Links with `target="_blank"` need `rel="noopener noreferrer"` to prevent window.opener access.
 
-- [ ] Fix in `ConsentGate.tsx` (privacy, terms, biometric policy links)
-- [ ] Fix in `PersonalityCompleteContent.tsx` (ACU URLs)
-- [ ] Audit all other components for `target="_blank"` without proper `rel`
+- [x] Fix in `ConsentGate.tsx` (privacy, terms, biometric policy links)
+- [x] Fix in `PersonalityCompleteContent.tsx` (ACU URLs) — already had `rel` set
+- [x] Audit all other components for `target="_blank"` without proper `rel`
 
 ---
 

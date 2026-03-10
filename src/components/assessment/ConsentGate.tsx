@@ -182,11 +182,11 @@ export function ConsentGate({
               onChange={setTermsPrivacy}
             >
               I have read and agree to the{" "}
-              <Link href="/privacy" target="_blank" className={legalLinkClass}>
+              <Link href="/privacy" target="_blank" rel="noopener noreferrer" className={legalLinkClass}>
                 Privacy Policy
               </Link>{" "}
               and{" "}
-              <Link href="/terms" target="_blank" className={legalLinkClass}>
+              <Link href="/terms" target="_blank" rel="noopener noreferrer" className={legalLinkClass}>
                 Terms of Service
               </Link>
             </Checkbox>
@@ -210,6 +210,7 @@ export function ConsentGate({
               <Link
                 href="/biometric-policy"
                 target="_blank"
+                rel="noopener noreferrer"
                 className={legalLinkClass}
               >
                 Biometric Data Policy
