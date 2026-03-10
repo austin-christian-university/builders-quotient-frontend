@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /assess/
+Disallow: /results/
+Disallow: /review/
+Disallow: /api/
+
+Sitemap: https://bq.austinchristianu.org/sitemap.xml

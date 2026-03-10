@@ -103,11 +103,11 @@ No data on completion rates, drop-off points, or traffic.
 
 ## 8. Robots.txt and Sitemap
 **Priority: Nice-to-have**
-**Status: Not started**
+**Status: Complete**
 
-- [ ] Add `/public/robots.txt` (allow marketing pages, disallow /assess/* and /results/*)
-- [ ] Add sitemap via `app/sitemap.ts` (export generateSitemap) or static `/public/sitemap.xml`
-- [ ] Verify assessment routes have `robots: { index: false }` in metadata (already done for assessment layout)
+- [x] Add `/public/robots.txt` (allow marketing pages, disallow /assess/*, /results/*, /review/*, /api/*)
+- [x] Add sitemap via `app/sitemap.ts` (home, privacy, terms, biometric-policy, contact)
+- [x] Verify assessment routes have `robots: { index: false }` in metadata (already done for assessment layout)
 
 ---
 
