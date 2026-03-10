@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import type { CategoryScore, CorpusAverage } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
+import { getShortLabel } from "@/components/results/short-labels";
 
 interface IntelligenceRadarSlideProps {
   data: {
@@ -12,40 +13,6 @@ interface IntelligenceRadarSlideProps {
   title: string;
   eyebrow: string;
   variant: "pi" | "ci";
-}
-
-// Abbreviated radar labels to keep the chart readable
-const SHORT_LABELS: Record<string, string> = {
-  // PI categories
-  "Situation Diagnosis": "Diagnosis",
-  "Information Gathering": "Info Gathering",
-  "Constraint Analysis": "Constraints",
-  "Option Generation": "Options",
-  "Tradeoff Evaluation": "Tradeoffs",
-  "Risk Assessment": "Risk",
-  "Decision Architecture": "Decision",
-  "Action Planning": "Action",
-  "People & Stakeholders": "People",
-  "Communication Strategy": "Communication",
-  "Emotional & Values Reasoning": "Values",
-  "Meta-Cognition": "Meta-Cognition",
-  // CI categories
-  "Pattern Recognition & Observation": "Patterns",
-  "Information Seeking & Market Research": "Market Research",
-  "Reframing & Category Innovation": "Reframing",
-  "Cross-Domain Connection": "Cross-Domain",
-  "Opportunity Articulation": "Opportunity",
-  "Customer & Market Insight": "Customer Insight",
-  "Timing & Context Assessment": "Timing",
-  "Validation & Testing Strategy": "Validation",
-  "Risk & Feasibility Evaluation": "Feasibility",
-  "Vision Communication": "Vision",
-  "Creative Confidence & Persistence": "Persistence",
-  "Meta-Creative Thinking": "Meta-Creative",
-};
-
-function getShortLabel(category: string): string {
-  return SHORT_LABELS[category] ?? category;
 }
 
 const ACCENT_COLOR: Record<"pi" | "ci", string> = {
