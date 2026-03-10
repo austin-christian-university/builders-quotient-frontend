@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Inter_Tight } from "next/font/google";
 import "./globals.css";
 import { GlobalDevToolbar } from "@/components/dev/GlobalDevToolbar";
+import { PostHogProvider } from "@/lib/analytics/posthog";
 import { SITE_URL } from "@/lib/constants";
 
 const inter = Inter({
@@ -67,7 +68,9 @@ export default function RootLayout({
         <a href="#main-content" className="skip-to-content">
           Skip to content
         </a>
-        {children}
+        <PostHogProvider>
+          {children}
+        </PostHogProvider>
         {process.env.NODE_ENV === "development" && <GlobalDevToolbar />}
       </body>
     </html>

@@ -16,6 +16,7 @@ import { StatsSlide } from "./slides/StatsSlide";
 import { DisclaimerSlide } from "./slides/DisclaimerSlide";
 import { ShareSlide } from "./slides/ShareSlide";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
+import * as analytics from "@/lib/analytics/events";
 
 // ---------------------------------------------------------------------------
 // Hooks
@@ -109,6 +110,11 @@ export function ResultsExperience({ data }: Props) {
   const reducedMotion = usePrefersReducedMotion();
   const [currentSection, setCurrentSection] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
+
+  // Analytics: track results viewed
+  useEffect(() => {
+    analytics.resultsViewed();
+  }, []);
 
   // Build components array based on data presence
   const sections = useMemo(() => {

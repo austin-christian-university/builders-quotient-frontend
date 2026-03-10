@@ -75,29 +75,29 @@ Social shares currently have no preview image.
 
 ## 6. Error Tracking (Sentry)
 **Priority: Should-fix**
-**Status: Not started**
+**Status: Complete**
 
 Zero visibility into production errors right now.
 
-- [ ] Install `@sentry/nextjs`
-- [ ] Configure `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`
-- [ ] Add Sentry DSN to environment variables
-- [ ] Wire into error boundaries (automatic with SDK)
-- [ ] Add source maps upload to build
+- [x] Install `@sentry/nextjs`
+- [x] Configure `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`
+- [x] Add Sentry DSN to environment variables
+- [x] Wire into error boundaries (automatic with SDK)
+- [x] Add source maps upload to build
 - [ ] Test that errors are captured in Sentry dashboard
 
 ---
 
-## 7. Analytics
+## 7. Analytics (PostHog)
 **Priority: Should-fix**
-**Status: Not started**
+**Status: Complete**
 
 No data on completion rates, drop-off points, or traffic.
 
-- [ ] Install Vercel Analytics (`@vercel/analytics`) — or Plausible/Posthog if preferred
-- [ ] Add `<Analytics />` component to root layout
-- [ ] Track key funnel events: assessment started, each vignette completed, personality started, personality completed, results viewed
-- [ ] Decide if custom events need a separate solution (Posthog, Mixpanel)
+- [x] Install PostHog (`posthog-js`)
+- [x] Add `<PostHogProvider>` to root layout
+- [x] Track key funnel events: assessment started, vignette viewed/completed, intelligence completed, email captured, personality started/page completed/completed, assessment completed, results viewed, upload failed
+- [x] No PII in events (sessionId only)
 
 ---
 

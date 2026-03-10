@@ -24,5 +24,5 @@ export default async function ThankYouPage({ searchParams }: Props) {
         ? "general"
         : "default";
 
-  return <ThankYouContent variant={variant} />;
+  return <ThankYouContent variant={variant} sessionId={sessionId} />;
 }

@@ -21,6 +21,7 @@ import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
 import { playCountdownTone } from "@/lib/assessment/countdown-tone";
 import { getSectionBoundaries, type AudioWordTiming } from "@/lib/assessment/narration-timer";
 import dynamic from "next/dynamic";
+import * as analytics from "@/lib/analytics/events";
 
 const DevToolbar =
   process.env.NODE_ENV === "development"
@@ -111,6 +112,14 @@ export function VignetteExperience({
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioPlayRef = useRef(audio.play);
   audioPlayRef.current = audio.play;
+
+  // Analytics: track vignette viewed (and assessment started on step 1)
+  useEffect(() => {
+    analytics.vignetteViewed(sessionId, step, vignetteType);
+    if (step === 1) {
+      analytics.assessmentStarted(sessionId);
+    }
+  }, [sessionId, step, vignetteType]);
 
   // Anti-cheat: block copy/paste/context menu, track tab visibility changes
   const contentProtectionActive =
@@ -655,6 +664,11 @@ export function VignetteExperience({
         }
 
         dispatch({ type: "SUBMIT_COMPLETE" });
+
+        analytics.vignetteCompleted(sessionId, step, vignetteType);
+        if (result.complete) {
+          analytics.intelligenceCompleted(sessionId);
+        }
 
         setTimeout(() => {
           if (result.complete) {

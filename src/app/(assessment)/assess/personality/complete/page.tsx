@@ -34,5 +34,5 @@ export default async function PersonalityCompletePage() {
   const variant =
     applicant?.lead_type === "prospective_student" ? "student" : "general";
 
-  return <PersonalityCompleteContent variant={variant} />;
+  return <PersonalityCompleteContent variant={variant} sessionId={sessionId} />;
 }

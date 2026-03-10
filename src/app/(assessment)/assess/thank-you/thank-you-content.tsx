@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SplashSequence } from "@/components/assessment/SplashSequence";
 import { CooldownBanner } from "@/components/assessment/CooldownBanner";
 import { ACU_URLS } from "@/lib/constants";
+import * as analytics from "@/lib/analytics/events";
 
 type Variant = "student" | "general" | "default";
 
@@ -499,10 +500,21 @@ function DefaultVariant() {
 
 // --- Main content ---
 
-export function ThankYouContent({ variant }: { variant: Variant }) {
+export function ThankYouContent({ variant, sessionId }: { variant: Variant; sessionId: string }) {
   const [isReady, setIsReady] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Analytics: email was captured (this page is only reachable after email submission)
+  // Only fire assessment_completed for non-student variants here — students still have
+  // the personality profile ahead, so their assessment_completed fires on /personality/complete.
+  useEffect(() => {
+    const leadType = variant === "student" ? "prospective_student" : "general_interest";
+    analytics.emailCaptured(sessionId, leadType);
+    if (variant !== "student") {
+      analytics.assessmentCompleted(sessionId, variant);
+    }
+  }, [sessionId, variant]);
 
   // Focus the h1 after splash completes
   useEffect(() => {

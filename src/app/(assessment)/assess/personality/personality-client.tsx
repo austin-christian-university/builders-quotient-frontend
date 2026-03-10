@@ -24,6 +24,7 @@ import {
   savePersonalityPage,
   submitPersonalityQuiz,
 } from "@/lib/actions/personality";
+import * as analytics from "@/lib/analytics/events";
 
 const PersonalityDevToolbar =
   process.env.NODE_ENV === "development"
@@ -77,6 +78,11 @@ export function PersonalityClient({
   const currentItems = useMemo(() => pages[currentPage] ?? [], [pages, currentPage]);
   const answeredCount = Object.keys(responses).length;
   const isLastPage = currentPage === totalPages - 1;
+
+  // Analytics: track personality quiz started
+  useEffect(() => {
+    analytics.personalityStarted(sessionId);
+  }, [sessionId]);
 
   // Focus page container when page changes for keyboard users
   const initialPageSet = useRef(false);
@@ -158,10 +164,11 @@ export function PersonalityClient({
     if (!saved) return;
 
     if (currentPage < totalPages - 1) {
+      analytics.personalityPageCompleted(sessionId, currentPage);
       setCurrentPage((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [currentItems, responses, saveCurrentPage, currentPage, totalPages]);
+  }, [currentItems, responses, saveCurrentPage, currentPage, totalPages, sessionId]);
 
   const handlePrevious = useCallback(() => {
     if (currentPage > 0) {
@@ -195,8 +202,10 @@ export function PersonalityClient({
     }
 
     hasUnsavedChanges.current = false;
+    analytics.personalityPageCompleted(sessionId, currentPage);
+    analytics.personalityCompleted(sessionId, "likert");
     router.push("/assess/personality/complete");
-  }, [answeredCount, saveCurrentPage, sessionId, router]);
+  }, [answeredCount, saveCurrentPage, sessionId, router, currentPage]);
 
   const pageAllAnswered = currentItems.every((item) => responses[item.id]);
 

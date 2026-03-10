@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
-    `connect-src 'self' ${supabaseUrl} https://*.supabase.co`,
+    `connect-src 'self' ${supabaseUrl} https://*.supabase.co https://*.ingest.us.sentry.io https://*.i.posthog.com`,
     "img-src 'self' data: blob:",
     "font-src 'self'",
     `media-src 'self' blob: ${supabaseUrl}`,
@@ -49,6 +49,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Run on all routes except static files and Next.js internals
   matcher: [
-    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)",
+    "/((?!_next/static|_next/image|monitoring|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)",
   ],
 };

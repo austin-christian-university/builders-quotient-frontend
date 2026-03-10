@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SplashSequence } from "@/components/assessment/SplashSequence";
 import { markBqComplete } from "@/lib/actions/application";
 import { ACU_URLS } from "@/lib/constants";
+import * as analytics from "@/lib/analytics/events";
 
 type Variant = "student" | "general";
 
@@ -254,7 +255,7 @@ function ExploreCard({
 
 // --- Main ---
 
-export function PersonalityCompleteContent({ variant }: { variant: Variant }) {
+export function PersonalityCompleteContent({ variant, sessionId }: { variant: Variant; sessionId: string }) {
   const [isReady, setIsReady] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -262,7 +263,8 @@ export function PersonalityCompleteContent({ variant }: { variant: Variant }) {
   // Fallback: mark BQ complete for all variants (idempotent — primary write happens in submitPersonalityQuiz)
   useEffect(() => {
     markBqComplete();
-  }, []);
+    analytics.assessmentCompleted(sessionId, variant);
+  }, [sessionId, variant]);
 
   // Focus the h1 after splash completes
   useEffect(() => {

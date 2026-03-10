@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { confirmUpload, reportUploadFailure } from "@/lib/actions/response-upload";
+import * as analytics from "@/lib/analytics/events";
 
 // --- Types ---
 
@@ -290,6 +291,9 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           console.error(
             `[BQ Upload Queue] All retries exhausted for ${job.id}: ${errMsg}`
           );
+
+          // Analytics: track upload failure
+          analytics.uploadFailed(job.sessionId, job.step, job.responsePhase);
 
           // Report failure to server
           reportUploadFailure({
