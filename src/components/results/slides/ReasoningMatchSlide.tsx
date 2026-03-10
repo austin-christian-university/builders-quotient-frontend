@@ -249,32 +249,26 @@ export function ReasoningMatchSlide({
                   >
                     Shared Strengths
                   </p>
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-wrap gap-2">
                     {data.topSharedStrengths.slice(0, 4).map((strength, i) => (
-                      <motion.div
+                      <motion.span
                         key={strength.name}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         transition={{
-                          duration: 0.4,
+                          duration: 0.35,
                           delay: staggerDelay(i, 0.6, 0.08),
                           ease: [0.16, 1, 0.3, 1],
                         }}
-                        className="flex items-center justify-between"
+                        className="rounded-full border px-3 py-1 text-sm"
+                        style={{
+                          borderColor: `${ACCENT_COLOR}35`,
+                          backgroundColor: `${ACCENT_COLOR}10`,
+                          color: "rgba(245,246,250,0.85)",
+                        }}
                       >
-                        <span
-                          className="text-sm"
-                          style={{ color: "rgba(245,246,250,0.8)" }}
-                        >
-                          {strength.name}
-                        </span>
-                        <span
-                          className="text-sm font-semibold tabular-nums"
-                          style={{ color: ACCENT_COLOR }}
-                        >
-                          {Math.round(strength.value)}
-                        </span>
-                      </motion.div>
+                        {strength.name}
+                      </motion.span>
                     ))}
                   </div>
                 </div>
