@@ -14,6 +14,7 @@ export const categoryScoreSchema = z.object({
 export const archetypeSchema = z.object({
   name: z.string(),
   tagline: z.string(),
+  description: z.string(),
   basedOnCategory: z.string(),
   variant: z.enum(["pi", "ci"]),
 });
