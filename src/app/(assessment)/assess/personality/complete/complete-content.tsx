@@ -26,9 +26,7 @@ const transition = {
 };
 
 const personalityLoadingSteps = [
-  "Recording your personality profile\u2026",
-  "Calculating your entrepreneur dimensions\u2026",
-  "Building your complete BQ analysis\u2026",
+  "Saving your results\u2026",
 ];
 
 function PersonalityIcon({ className = "h-10 w-10 text-primary" }: { className?: string }) {
@@ -83,84 +81,63 @@ function RocketIcon({ className = "h-6 w-6 text-primary" }: { className?: string
 
 function StudentVariant() {
   return (
-    <div className="w-full max-w-5xl">
+    <div className="w-full max-w-3xl">
       <motion.div
         variants={fadeUp}
         transition={transition}
-        className="mx-auto mb-16 text-center sm:mb-24"
+        className="mx-auto mb-16 text-center sm:mb-20"
       >
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
-          <HeartIcon className="h-10 w-10 text-secondary" />
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
+          <HeartIcon className="h-8 w-8 text-secondary" />
         </div>
-        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.3em] text-secondary/90">
+        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.4em] text-secondary/90">
           BQ Complete
         </p>
-        <h1 className="mt-4 font-display text-[length:var(--text-fluid-4xl)] font-semibold tracking-tight text-text-primary">
+        <h1 className="mt-4 font-display text-[length:var(--text-fluid-3xl)] font-semibold tracking-tight text-text-primary">
           You&rsquo;re Almost There
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary">
-          What you&rsquo;ve just completed is the first two steps of your application to ACU &mdash; you&rsquo;re basically almost done.
+        <p className="mx-auto mt-6 max-w-xl text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+          What you&rsquo;ve just completed is the first two steps of your application to ACU &mdash; you&rsquo;re basically almost done. Why not go ahead and knock out the last&nbsp;couple&nbsp;steps?
         </p>
       </motion.div>
 
-      <div className="grid gap-6 md:grid-cols-12 md:gap-8">
-        {/* Primary CTA: Finish Application */}
-        <motion.div
-          variants={fadeUp}
-          transition={transition}
-          className="group relative col-span-12 overflow-hidden rounded-[2.5rem] border border-primary/20 bg-bg-surface/80 p-8 shadow-2xl shadow-primary/5 backdrop-blur-2xl sm:p-12 md:col-span-8 lg:p-16"
-        >
-          <div className="pointer-events-none absolute -right-32 -top-32 h-[30rem] w-[30rem] rounded-full bg-primary/20 blur-[120px] transition-transform duration-1000 group-hover:scale-110" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-32 -left-32 h-[20rem] w-[20rem] rounded-full bg-secondary/10 blur-[100px] transition-transform duration-1000 group-hover:-translate-y-10 group-hover:translate-x-10" aria-hidden="true" />
+      <motion.div
+        variants={fadeUp}
+        transition={transition}
+        className="group relative w-full overflow-hidden rounded-[2.5rem] border border-primary/20 bg-bg-surface/80 p-8 text-center shadow-2xl shadow-primary/5 backdrop-blur-2xl sm:p-12 lg:p-16"
+      >
+        <div className="pointer-events-none absolute -right-32 -top-32 h-[30rem] w-[30rem] rounded-full bg-primary/20 blur-[120px] transition-transform duration-1000 group-hover:scale-110" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-32 -left-32 h-[20rem] w-[20rem] rounded-full bg-secondary/10 blur-[100px] transition-transform duration-1000 group-hover:-translate-y-10 group-hover:translate-x-10" aria-hidden="true" />
 
-          <div className="relative z-10 flex h-full flex-col justify-center">
-            <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 shadow-inner backdrop-blur-md">
-              <RocketIcon className="h-8 w-8 text-primary drop-shadow-[0_0_8px_rgba(var(--color-primary),0.5)]" />
-            </div>
-
-            <h2 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-tight text-text-primary">
-              Finish Your Application
-            </h2>
-
-            <div className="mt-5 max-w-xl space-y-4">
-              <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
-                Your intelligence and personality assessments are done. The hardest part is behind you. Complete your application to ACU and take the next step toward building something&nbsp;extraordinary.
-              </p>
-            </div>
-
-            <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center">
-              <Button
-                as="a"
-                href="https://austinchristianu.org/apply"
-                size="lg"
-                className="px-8 shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 hover:shadow-primary/30"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Finish Your Application
-              </Button>
-            </div>
+        <div className="relative z-10 flex h-full flex-col items-center justify-center">
+          <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 shadow-inner backdrop-blur-md">
+            <RocketIcon className="h-8 w-8 text-primary drop-shadow-[0_0_8px_rgba(var(--color-primary),0.5)]" />
           </div>
-        </motion.div>
 
-        {/* Results info card */}
-        <motion.div
-          variants={fadeUp}
-          transition={transition}
-          className="group relative col-span-12 flex flex-col overflow-hidden rounded-[2.5rem] border border-border-glass bg-bg-elevated/40 p-8 shadow-sm backdrop-blur-xl transition-all hover:bg-bg-elevated/80 hover:shadow-lg md:col-span-4 lg:p-10"
-        >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-secondary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl border border-secondary/20 bg-secondary/5 shadow-sm transition-transform duration-500 group-hover:scale-110">
-            <SparklesIcon className="h-7 w-7 text-secondary" />
-          </div>
-          <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-tight text-text-primary">
-            Your Full BQ Results
+          <h2 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-tight text-text-primary">
+            Finish Your Application
           </h2>
-          <p className="mt-3 flex-grow text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
-            Your complete BQ analysis &mdash; intelligence and personality &mdash; will arrive via email within 24&nbsp;hours.
-          </p>
-        </motion.div>
-      </div>
+
+          <div className="mx-auto mt-5 max-w-xl space-y-4">
+            <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
+              Your intelligence and personality assessments are done. The hardest part is behind you. Complete your application to ACU and take the next step toward building something&nbsp;extraordinary.
+            </p>
+          </div>
+
+          <div className="mt-10">
+            <Button
+              as="a"
+              href="https://austinchristianu.org/apply"
+              size="lg"
+              className="px-8 shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 hover:shadow-primary/30"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Finish Your Application
+            </Button>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
@@ -173,18 +150,18 @@ function GeneralVariant() {
       <motion.div
         variants={fadeUp}
         transition={transition}
-        className="mx-auto mb-16 text-center sm:mb-24"
+        className="mx-auto mb-16 text-center sm:mb-20"
       >
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
-          <SparklesIcon className="h-10 w-10 text-secondary" />
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-secondary/20 bg-secondary/5 shadow-lg shadow-secondary/5">
+          <SparklesIcon className="h-8 w-8 text-secondary" />
         </div>
-        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.3em] text-secondary/90">
+        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.4em] text-secondary/90">
           BQ Complete
         </p>
-        <h1 className="mt-4 font-display text-[length:var(--text-fluid-4xl)] font-semibold tracking-tight text-text-primary">
+        <h1 className="mt-4 font-display text-[length:var(--text-fluid-3xl)] font-semibold tracking-tight text-text-primary">
           Your Full BQ Analysis Is Coming
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary">
+        <p className="mx-auto mt-6 max-w-xl text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
           You&rsquo;ll receive your detailed BQ analysis &mdash; intelligence and personality &mdash; via email within 24&nbsp;hours. In the meantime, here&rsquo;s more about what we&rsquo;re building at&nbsp;ACU.
         </p>
       </motion.div>
@@ -239,31 +216,32 @@ function ExploreCard({
   return (
     <motion.div
       variants={fadeUp}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-border-glass bg-bg-surface/40 p-6 shadow-sm backdrop-blur-xl transition-all hover:border-primary/20 hover:bg-bg-elevated/60 hover:shadow-lg sm:p-8"
+      whileHover={{ y: -6, scale: 1.01, transition: { duration: 0.4, ease: "easeOut" } }}
+      className="group relative flex h-full flex-col overflow-hidden rounded-[2.5rem] border border-border-glass bg-bg-elevated/40 p-8 shadow-md backdrop-blur-2xl transition-all hover:border-primary/20 hover:bg-bg-elevated/80 hover:shadow-2xl hover:shadow-primary/5 sm:p-10"
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-primary/20 blur-[60px] transition-transform duration-700 group-hover:translate-x-4 group-hover:-translate-y-4" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-      <div className="mb-6 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-border-glass bg-bg-elevated shadow-inner transition-transform duration-500 group-hover:scale-110 group-hover:border-primary/30 group-hover:shadow-md">
+      <div className="relative mb-6 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-border-glass bg-bg-surface shadow-[0_2px_10px_rgba(0,0,0,0.1)] transition-all duration-700 group-hover:scale-110 group-hover:border-primary/30 group-hover:shadow-[0_0_20px_rgba(var(--color-primary),0.2)]">
         {icon}
       </div>
 
-      <div className="flex flex-grow flex-col">
-        <h2 className="font-display text-[length:var(--text-fluid-lg)] font-bold tracking-tight text-text-primary transition-colors group-hover:text-primary">
+      <div className="relative flex flex-grow flex-col">
+        <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-tight text-text-primary transition-colors group-hover:text-primary">
           {heading}
         </h2>
-        <p className="mt-2 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+        <p className="mt-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
           {body}
         </p>
       </div>
 
-      <div className="mt-8 pt-2">
+      <div className="relative mt-8 pt-2">
         <Button
           as="a"
           href={href}
           variant="outline"
           size="md"
-          className="w-full bg-transparent sm:w-auto"
+          className="w-full rounded-xl border-primary/20 bg-transparent text-text-primary transition-all duration-300 hover:border-primary/50 hover:bg-primary/5 sm:w-auto"
           {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         >
           {buttonLabel}
@@ -300,7 +278,7 @@ export function PersonalityCompleteContent({ variant }: { variant: Variant }) {
   }, [isReady]);
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center overflow-x-hidden pt-12 pb-24">
+    <div className="flex min-h-dvh flex-col items-center justify-center overflow-x-hidden pt-16 pb-28 selection:bg-primary/20 selection:text-white">
       <AnimatePresence mode="wait">
         {!isReady ? (
           <SplashSequence
@@ -322,15 +300,13 @@ export function PersonalityCompleteContent({ variant }: { variant: Variant }) {
             {variant === "student" && <StudentVariant />}
             {variant === "general" && <GeneralVariant />}
 
-            <motion.div
+            <motion.p
               variants={fadeUp}
               transition={{ ...transition, delay: 0.4 }}
-              className="mt-20 text-center"
+              className="mt-16 text-center text-[length:var(--text-fluid-sm)] text-text-muted"
             >
-              <Button as="a" href="/" variant="ghost" size="lg" className="rounded-full px-8 text-text-secondary hover:text-text-primary">
-                Back to Home
-              </Button>
-            </motion.div>
+              Either way, we&rsquo;ll email you your Builders Quotient results when they&rsquo;re&nbsp;ready.
+            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
