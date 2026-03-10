@@ -1,7 +1,10 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase/server";
-import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import {
+  readSessionCookie,
+  refreshSessionCookie,
+} from "@/lib/assessment/session-cookie";
 
 /**
  * Records that a vignette has been served to the student.
@@ -38,5 +41,8 @@ export async function recordVignetteServed(
   if (error) {
     throw new Error("Failed to record vignette served");
   }
+
+  // Extend session cookie TTL so long assessments don't timeout
+  await refreshSessionCookie(sessionId);
 }
 

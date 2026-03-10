@@ -124,13 +124,13 @@ No data on completion rates, drop-off points, or traffic.
 
 ## 10. Session Cookie Refresh
 **Priority: Nice-to-have**
-**Status: Not started**
+**Status: Complete**
 
 The session cookie has a 2-hour TTL from creation. Long assessments could timeout.
 
-- [ ] Evaluate whether to refresh the cookie TTL on each server action
-- [ ] If yes, call `refreshSessionCookie()` in key actions (upload, personality submit)
-- [ ] Test that refresh doesn't break the cooldown logic
+- [x] Evaluate whether to refresh the cookie TTL on each server action
+- [x] Call `refreshSessionCookie()` in `recordVignetteServed` and `savePersonalityPage`
+- [x] Cooldown logic unaffected (it checks `completed_at` timestamp in DB, not cookie expiry)
 
 ---
 

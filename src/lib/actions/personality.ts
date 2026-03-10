@@ -1,7 +1,10 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase/server";
-import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import {
+  readSessionCookie,
+  refreshSessionCookie,
+} from "@/lib/assessment/session-cookie";
 import {
   personalityPageSchema,
   personalitySubmitSchema,
@@ -56,6 +59,9 @@ export async function savePersonalityPage(input: unknown): Promise<{
     .update({ personality_started_at: now })
     .eq("id", sessionId)
     .is("personality_started_at", null);
+
+  // Extend session cookie TTL so long assessments don't timeout
+  await refreshSessionCookie(sessionId);
 
   return { success: true, savedCount: responses.length };
 }
