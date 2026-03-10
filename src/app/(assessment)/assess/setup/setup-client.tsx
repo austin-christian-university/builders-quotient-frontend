@@ -40,6 +40,7 @@ export function SetupClient() {
   const [cameraStatus, setCameraStatus] = useState<DeviceStatus>("pending");
   const [micStatus, setMicStatus] = useState<DeviceStatus>("pending");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   // null = check hasn't run yet, true/false = result of mobile detection
   const [showMobileWarning, setShowMobileWarning] = useState<boolean | null>(
     null
@@ -159,14 +160,19 @@ export function SetupClient() {
   async function handleStart() {
     if (!consentData) return;
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       await createAssessmentSession(consentData);
     } catch (err: unknown) {
       // redirect() from Next.js throws a special internal error that must
       // be re-thrown so the router can handle the navigation.
       if (isRedirectError(err)) throw err;
-      // Any other error is a real failure; reset the button so the user
-      // can retry rather than being stuck in a frozen submitting state.
+      // Any other error is a real failure; show message and reset button.
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
       setIsSubmitting(false);
     }
   }
@@ -267,6 +273,16 @@ export function SetupClient() {
               </button>
               .
             </p>
+          )}
+
+          {/* Submission error */}
+          {submitError && (
+            <div
+              role="alert"
+              className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
+            >
+              {submitError}
+            </div>
           )}
 
           {/* Start button */}

@@ -36,13 +36,13 @@ Create `middleware.ts` at project root to set response headers on all routes.
 
 ## 3. Assessment Form Fallback
 **Priority: Must-fix**
-**Status: Not started**
+**Status: Complete**
 
 If the `assessment_forms` table has no active rows, session creation crashes with an unhandled error.
 
-- [ ] Add graceful error handling in `selectAssessmentForm()` or its caller
-- [ ] Show a user-friendly "assessment unavailable" page instead of crashing
-- [ ] Log the error server-side so we know it happened
+- [x] Add graceful error handling in `selectAssessmentForm()` or its caller
+- [x] Show a user-friendly "assessment unavailable" page instead of crashing
+- [x] Log the error server-side so we know it happened
 
 ---
 

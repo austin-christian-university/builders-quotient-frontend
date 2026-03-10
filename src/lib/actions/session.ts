@@ -117,7 +117,15 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
   }
 
   // 2. Select a random assessment form (pre-built vignette pair)
-  const { piVignetteIds, ciVignetteIds } = await selectAssessmentForm();
+  let formResult: Awaited<ReturnType<typeof selectAssessmentForm>>;
+  try {
+    formResult = await selectAssessmentForm();
+  } catch {
+    throw new Error(
+      "The assessment is temporarily unavailable. Please try again later."
+    );
+  }
+  const { piVignetteIds, ciVignetteIds } = formResult;
 
   // 3. Create the assessment session
   const { data: session, error: sessionError } = await supabase
