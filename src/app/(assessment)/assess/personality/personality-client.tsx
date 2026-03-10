@@ -200,6 +200,32 @@ export function PersonalityClient({
 
   const pageAllAnswered = currentItems.every((item) => responses[item.id]);
 
+  // Keep refs in sync so the keydown listener always calls the latest version
+  const handleNextRef = useRef(handleNext);
+  const handleSubmitRef = useRef(handleSubmit);
+  useEffect(() => {
+    handleNextRef.current = handleNext;
+    handleSubmitRef.current = handleSubmit;
+  });
+
+  // Enter key advances to next page (or submits on last page)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Enter") return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      if (isLastPage) {
+        handleSubmitRef.current();
+      } else {
+        handleNextRef.current();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isLastPage]);
+
   return (
     <div className="flex min-h-dvh flex-col">
       <PersonalityProgress
