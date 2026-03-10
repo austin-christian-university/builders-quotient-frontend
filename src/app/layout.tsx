@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Inter_Tight } from "next/font/google";
 import "./globals.css";
 import { GlobalDevToolbar } from "@/components/dev/GlobalDevToolbar";
+import { SITE_URL } from "@/lib/constants";
 
 const inter = Inter({
   variable: "--font-inter-sans",
@@ -29,10 +30,10 @@ export const metadata: Metadata = {
       "Measure your entrepreneurial intelligence through AI-narrated vignettes and personality profiling.",
     siteName: "Builders Quotient",
     type: "website",
-    url: "https://bq.austinchristianu.org",
+    url: SITE_URL,
     images: [
       {
-        url: "https://bq.austinchristianu.org/og-image.jpg",
+        url: `${SITE_URL}/og-image.jpg`,
         width: 1200,
         height: 800,
         alt: "Austin Christian University",
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
     title: "Builders Quotient | Austin Christian University",
     description:
       "Measure your entrepreneurial intelligence through AI-narrated vignettes and personality profiling.",
-    images: ["https://bq.austinchristianu.org/og-image.jpg"],
+    images: [`${SITE_URL}/og-image.jpg`],
   },
 };
 

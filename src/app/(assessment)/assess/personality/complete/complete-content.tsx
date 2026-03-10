@@ -6,6 +6,7 @@ import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
 import { SplashSequence } from "@/components/assessment/SplashSequence";
 import { markBqComplete } from "@/lib/actions/application";
+import { ACU_URLS } from "@/lib/constants";
 
 type Variant = "student" | "general";
 
@@ -127,7 +128,7 @@ function StudentVariant() {
           <div className="mt-10">
             <Button
               as="a"
-              href="https://austinchristianu.org/apply"
+              href={ACU_URLS.apply}
               size="lg"
               className="px-8 shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 hover:shadow-primary/30"
               target="_blank"
@@ -172,7 +173,7 @@ function GeneralVariant() {
           heading="Discover ACU"
           body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
           buttonLabel="Visit Our Home"
-          href="https://austinchristianu.org"
+          href={ACU_URLS.home}
           external
         />
         <ExploreCard
@@ -180,7 +181,7 @@ function GeneralVariant() {
           heading="Explore Curriculum"
           body="See the programs and courses designed to build the next generation of entrepreneurs."
           buttonLabel="View Curriculum"
-          href="https://austinchristianu.org/curriculum"
+          href={ACU_URLS.curriculum}
           external
         />
         <ExploreCard
@@ -188,7 +189,7 @@ function GeneralVariant() {
           heading="Startups &amp; Projects"
           body="Our accelerator connects students with real ventures from day&nbsp;one so they can make a real impact."
           buttonLabel="The Accelerator"
-          href="https://austinchristianu.org"
+          href={ACU_URLS.home}
           external
         />
       </div>

@@ -6,6 +6,7 @@ import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
 import { SplashSequence } from "@/components/assessment/SplashSequence";
 import { CooldownBanner } from "@/components/assessment/CooldownBanner";
+import { ACU_URLS } from "@/lib/constants";
 
 type Variant = "student" | "general" | "default";
 
@@ -347,7 +348,7 @@ function StudentVariant() {
             heading="Discover ACU"
             body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
             buttonLabel="Visit Our Home"
-            href="https://austinchristianu.org"
+            href={ACU_URLS.home}
             external
           />
           <ExploreCard
@@ -355,7 +356,7 @@ function StudentVariant() {
             heading="Explore Curriculum"
             body="See the programs and courses designed to build the next generation of entrepreneurs."
             buttonLabel="View Curriculum"
-            href="https://austinchristianu.org/curriculum"
+            href={ACU_URLS.curriculum}
             external
           />
         </div>
@@ -406,7 +407,7 @@ function GeneralVariant() {
             heading="Discover ACU"
             body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
             buttonLabel="Visit Our Home"
-            href="https://austinchristianu.org"
+            href={ACU_URLS.home}
             external
           />
           <ExploreCard
@@ -414,7 +415,7 @@ function GeneralVariant() {
             heading="Explore Curriculum"
             body="See the programs and courses designed to build the next generation of entrepreneurs."
             buttonLabel="View Curriculum"
-            href="https://austinchristianu.org/curriculum"
+            href={ACU_URLS.curriculum}
             external
           />
           <ExploreCard
@@ -422,7 +423,7 @@ function GeneralVariant() {
             heading="Startups &amp; Projects"
             body="Our accelerator connects students with real startups from day&nbsp;one."
             buttonLabel="The Accelerator"
-            href="https://www.austinchristianuniversity.org/startups"
+            href={ACU_URLS.startups}
             external
           />
         </div>
@@ -471,7 +472,7 @@ function DefaultVariant() {
             heading="Discover ACU"
             body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient."
             buttonLabel="Visit Our Home"
-            href="https://austinchristianu.org"
+            href={ACU_URLS.home}
             external
           />
           <ExploreCard
@@ -479,7 +480,7 @@ function DefaultVariant() {
             heading="Explore Curriculum"
             body="See the programs designed to build the next generation of entrepreneurs."
             buttonLabel="View Curriculum"
-            href="https://austinchristianu.org/curriculum"
+            href={ACU_URLS.curriculum}
             external
           />
         </div>

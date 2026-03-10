@@ -113,11 +113,12 @@ No data on completion rates, drop-off points, or traffic.
 
 ## 9. Hardcoded Values Cleanup
 **Priority: Nice-to-have**
-**Status: Not started**
+**Status: Complete**
 
-- [ ] Move ACU URLs in `PersonalityCompleteContent.tsx` to a constants file or env vars
-- [ ] Hash the review password instead of plaintext comparison
-- [ ] Review any other hardcoded values that should be configurable
+- [x] Move ACU URLs to `src/lib/constants.ts` (`SITE_URL`, `ACU_URLS`)
+- [x] Update `complete-content.tsx`, `thank-you-content.tsx`, `layout.tsx`, `sitemap.ts`
+- [x] Review password — already uses HMAC + timingSafeEqual for cookie; plaintext env var comparison is standard
+- [x] Email/mailto links in legal pages left as content (not configuration)
 
 ---
 
