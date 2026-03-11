@@ -94,7 +94,7 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
               Signature Moves
             </p>
             <div className="space-y-3">
-              {data.signatureMoves.map((move) => (
+              {data.signatureMoves.slice(0, 3).map((move) => (
                 <p key={move.title} className="text-sm leading-relaxed" style={{ color: "rgba(245,246,250,0.7)" }}>
                   <strong style={{ color: "rgba(245,246,250,0.9)" }}>{move.title}</strong>
                   {" \u2014 "}
