@@ -34,7 +34,7 @@ src/
 
 ## Build, Test, and Development Commands
 
-Install with `npm install`, run dev server with `npm run dev`, build with `npm run build`, lint with `npm run lint`. No test framework is set up yet; when added, use Vitest with `npm test`.
+Install with `npm install`, run dev server with `npm run dev`, build with `npm run build`, lint with `npm run lint`. Tests use Vitest: `npm test` (watch mode) or `npm run test:run` (single pass). Coverage via `npm run test:coverage`.
 
 ## Tech Stack
 
