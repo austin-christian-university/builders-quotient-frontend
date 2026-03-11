@@ -322,7 +322,7 @@ export async function getResultsByToken(
   // 2. Find their scored/completed session (prefer "scored" over "completed")
   const { data: scoredSession } = await supabase
     .from("assessment_sessions")
-    .select("id, assessment_type")
+    .select("id, assessment_type, archetype_name, archetype_tagline, archetype_description, archetype_based_on_category, archetype_variant")
     .eq("applicant_id", applicant.id)
     .eq("status", "scored")
     .order("created_at", { ascending: false })
@@ -334,7 +334,7 @@ export async function getResultsByToken(
     (
       await supabase
         .from("assessment_sessions")
-        .select("id, assessment_type")
+        .select("id, assessment_type, archetype_name, archetype_tagline, archetype_description, archetype_based_on_category, archetype_variant")
         .eq("applicant_id", applicant.id)
         .eq("status", "completed")
         .order("created_at", { ascending: false })
@@ -373,8 +373,19 @@ export async function getResultsByToken(
   const piRadar = computeRadarFromMoveDetails(scored, "practical");
   const ciRadar = computeRadarFromMoveDetails(scored, "creative");
 
-  // 7. Archetype
-  const archetype = deriveArchetype(piCategories, ciCategories);
+  // 7. Archetype — read from DB, fallback to client derivation during transition
+  const archetype =
+    session.archetype_name && session.archetype_tagline && session.archetype_description && session.archetype_variant
+      ? {
+          name: session.archetype_name as string,
+          tagline: session.archetype_tagline as string,
+          description: session.archetype_description as string,
+          ...(session.archetype_based_on_category
+            ? { basedOnCategory: session.archetype_based_on_category as string }
+            : {}),
+          variant: session.archetype_variant as "pi" | "ci" | "balanced",
+        }
+      : deriveArchetype(piCategories, ciCategories);
 
   // 8. Intelligence narrative
   const intelligenceNarrative = getIntelligenceNarrative(piCategories, ciCategories);

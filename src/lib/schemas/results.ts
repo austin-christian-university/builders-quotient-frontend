@@ -15,8 +15,8 @@ export const archetypeSchema = z.object({
   name: z.string(),
   tagline: z.string(),
   description: z.string(),
-  basedOnCategory: z.string(),
-  variant: z.enum(["pi", "ci"]),
+  basedOnCategory: z.string().optional(),
+  variant: z.enum(["pi", "ci", "balanced"]),
 });
 
 // --- Entrepreneur narrative match sub-schemas ---

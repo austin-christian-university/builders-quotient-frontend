@@ -8,14 +8,26 @@ type Props = {
 };
 
 export function ArchetypeSlide({ data }: Props) {
-    const isPI = data.variant === "pi";
+    const variantBg =
+        data.variant === "pi"
+            ? "bg-primary"
+            : data.variant === "ci"
+              ? "bg-secondary"
+              : "bg-gradient-to-r from-primary to-secondary";
+
+    const variantGradient =
+        data.variant === "pi"
+            ? "from-primary"
+            : data.variant === "ci"
+              ? "from-secondary"
+              : "from-primary via-secondary";
 
     return (
         <section className="flex h-full flex-col items-center justify-center px-6 relative overflow-hidden">
-            {/* Domain-colored background glow: blue for PI, gold for CI */}
+            {/* Domain-colored background glow: blue for PI, gold for CI, blended for balanced */}
             <motion.div
                 aria-hidden="true"
-                className={`absolute w-[100vw] h-[100vw] max-w-[800px] max-h-[800px] rounded-full blur-[120px] bottom-0 left-1/2 -translate-x-1/2 mix-blend-screen opacity-30 ${isPI ? "bg-primary" : "bg-secondary"}`}
+                className={`absolute w-[100vw] h-[100vw] max-w-[800px] max-h-[800px] rounded-full blur-[120px] bottom-0 left-1/2 -translate-x-1/2 mix-blend-screen opacity-30 ${variantBg}`}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 0.3, scale: 1 }}
                 transition={{ duration: 2, ease: "easeOut" }}
@@ -40,7 +52,7 @@ export function ArchetypeSlide({ data }: Props) {
                     {/* Inner glow */}
                     <div
                         aria-hidden="true"
-                        className={`absolute inset-0 opacity-20 bg-gradient-to-br ${isPI ? "from-primary" : "from-secondary"} to-transparent`}
+                        className={`absolute inset-0 opacity-20 bg-gradient-to-br ${variantGradient} to-transparent`}
                     />
 
                     {/* Gloss reflection overlay */}
