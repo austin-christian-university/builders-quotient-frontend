@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { ResultsPageData, CategoryScore } from "@/lib/schemas/results";
 import { PI_TEMPLATES, CI_TEMPLATES } from "@/lib/assessment/narrative-templates";
 
+import { ResultsSplashScreen } from "./ResultsSplashScreen";
 import { ArchetypeSlide } from "./slides/ArchetypeSlide";
 import { ReasoningHighlightsSlide } from "./slides/ReasoningHighlightsSlide";
 import { IntelligenceRadarSlide } from "./slides/IntelligenceRadarSlide";
@@ -53,14 +54,11 @@ function buildHighlights(
 // ---------------------------------------------------------------------------
 
 function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(min-width: 768px)").matches
-      : false,
-  );
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mql.matches);
     function onChange(e: MediaQueryListEvent) {
       setIsDesktop(e.matches);
     }
@@ -137,18 +135,26 @@ type Props = {
 export function ResultsExperience({ data }: Props) {
   const isDesktop = useIsDesktop();
   const reducedMotion = usePrefersReducedMotion();
+  const [splashComplete, setSplashComplete] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
 
-  // Analytics: track results viewed
-  useEffect(() => {
-    analytics.resultsViewed();
+  const handleSplashComplete = useCallback(() => {
+    setSplashComplete(true);
   }, []);
+
+  // Analytics: track results viewed (after splash)
+  useEffect(() => {
+    if (splashComplete) {
+      analytics.resultsViewed();
+    }
+  }, [splashComplete]);
 
   const sections = useMemo(() => {
     const s: React.ReactNode[] = [
-      // 1. Archetype Reveal
-      <ArchetypeSlide key="archetype" data={data.archetype} />,
+      // 1. Archetype Reveal — key includes splashComplete so it remounts
+      // after the splash exits, replaying its entrance animations visibly
+      <ArchetypeSlide key={`archetype-${splashComplete}`} data={data.archetype} />,
 
       // 2. Reasoning Highlights
       <ReasoningHighlightsSlide
@@ -233,18 +239,22 @@ export function ResultsExperience({ data }: Props) {
     s.push(
       <ShareApplySlide
         key="share"
-        archetype={data.archetype}
-        assessmentType={data.applicant.assessmentType}
+        data={data}
       />,
     );
 
     return s;
-  }, [data]);
+  }, [data, splashComplete]);
 
   const isFirst = currentSection === 0;
   const isLast = currentSection === sections.length - 1;
 
+  // Track whether user has navigated — skip enter animation on first mount
+  // to avoid axis-flip bug (isDesktop SSR mismatch causes stuck translateX)
+  const hasNavigated = useRef(false);
+
   const goNext = useCallback(() => {
+    hasNavigated.current = true;
     setCurrentSection((prev) => {
       if (prev >= sections.length - 1) return prev;
       setDirection(1);
@@ -253,6 +263,7 @@ export function ResultsExperience({ data }: Props) {
   }, [sections.length]);
 
   const goPrev = useCallback(() => {
+    hasNavigated.current = true;
     setCurrentSection((prev) => {
       if (prev <= 0) return prev;
       setDirection(-1);
@@ -263,6 +274,7 @@ export function ResultsExperience({ data }: Props) {
   // Keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      if (!splashComplete) return;
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -312,41 +324,52 @@ export function ResultsExperience({ data }: Props) {
   };
 
   return (
-    <main className="relative h-[100svh] overflow-hidden bg-bg-base">
-      {/* Progress indicator */}
-      <div className="absolute right-4 top-4 z-10 text-xs text-text-secondary md:bottom-4 md:left-4 md:right-auto md:top-auto">
-        {currentSection + 1}&thinsp;/&thinsp;{sections.length}
-      </div>
+    <>
+      {!splashComplete && (
+        <ResultsSplashScreen onComplete={handleSplashComplete} />
+      )}
 
-      {/* Section content */}
-      {reducedMotion ? (
-        <div className="h-full" key={currentSection}>
-          {sections[currentSection]}
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: splashComplete ? 1 : 0 }}
+        transition={reducedMotion ? { duration: 0.15 } : { duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="relative h-[100svh] overflow-hidden bg-bg-base"
+      >
+        {/* Progress indicator */}
+        <div className="absolute right-4 top-4 z-10 text-xs text-text-secondary md:bottom-4 md:left-4 md:right-auto md:top-auto">
+          {currentSection + 1}&thinsp;/&thinsp;{sections.length}
         </div>
-      ) : (
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentSection}
-            custom={direction}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={transition}
-            className="h-full"
-          >
-            {sections[currentSection]}
-          </motion.div>
-        </AnimatePresence>
-      )}
 
-      {/* Navigation arrows */}
-      {!isFirst && (
-        <NavArrow direction="back" onClick={goPrev} isDesktop={isDesktop} />
-      )}
-      {!isLast && (
-        <NavArrow direction="forward" onClick={goNext} isDesktop={isDesktop} />
-      )}
-    </main>
+        {/* Section content */}
+        {reducedMotion ? (
+          <div className="h-full" key={currentSection}>
+            {sections[currentSection]}
+          </div>
+        ) : (
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentSection}
+              custom={direction}
+              variants={variants}
+              initial={hasNavigated.current ? "enter" : false}
+              animate="center"
+              exit="exit"
+              transition={transition}
+              className="h-full"
+            >
+              {sections[currentSection]}
+            </motion.div>
+          </AnimatePresence>
+        )}
+
+        {/* Navigation arrows */}
+        {!isFirst && (
+          <NavArrow direction="back" onClick={goPrev} isDesktop={isDesktop} />
+        )}
+        {!isLast && (
+          <NavArrow direction="forward" onClick={goNext} isDesktop={isDesktop} />
+        )}
+      </motion.main>
+    </>
   );
 }
