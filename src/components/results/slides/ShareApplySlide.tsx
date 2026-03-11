@@ -3,7 +3,9 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "motion/react";
 import type { ResultsPageData } from "@/lib/schemas/results";
-import { toPng } from "html-to-image";
+import { toBlob } from "html-to-image";
+import { RadarChart } from "@/components/results/RadarChart";
+import { getShortLabel } from "@/components/results/short-labels";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -38,64 +40,80 @@ const LinkIcon = () => (
 // Card Components
 // ---------------------------------------------------------------------------
 
-function FounderMatchCard({ data, isExporting }: { data: ResultsPageData, isExporting: boolean }) {
-    const primary = data.reasoningMatch?.primary || data.communicationMatch?.primary;
+interface MatchupCardProps {
+    data: ResultsPageData;
+    matchType: "reasoning" | "communication";
+    isExporting: boolean;
+}
+
+function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
+    const match = matchType === "reasoning" ? data.reasoningMatch : data.communicationMatch;
+    const primary = match?.primary;
     if (!primary) return null;
 
+    const accentColor = matchType === "reasoning" ? "#4da3ff" : "#e9b949";
+    const label = matchType === "reasoning" ? "Reasoning Match" : "Communication Match";
+    const founderLabel = matchType === "reasoning" ? "Thinks Like" : "Communicates Like";
+    const displayName = data.applicant.displayName || "You";
+
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] p-6 relative overflow-hidden text-left" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            {/* Glow layers */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#4da3ff]/10 to-transparent pointer-events-none" />
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#4da3ff]/20 blur-3xl rounded-full" />
+        <div className="flex flex-col h-full bg-[#0a0a0c] p-6 relative overflow-hidden" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+            {/* Glow */}
+            <div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full blur-[60px] pointer-events-none"
+                style={{ background: `${accentColor}18` }}
+            />
 
             <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-center mb-8">
-                    <span className="uppercase tracking-[0.2em] text-[10px] text-white/50 font-medium font-mono">Founder Match</span>
-                    <div className="w-6 h-6 rounded-full border border-white/20 bg-white/10" />
+                {/* Eyebrow */}
+                <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold mb-auto">
+                    {label}
+                </span>
+
+                {/* Match area */}
+                <div className="flex flex-col items-center gap-3 my-auto text-center">
+                    {/* You */}
+                    <div>
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-white/35 font-semibold mb-1">You</p>
+                        <p className="font-display text-lg font-bold text-white leading-tight">{displayName}</p>
+                        <p className="text-[10px] font-semibold mt-1" style={{ color: accentColor }}>
+                            {data.archetype.name}
+                        </p>
+                    </div>
+
+                    {/* Connector */}
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-px bg-white/12" />
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/20">
+                            <path d="M8 3l4 4-4 4" /><path d="M16 21l-4-4 4-4" /><line x1="12" y1="7" x2="12" y2="17" />
+                        </svg>
+                        <div className="w-8 h-px bg-white/12" />
+                    </div>
+
+                    {/* Founder */}
+                    <div>
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-white/35 font-semibold mb-1">{founderLabel}</p>
+                        <p className="font-display text-2xl font-extrabold text-white leading-tight">
+                            {primary.entrepreneurName}
+                        </p>
+                        {primary.companies && primary.companies.length > 0 && (
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] mt-1" style={{ color: `${accentColor}CC` }}>
+                                {primary.companies.join(", ")}
+                            </p>
+                        )}
+                    </div>
                 </div>
 
-                <p className="text-sm text-white/60 mb-1">Your Builder Profile aligns with</p>
-                <h2 className="font-display text-4xl font-bold text-white leading-none tracking-tight">
-                    {primary.entrepreneurName}
-                </h2>
-
-                {primary.companies && primary.companies.length > 0 && (
-                    <p className="mt-2 text-xs text-[#4da3ff]/80 font-medium tracking-wide uppercase">
-                        {primary.companies.join(", ")}
-                    </p>
-                )}
-
-                {/* Content to fill space */}
-                <div className="mt-6 flex flex-col gap-4">
-                    {(primary.domainStyle || primary.bioNarrative) && (
-                        <div>
-                            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1.5 font-mono">The Playbook</p>
-                            <p className="text-sm text-white/80 leading-relaxed line-clamp-4">
-                                {primary.domainStyle || primary.bioNarrative}
-                            </p>
-                        </div>
-                    )}
-                    {primary.strengths && (
-                        <div>
-                            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1.5 font-mono">Superpower</p>
-                            <p className="text-sm text-white/80 leading-relaxed line-clamp-3">
-                                {primary.strengths}
-                            </p>
-                        </div>
-                    )}
-                </div>
-
+                {/* Footer */}
                 <div className="mt-auto">
-                    <div className="h-px w-full bg-gradient-to-r from-white/20 to-transparent mb-4" />
-                    <div className="flex items-end justify-between">
-                        <div>
-                            <p className="font-bold text-white text-lg leading-tight">{data.archetype.name}</p>
-                            <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1 font-mono">Builder&rsquo;s Quotient</p>
-                        </div>
-                        <div className="h-6 opacity-60">
+                    <div className="h-px w-full bg-gradient-to-r from-white/15 to-transparent mb-3" />
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="h-14 opacity-60">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/white_crest_and_wordmark.png" alt="ACU" className="h-full w-auto object-contain" />
+                            <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
                         </div>
+                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Match</p>
+                        <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
             </div>
@@ -103,52 +121,63 @@ function FounderMatchCard({ data, isExporting }: { data: ResultsPageData, isExpo
     );
 }
 
-function SuperpowerCard({ data, isExporting }: { data: ResultsPageData, isExporting: boolean }) {
-    // Combine PI and CI, sort by score, take top 3
-    const combined = [...data.piCategories, ...data.ciCategories]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 3);
+interface RadarShareCardProps {
+    data: ResultsPageData;
+    variant: "pi" | "ci";
+    isExporting: boolean;
+}
+
+function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
+    const radar = variant === "pi" ? data.piRadar : data.ciRadar;
+    if (radar.length === 0) return null;
+
+    const accentColor = variant === "pi" ? "#4da3ff" : "#e9b949";
+    const subtitle = variant === "pi" ? "Practical Intelligence" : "Creative Intelligence";
+
+    const categories = radar.map((c) => getShortLabel(c.category));
+    const rawScores = radar.map((c) => c.studentScore);
+    const maxScore = Math.max(...rawScores) || 1;
+    const studentScores = rawScores.map((s) => (s / maxScore) * 100);
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] p-6 relative overflow-hidden text-left" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            <div className="absolute inset-0 bg-gradient-to-bl from-[#e9b949]/10 to-transparent pointer-events-none" />
-            <div className="absolute -top-12 -left-12 w-32 h-32 bg-[#e9b949]/20 blur-3xl rounded-full" />
+        <div className="flex flex-col h-full bg-[#0a0a0c] p-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+            {/* Glow */}
+            <div
+                className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-[50px] pointer-events-none"
+                style={{ background: `${accentColor}20` }}
+            />
 
             <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-center mb-8">
-                    <span className="uppercase tracking-[0.2em] text-[10px] text-white/50 font-medium font-mono">Top Traits</span>
-                    <div className="w-6 h-6 rounded-full border border-white/20 bg-white/10" />
+                {/* Eyebrow + subtitle */}
+                <div className="mb-2">
+                    <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold">Builder DNA</span>
+                    <p className="text-[10px] font-semibold mt-1" style={{ color: `${accentColor}AA` }}>
+                        {subtitle}
+                    </p>
                 </div>
 
-                <div className="flex flex-col gap-5 flex-1 justify-center">
-                    {combined.map((trait, i) => (
-                        <div key={i}>
-                            <div className="flex justify-between text-xs mb-1">
-                                <span className="font-medium text-white/90">{trait.category}</span>
-                                <span className="text-[#e9b949] font-bold text-[10px]">{Math.round(trait.score)}th percentile</span>
-                            </div>
-                            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden relative">
-                                {/* We use width directly for html-to-image compatibility instead of Framer Motion animation width */}
-                                <div
-                                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#e9b949]/50 to-[#e9b949] rounded-full"
-                                    style={{ width: `${trait.score}%` }}
-                                />
-                            </div>
-                        </div>
-                    ))}
+                {/* Radar */}
+                <div className="flex-1 flex items-center justify-center min-h-0">
+                    <RadarChart
+                        categories={categories}
+                        studentScores={studentScores}
+                        accentColor={accentColor}
+                        size={320}
+                        maxValue={100}
+                        gridStyle="axesOnly"
+                    />
                 </div>
 
+                {/* Footer */}
                 <div className="mt-auto">
-                    <div className="h-px w-full bg-gradient-to-r from-white/20 to-transparent mb-4" />
-                    <div className="flex items-end justify-between">
-                        <div>
-                            <p className="font-bold text-white text-lg leading-tight">{data.archetype.name}</p>
-                            <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1 font-mono">Builder&rsquo;s Quotient</p>
-                        </div>
-                        <div className="h-6 opacity-60">
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent mb-3" />
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="h-14 opacity-60">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/white_crest_and_wordmark.png" alt="ACU" className="h-full w-auto object-contain" />
+                            <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
                         </div>
+                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Profile</p>
+                        <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
             </div>
@@ -176,14 +205,15 @@ function ArchetypeCard({ data, isExporting }: { data: ResultsPageData, isExporti
                     &ldquo;{data.archetype.tagline}&rdquo;
                 </p>
 
-                <div className="mt-auto w-full text-left pt-6">
+                <div className="mt-auto w-full pt-6">
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4" />
-                    <div className="flex justify-between items-end px-2">
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest font-mono">Builder&rsquo;s Quotient</p>
-                        <div className="h-6 opacity-60">
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="h-14 opacity-60">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/white_crest_and_wordmark.png" alt="ACU" className="h-full w-auto object-contain" />
+                            <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
                         </div>
+                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Archetype</p>
+                        <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
             </div>
@@ -217,6 +247,10 @@ function TiltWrapper({
     const sheenPositionX = useTransform(mouseXSpring, [-0.5, 0.5], ["100%", "0%"]);
     const sheenPositionY = useTransform(mouseYSpring, [-0.5, 0.5], ["100%", "0%"]);
     const sheenOpacity = useTransform(() => Math.abs(x.get()) + Math.abs(y.get()));
+
+    // Derive sheen styles unconditionally (hooks can't be inside conditional JSX)
+    const sheenBgPosition = useTransform(() => `${sheenPositionX.get()} ${sheenPositionY.get()}`);
+    const sheenBgOpacity = useTransform(() => Math.min(sheenOpacity.get() * 2, 0.5));
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (isExporting) return;
@@ -269,9 +303,9 @@ function TiltWrapper({
                         <motion.div
                             className="absolute inset-0 pointer-events-none mix-blend-screen rounded-2xl bg-gradient-to-tr from-white/0 via-white/30 to-white/0"
                             style={{
-                                backgroundPosition: useTransform(() => `${sheenPositionX.get()} ${sheenPositionY.get()}`),
+                                backgroundPosition: sheenBgPosition,
                                 backgroundSize: '200% 200%',
-                                opacity: useTransform(() => Math.min(sheenOpacity.get() * 2, 0.5)),
+                                opacity: sheenBgOpacity,
                             }}
                         />
                     )}
@@ -298,14 +332,35 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
     const printRef = useRef<HTMLDivElement>(null);
 
     // Build available cards dynamically
-    const cards: { id: string; component: React.ElementType<{ data: ResultsPageData, isExporting: boolean }> }[] = [];
-    if (data.reasoningMatch?.primary || data.communicationMatch?.primary) {
-        cards.push({ id: 'founder', component: FounderMatchCard });
+    const cards: { id: string; render: (exp: boolean) => React.ReactNode }[] = [];
+    if (data.reasoningMatch?.primary) {
+        cards.push({
+            id: "reasoning-match",
+            render: (exp) => <MatchupCard data={data} matchType="reasoning" isExporting={exp} />,
+        });
     }
-    if (data.piCategories.length > 0 || data.ciCategories.length > 0) {
-        cards.push({ id: 'superpower', component: SuperpowerCard });
+    if (data.communicationMatch?.primary) {
+        cards.push({
+            id: "communication-match",
+            render: (exp) => <MatchupCard data={data} matchType="communication" isExporting={exp} />,
+        });
     }
-    cards.push({ id: 'archetype', component: ArchetypeCard });
+    if (data.piRadar.length > 0) {
+        cards.push({
+            id: "pi-radar",
+            render: (exp) => <RadarShareCard data={data} variant="pi" isExporting={exp} />,
+        });
+    }
+    if (data.ciRadar.length > 0) {
+        cards.push({
+            id: "ci-radar",
+            render: (exp) => <RadarShareCard data={data} variant="ci" isExporting={exp} />,
+        });
+    }
+    cards.push({
+        id: "archetype",
+        render: (exp) => <ArchetypeCard data={data} isExporting={exp} />,
+    });
 
     const handleNext = () => {
         setDirection(1);
@@ -318,7 +373,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
     };
 
     const handleCopyLink = useCallback(async () => {
-        const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
+        const shareUrl = typeof window !== "undefined" ? window.location.href : "";
         try {
             await navigator.clipboard.writeText(shareUrl);
             setCopied(true);
@@ -333,21 +388,60 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
         try {
             setIsExporting(true);
 
-            // Allow a tiny moment for Framer Motion to snap rotate to 0deg before capture
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            // Let Framer Motion snap to flat (0deg rotation) before capture
+            await new Promise((resolve) => setTimeout(resolve, 150));
 
-            const dataUrl = await toPng(printRef.current, {
-                quality: 1,
-                pixelRatio: 3,
-                cacheBust: true,
-                style: { transform: 'none' } // guarantee flat capture for mobile devices
+            // Inline <img> srcs as data URLs so the cloner doesn't re-fetch
+            const imgs = printRef.current.querySelectorAll("img");
+            const originalSrcs: string[] = [];
+            for (const img of imgs) {
+                originalSrcs.push(img.src);
+                try {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    canvas.getContext("2d")!.drawImage(img, 0, 0);
+                    img.src = canvas.toDataURL("image/png");
+                } catch { /* keep original */ }
+            }
+
+            const blob = await toBlob(printRef.current, {
+                pixelRatio: 2,
+                style: { transform: "none" },
+                skipFonts: true,
+                filter: (node: HTMLElement) => {
+                    // Skip decorative blur overlays that slow serialization
+                    if (node.style?.filter?.includes("blur") || node.className?.includes?.("blur-")) {
+                        return false;
+                    }
+                    return true;
+                },
             });
 
-            const link = document.createElement('a');
-            link.download = `builder-profile-${cards[currentIndex].id}.png`;
-            link.href = dataUrl;
-            link.click();
+            // Restore original image srcs
+            imgs.forEach((img, i) => { img.src = originalSrcs[i]; });
+
+            if (!blob) throw new Error("Image capture returned empty");
+
+            const filename = `builder-profile-${cards[currentIndex].id}.png`;
+            const file = new File([blob], filename, { type: "image/png" });
+
+            // Try Web Share API first (works on mobile Safari / Android)
+            if (navigator.canShare?.({ files: [file] })) {
+                await navigator.share({ files: [file] });
+            } else {
+                // Blob URL + anchor download (desktop)
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.download = filename;
+                link.href = blobUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
+            }
         } catch (err) {
+            if (err instanceof Error && err.name === "AbortError") return;
             console.error("Capture failed:", err);
         } finally {
             setIsExporting(false);
@@ -355,7 +449,6 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
     }, [currentIndex, cards]);
 
     const isAdmissions = data.applicant.assessmentType === "admissions";
-    const CurrentCardComponent = cards[currentIndex].component;
 
     // Animation variants for carousel
     const slideVariants = {
@@ -438,7 +531,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                                 transition={{ duration: 0.4, ease: EASE }}
                                 className="absolute inset-0"
                             >
-                                <CurrentCardComponent data={data} isExporting={isExporting} />
+                                {cards[currentIndex].render(isExporting)}
                             </motion.div>
                         </AnimatePresence>
                     </TiltWrapper>
