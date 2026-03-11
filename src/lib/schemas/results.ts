@@ -19,42 +19,29 @@ export const archetypeSchema = z.object({
   variant: z.enum(["pi", "ci"]),
 });
 
-// --- Entrepreneur match sub-schemas ---
+// --- Entrepreneur narrative match sub-schemas ---
 
-export const categoryProfilePointSchema = z.object({
-  category: z.string(),
-  value: z.number(),
+export const signatureMoveSchema = z.object({
+  title: z.string(),
+  description: z.string(),
 });
 
-export const sharedTraitSchema = z.object({
-  name: z.string(),
-  value: z.number(),
-});
-
-export const traitDifferenceSchema = z.object({
-  name: z.string(),
-  studentValue: z.number(),
-  entrepreneurValue: z.number(),
-});
-
-export const runnerUpSchema = z.object({
-  name: z.string(),
-  similarity: z.number(),
-});
-
-export const entrepreneurMatchSchema = z.object({
+export const entrepreneurNarrativeSchema = z.object({
   entrepreneurName: z.string(),
   entrepreneurId: z.string(),
-  cosineSimilarity: z.number(),
-  bioSnippet: z.string().nullable(),
-  category: z.string(),
   companies: z.array(z.string()),
   industries: z.array(z.string()),
-  studentProfile: z.array(categoryProfilePointSchema),
-  entrepreneurProfile: z.array(categoryProfilePointSchema),
-  topSharedTraits: z.array(sharedTraitSchema),
-  biggestDifferences: z.array(traitDifferenceSchema),
-  runnersUp: z.array(runnerUpSchema),
+  bioNarrative: z.string().nullable(),
+  fallbackBioSnippet: z.string().nullable(),
+  domainStyle: z.string().nullable(),
+  signatureMoves: z.array(signatureMoveSchema),
+  strengths: z.string().nullable(),
+  blindspots: z.string().nullable(),
+});
+
+export const narrativeMatchSchema = z.object({
+  primary: entrepreneurNarrativeSchema,
+  runnersUp: z.array(entrepreneurNarrativeSchema).max(2),
 });
 
 // --- Personality sub-schemas ---
@@ -103,39 +90,10 @@ export const corpusAverageSchema = z.object({
   categories: z.array(corpusAverageCategorySchema),
 });
 
-// --- New match schemas ---
+// --- Match schemas (narrative-driven) ---
 
-export const matchRunnerUpSchema = z.object({
-  entrepreneurName: z.string(),
-  bioSnippet: z.string().nullable(),
-  companies: z.array(z.string()),
-  industries: z.array(z.string()),
-  categoryScores: z.array(
-    z.object({
-      category: z.string(),
-      score: z.number(),
-    })
-  ),
-});
-
-export const reasoningMatchSchema = z.object({
-  entrepreneurName: z.string(),
-  bioSnippet: z.string().nullable(),
-  companies: z.array(z.string()),
-  industries: z.array(z.string()),
-  studentCategoryScores: z.array(
-    z.object({ category: z.string(), score: z.number() })
-  ),
-  entrepreneurCategoryScores: z.array(
-    z.object({ category: z.string(), score: z.number() })
-  ),
-  topSharedStrengths: z.array(sharedTraitSchema),
-  biggestDifferences: z.array(traitDifferenceSchema),
-  runnersUp: z.array(matchRunnerUpSchema),
-});
-
-// communicationMatch reuses the existing entrepreneurMatchSchema shape
-export const communicationMatchSchema = entrepreneurMatchSchema;
+export const reasoningMatchSchema = narrativeMatchSchema;
+export const communicationMatchSchema = narrativeMatchSchema;
 
 // --- Main schema ---
 
@@ -174,11 +132,13 @@ export type CategoryScore = z.infer<typeof categoryScoreSchema>;
 export type Archetype = z.infer<typeof archetypeSchema>;
 export type PersonalityFacetScore = z.infer<typeof personalityFacetScoreSchema>;
 export type PersonalityData = z.infer<typeof personalityDataSchema>;
-export type EntrepreneurMatch = z.infer<typeof entrepreneurMatchSchema>;
 export type NarrativeBlock = z.infer<typeof narrativeBlockSchema>;
 export type CorpusAverageCategory = z.infer<typeof corpusAverageCategorySchema>;
 export type CorpusAverage = z.infer<typeof corpusAverageSchema>;
 export type RadarCategory = z.infer<typeof radarCategorySchema>;
-export type MatchRunnerUp = z.infer<typeof matchRunnerUpSchema>;
+export type SignatureMove = z.infer<typeof signatureMoveSchema>;
+export type EntrepreneurNarrative = z.infer<typeof entrepreneurNarrativeSchema>;
+export type NarrativeMatch = z.infer<typeof narrativeMatchSchema>;
+// Backward-compatible aliases
 export type ReasoningMatch = z.infer<typeof reasoningMatchSchema>;
 export type CommunicationMatch = z.infer<typeof communicationMatchSchema>;

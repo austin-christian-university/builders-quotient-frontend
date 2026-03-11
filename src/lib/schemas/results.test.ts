@@ -3,7 +3,9 @@ import {
   narrativeBlockSchema,
   corpusAverageCategorySchema,
   corpusAverageSchema,
-  matchRunnerUpSchema,
+  signatureMoveSchema,
+  entrepreneurNarrativeSchema,
+  narrativeMatchSchema,
   reasoningMatchSchema,
   communicationMatchSchema,
   resultsPageDataSchema,
@@ -137,173 +139,203 @@ describe("corpusAverageSchema", () => {
   });
 });
 
-// --- matchRunnerUpSchema ---
+// --- signatureMoveSchema ---
 
-describe("matchRunnerUpSchema", () => {
-  it("validates a full runner-up entry", () => {
-    const result = matchRunnerUpSchema.safeParse({
-      entrepreneurName: "Sara Blakely",
-      bioSnippet: "Founder of Spanx, built a billion-dollar brand from scratch.",
-      companies: ["Spanx"],
-      industries: ["Fashion", "Retail"],
-      categoryScores: [
-        { category: "Option Generation", score: 82 },
-        { category: "Decision Architecture", score: 91 },
-      ],
+describe("signatureMoveSchema", () => {
+  it("validates a valid signature move", () => {
+    const result = signatureMoveSchema.safeParse({
+      title: "The Pivot Maestro",
+      description: "Rapidly reframes constraints as opportunities.",
     });
     expect(result.success).toBe(true);
   });
 
-  it("validates a runner-up with null bioSnippet", () => {
-    const result = matchRunnerUpSchema.safeParse({
-      entrepreneurName: "Sara Blakely",
-      bioSnippet: null,
-      companies: ["Spanx"],
-      industries: ["Fashion"],
-      categoryScores: [],
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("validates a runner-up with empty companies and industries", () => {
-    const result = matchRunnerUpSchema.safeParse({
-      entrepreneurName: "Jane Doe",
-      bioSnippet: null,
-      companies: [],
-      industries: [],
-      categoryScores: [],
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects missing entrepreneurName", () => {
-    const result = matchRunnerUpSchema.safeParse({
-      bioSnippet: null,
-      companies: [],
-      industries: [],
-      categoryScores: [],
+  it("rejects missing title", () => {
+    const result = signatureMoveSchema.safeParse({
+      description: "Rapidly reframes constraints as opportunities.",
     });
     expect(result.success).toBe(false);
   });
 
-  it("rejects missing categoryScores", () => {
-    const result = matchRunnerUpSchema.safeParse({
-      entrepreneurName: "Jane Doe",
-      bioSnippet: null,
-      companies: [],
-      industries: [],
+  it("rejects missing description", () => {
+    const result = signatureMoveSchema.safeParse({
+      title: "The Pivot Maestro",
     });
     expect(result.success).toBe(false);
   });
 });
 
-// --- reasoningMatchSchema ---
+// --- entrepreneurNarrativeSchema ---
 
-describe("reasoningMatchSchema", () => {
-  const validRunnerUp = {
+describe("entrepreneurNarrativeSchema", () => {
+  const fullNarrative = {
     entrepreneurName: "Sara Blakely",
-    bioSnippet: null,
+    entrepreneurId: "sara-blakely-001",
     companies: ["Spanx"],
-    industries: ["Fashion"],
-    categoryScores: [{ category: "Option Generation", score: 80 }],
+    industries: ["Fashion", "Retail"],
+    bioNarrative: "Sara built Spanx from a $5,000 idea into a billion-dollar brand.",
+    fallbackBioSnippet: "Founder of Spanx.",
+    domainStyle: "Consumer products visionary",
+    signatureMoves: [
+      { title: "The Bootstrap Blueprint", description: "Builds empires with minimal capital." },
+    ],
+    strengths: "Relentless resourcefulness and customer obsession.",
+    blindspots: "Can underestimate the need for early external capital.",
   };
 
-  const validReasoningMatch = {
-    entrepreneurName: "Elon Musk",
-    bioSnippet: "Founded Tesla, SpaceX, and multiple other ventures.",
-    companies: ["Tesla", "SpaceX"],
-    industries: ["Automotive", "Aerospace"],
-    studentCategoryScores: [
-      { category: "Option Generation", score: 88 },
-      { category: "Decision Architecture", score: 75 },
-    ],
-    entrepreneurCategoryScores: [
-      { category: "Option Generation", score: 95 },
-      { category: "Decision Architecture", score: 90 },
-    ],
-    topSharedStrengths: [
-      { name: "Option Generation", value: 88 },
-    ],
-    biggestDifferences: [
-      { name: "Risk Assessment", studentValue: 60, entrepreneurValue: 95 },
-    ],
-    runnersUp: [validRunnerUp],
-  };
-
-  it("validates a full reasoning match", () => {
-    const result = reasoningMatchSchema.safeParse(validReasoningMatch);
+  it("validates full entrepreneur narrative data", () => {
+    const result = entrepreneurNarrativeSchema.safeParse(fullNarrative);
     expect(result.success).toBe(true);
   });
 
-  it("validates with null bioSnippet", () => {
-    const result = reasoningMatchSchema.safeParse({
-      ...validReasoningMatch,
-      bioSnippet: null,
+  it("validates with all nullable fields set to null", () => {
+    const result = entrepreneurNarrativeSchema.safeParse({
+      ...fullNarrative,
+      bioNarrative: null,
+      fallbackBioSnippet: null,
+      domainStyle: null,
+      strengths: null,
+      blindspots: null,
     });
     expect(result.success).toBe(true);
   });
 
-  it("validates with empty arrays for optional collections", () => {
-    const result = reasoningMatchSchema.safeParse({
-      ...validReasoningMatch,
-      topSharedStrengths: [],
-      biggestDifferences: [],
+  it("validates with empty companies, industries, and signatureMoves arrays", () => {
+    const result = entrepreneurNarrativeSchema.safeParse({
+      ...fullNarrative,
+      companies: [],
+      industries: [],
+      signatureMoves: [],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects missing entrepreneurName", () => {
+    const { entrepreneurName: _omitted, ...rest } = fullNarrative;
+    const result = entrepreneurNarrativeSchema.safeParse(rest);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing entrepreneurId", () => {
+    const { entrepreneurId: _omitted, ...rest } = fullNarrative;
+    const result = entrepreneurNarrativeSchema.safeParse(rest);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing signatureMoves", () => {
+    const { signatureMoves: _omitted, ...rest } = fullNarrative;
+    const result = entrepreneurNarrativeSchema.safeParse(rest);
+    expect(result.success).toBe(false);
+  });
+});
+
+// --- narrativeMatchSchema ---
+
+const baseEntrepreneurNarrative = {
+  entrepreneurName: "Elon Musk",
+  entrepreneurId: "elon-musk-001",
+  companies: ["Tesla", "SpaceX"],
+  industries: ["Automotive", "Aerospace"],
+  bioNarrative: "Elon relentlessly pursues first-principles thinking to solve civilization-scale problems.",
+  fallbackBioSnippet: "Founder of Tesla and SpaceX.",
+  domainStyle: "Systems thinker and moonshot executor",
+  signatureMoves: [
+    { title: "First Principles Deconstruction", description: "Strips problems to their atomic components." },
+  ],
+  strengths: "Unmatched vision and execution velocity.",
+  blindspots: "Can underestimate human organizational complexity.",
+};
+
+const runnerUpNarrative = {
+  entrepreneurName: "Jeff Bezos",
+  entrepreneurId: "jeff-bezos-001",
+  companies: ["Amazon"],
+  industries: ["E-commerce", "Cloud"],
+  bioNarrative: null,
+  fallbackBioSnippet: "Founder of Amazon.",
+  domainStyle: null,
+  signatureMoves: [],
+  strengths: null,
+  blindspots: null,
+};
+
+describe("narrativeMatchSchema", () => {
+  it("validates a match with primary and 2 runners-up", () => {
+    const result = narrativeMatchSchema.safeParse({
+      primary: baseEntrepreneurNarrative,
+      runnersUp: [runnerUpNarrative, { ...runnerUpNarrative, entrepreneurId: "runner-2" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("validates a match with an empty runnersUp array", () => {
+    const result = narrativeMatchSchema.safeParse({
+      primary: baseEntrepreneurNarrative,
       runnersUp: [],
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects missing entrepreneurName", () => {
-    const { entrepreneurName: _omitted, ...rest } = validReasoningMatch;
-    const result = reasoningMatchSchema.safeParse(rest);
+  it("rejects more than 2 runners-up", () => {
+    const result = narrativeMatchSchema.safeParse({
+      primary: baseEntrepreneurNarrative,
+      runnersUp: [
+        runnerUpNarrative,
+        { ...runnerUpNarrative, entrepreneurId: "runner-2" },
+        { ...runnerUpNarrative, entrepreneurId: "runner-3" },
+      ],
+    });
     expect(result.success).toBe(false);
   });
 
-  it("rejects missing runnersUp", () => {
-    const { runnersUp: _omitted, ...rest } = validReasoningMatch;
-    const result = reasoningMatchSchema.safeParse(rest);
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects invalid runner-up in runnersUp array", () => {
-    const result = reasoningMatchSchema.safeParse({
-      ...validReasoningMatch,
-      runnersUp: [{ entrepreneurName: "Missing fields" }],
+  it("rejects missing primary", () => {
+    const result = narrativeMatchSchema.safeParse({
+      runnersUp: [],
     });
     expect(result.success).toBe(false);
   });
 });
 
-// --- communicationMatchSchema ---
+// --- reasoningMatchSchema / communicationMatchSchema (narrative aliases) ---
 
-describe("communicationMatchSchema", () => {
-  it("is an alias of entrepreneurMatchSchema and validates the same shape", () => {
-    const result = communicationMatchSchema.safeParse({
-      entrepreneurName: "Howard Schultz",
-      entrepreneurId: "abc123",
-      cosineSimilarity: 0.87,
-      bioSnippet: "Built Starbucks into a global brand.",
-      category: "communication",
-      companies: ["Starbucks"],
-      industries: ["Food & Beverage"],
-      studentProfile: [{ category: "Vision Communication", value: 82 }],
-      entrepreneurProfile: [{ category: "Vision Communication", value: 91 }],
-      topSharedTraits: [{ name: "Vision Communication", value: 82 }],
-      biggestDifferences: [
-        {
-          name: "Creative Confidence",
-          studentValue: 65,
-          entrepreneurValue: 90,
-        },
-      ],
-      runnersUp: [{ name: "Oprah Winfrey", similarity: 0.81 }],
+describe("reasoningMatchSchema", () => {
+  it("accepts the narrativeMatchSchema shape", () => {
+    const result = reasoningMatchSchema.safeParse({
+      primary: baseEntrepreneurNarrative,
+      runnersUp: [runnerUpNarrative],
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects missing entrepreneurId", () => {
+  it("rejects the old radar-based shape", () => {
+    const result = reasoningMatchSchema.safeParse({
+      entrepreneurName: "Elon Musk",
+      bioSnippet: null,
+      companies: [],
+      industries: [],
+      studentCategoryScores: [],
+      entrepreneurCategoryScores: [],
+      topSharedStrengths: [],
+      biggestDifferences: [],
+      runnersUp: [],
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("communicationMatchSchema", () => {
+  it("accepts the narrativeMatchSchema shape", () => {
+    const result = communicationMatchSchema.safeParse({
+      primary: baseEntrepreneurNarrative,
+      runnersUp: [],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects the old cosine-similarity-based shape", () => {
     const result = communicationMatchSchema.safeParse({
       entrepreneurName: "Howard Schultz",
+      entrepreneurId: "abc123",
       cosineSimilarity: 0.87,
       bioSnippet: null,
       category: "communication",
