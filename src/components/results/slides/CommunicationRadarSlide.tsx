@@ -3,6 +3,10 @@
 import { motion } from "motion/react";
 import type { CorpusAverage } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
+import {
+  PERSONALITY_DIMENSION_NAMES,
+  PERSONALITY_DIMENSION_CATEGORIES,
+} from "@/lib/assessment/personality-dimensions";
 
 interface CommunicationRadarSlideProps {
   data: {
@@ -13,9 +17,55 @@ interface CommunicationRadarSlideProps {
 
 const ACCENT_COLOR = "#2dd4bf";
 
+/** Colors for the 5 meta-category sector arcs */
+const SECTOR_COLORS: Record<string, string> = {
+  "Energy & Dynamism": "#2dd4bf",
+  "Confidence & Authority": "#63b3ed",
+  "Warmth & Interpersonal": "#f87171",
+  "Communication Style": "#a78bfa",
+  "Self-Presentation": "#fbbf24",
+};
+
+/** Full arc labels */
+const SECTOR_FULL_LABELS: Record<string, string> = {
+  "Energy & Dynamism": "Energy & Dynamism",
+  "Confidence & Authority": "Confidence & Authority",
+  "Warmth & Interpersonal": "Warmth & Interpersonal",
+  "Communication Style": "Communication Style",
+  "Self-Presentation": "Self-Presentation",
+};
+
 export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) {
+  // Build an index map: pv_key -> position in the profile array
+  const keyToIndex = new Map(data.profile.map((p, i) => [p.category, i]));
+
+  // Category names are just keys here — we pass human-readable names via tooltipLabels
   const categoryNames = data.profile.map((p) => p.category);
-  const studentScores = data.profile.map((p) => p.value);
+  const studentScores = data.profile.map((p) => p.value * 100);
+  const tooltipLabels = data.profile.map(
+    (p) => PERSONALITY_DIMENSION_NAMES[p.category] ?? p.category
+  );
+
+  // Build sector groups from the 5 meta-categories
+  const sectorGroups = Object.entries(PERSONALITY_DIMENSION_CATEGORIES).map(
+    ([catName, keys]) => ({
+      label: SECTOR_FULL_LABELS[catName] ?? catName,
+      color: SECTOR_COLORS[catName] ?? ACCENT_COLOR,
+      indices: keys
+        .map((k) => keyToIndex.get(k))
+        .filter((i): i is number => i !== undefined),
+    })
+  );
+
+  // Per-dot colors: each dot gets its sector group color
+  const dotColors = data.profile.map((p) => {
+    for (const [catName, keys] of Object.entries(PERSONALITY_DIMENSION_CATEGORIES)) {
+      if (keys.includes(p.category)) {
+        return SECTOR_COLORS[catName] ?? ACCENT_COLOR;
+      }
+    }
+    return ACCENT_COLOR;
+  });
 
   // Build corpus scores aligned to the same category order
   const corpusScores = data.corpusAverage
@@ -58,13 +108,16 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md mx-auto"
+          className="w-full max-w-lg mx-auto"
         >
           <RadarChart
             categories={categoryNames}
             studentScores={studentScores}
             corpusScores={corpusScores}
             accentColor={ACCENT_COLOR}
+            sectorGroups={sectorGroups}
+            tooltipLabels={tooltipLabels}
+            dotColors={dotColors}
           />
         </motion.div>
 
@@ -100,6 +153,17 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
             </span>
           </div>
         </motion.div>
+
+        {/* Hint text */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.9 }}
+          className="text-center mt-3 text-xs"
+          style={{ color: "rgba(154,160,172,0.6)" }}
+        >
+          Hover or tap any point to see the dimension
+        </motion.p>
       </div>
     </section>
   );

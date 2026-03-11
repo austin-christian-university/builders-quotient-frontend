@@ -159,19 +159,69 @@ export function ResultsExperience({ data }: Props) {
       // 3. Practical Intelligence Radar
       <IntelligenceRadarSlide
         key="pi-radar"
-        data={{ categories: data.piCategories, corpusAverage: data.piCorpusAverage }}
+        data={{ radar: data.piRadar }}
         title="Your Reasoning Profile"
         eyebrow="PRACTICAL INTELLIGENCE"
         variant="pi"
       />,
 
-      // 4. Creative Intelligence Radar
+      // 4. Creative Intelligence Radar (scaled)
       <IntelligenceRadarSlide
         key="ci-radar"
-        data={{ categories: data.ciCategories, corpusAverage: data.ciCorpusAverage }}
-        title="Your Thinking Profile"
+        data={{ radar: data.ciRadar }}
+        title="Your Thinking Profile (scaled)"
         eyebrow="CREATIVE INTELLIGENCE"
         variant="ci"
+      />,
+
+      // 4b. Creative Intelligence Radar (unscaled — for comparison)
+      <IntelligenceRadarSlide
+        key="ci-radar-raw"
+        data={{ radar: data.ciRadar }}
+        title="Your Thinking Profile (raw)"
+        eyebrow="CREATIVE INTELLIGENCE"
+        variant="ci"
+        scaleToMax={false}
+      />,
+
+      // 4c. Creative Intelligence Radar (per-polygon scaling)
+      <IntelligenceRadarSlide
+        key="ci-radar-perpoly"
+        data={{ radar: data.ciRadar }}
+        title="Your Thinking Profile (per polygon)"
+        eyebrow="CREATIVE INTELLIGENCE"
+        variant="ci"
+        scaleToMax="perPolygon"
+      />,
+
+      // 4d. Creative Intelligence Radar (axes only — no rings)
+      <IntelligenceRadarSlide
+        key="ci-radar-axes"
+        data={{ radar: data.ciRadar }}
+        title="Your Thinking Profile (axes only)"
+        eyebrow="CREATIVE INTELLIGENCE"
+        variant="ci"
+        gridStyle="axesOnly"
+      />,
+
+      // 4e. Creative Intelligence Radar (crosshair — minimal)
+      <IntelligenceRadarSlide
+        key="ci-radar-crosshair"
+        data={{ radar: data.ciRadar }}
+        title="Your Thinking Profile (crosshair)"
+        eyebrow="CREATIVE INTELLIGENCE"
+        variant="ci"
+        gridStyle="crosshair"
+      />,
+
+      // 4f. Creative Intelligence Radar (student only, scaled)
+      <IntelligenceRadarSlide
+        key="ci-radar-solo"
+        data={{ radar: data.ciRadar }}
+        title="Your Thinking Profile (student only)"
+        eyebrow="CREATIVE INTELLIGENCE"
+        variant="ci"
+        hideCorpus
       />,
 
       // 5. Intelligence Strengths & Growth Areas

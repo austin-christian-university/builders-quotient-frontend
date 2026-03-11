@@ -1,18 +1,30 @@
 "use client";
 
-import { motion } from "motion/react";
-import type { CategoryScore, CorpusAverage } from "@/lib/schemas/results";
+import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import type { RadarCategory } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
-import { getShortLabel } from "@/components/results/short-labels";
+import {
+  getShortLabel,
+  getCategoryDescription,
+} from "@/components/results/short-labels";
 
 interface IntelligenceRadarSlideProps {
   data: {
-    categories: CategoryScore[];
-    corpusAverage: CorpusAverage | null;
+    radar: RadarCategory[];
   };
   title: string;
   eyebrow: string;
   variant: "pi" | "ci";
+  /**
+   * "chart" (default) — single max across both polygons hits 100%.
+   * "perPolygon" — each polygon's max hits 100% independently.
+   * false — raw 0–1 scale, no normalization.
+   */
+  scaleToMax?: "chart" | "perPolygon" | false;
+  gridStyle?: "full" | "axesOnly" | "crosshair";
+  /** Hide the entrepreneur average polygon. Default false. */
+  hideCorpus?: boolean;
 }
 
 const ACCENT_COLOR: Record<"pi" | "ci", string> = {
@@ -25,21 +37,47 @@ export function IntelligenceRadarSlide({
   title,
   eyebrow,
   variant,
+  scaleToMax = "chart",
+  gridStyle = "full",
+  hideCorpus = false,
 }: IntelligenceRadarSlideProps) {
   const accentColor = ACCENT_COLOR[variant];
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const categoryNames = data.categories.map((c) => getShortLabel(c.category));
-  const studentScores = data.categories.map((c) => c.score);
+  const categoryNames = data.radar.map((c) => getShortLabel(c.category));
 
-  // Build corpus scores aligned to the same category order
-  const corpusScores = data.corpusAverage
-    ? data.categories.map((cat) => {
-        const match = data.corpusAverage!.categories.find(
-          (c) => c.category === cat.category
-        );
-        return match?.averageScore ?? 0;
-      })
-    : undefined;
+  const rawStudent = data.radar.map((c) => c.studentScore);
+  const rawCorpus = data.radar.map((c) => c.entrepreneurScore);
+
+  let studentScores: number[];
+  let corpusScores: number[];
+  let chartMax: number;
+
+  if (hideCorpus) {
+    // Student only — scale to student max
+    studentScores = rawStudent;
+    corpusScores = [];
+    chartMax = Math.max(...rawStudent) || 1;
+  } else if (scaleToMax === "perPolygon") {
+    const sMax = Math.max(...rawStudent) || 1;
+    const cMax = Math.max(...rawCorpus) || 1;
+    studentScores = rawStudent.map((s) => (s / sMax) * 100);
+    corpusScores = rawCorpus.map((s) => (s / cMax) * 100);
+    chartMax = 100;
+  } else if (scaleToMax === "chart") {
+    studentScores = rawStudent;
+    corpusScores = rawCorpus;
+    chartMax = Math.max(...rawStudent, ...rawCorpus) || 1;
+  } else {
+    studentScores = rawStudent;
+    corpusScores = rawCorpus;
+    chartMax = 1;
+  }
+
+  const activeDescription =
+    activeIndex != null
+      ? getCategoryDescription(data.radar[activeIndex].category)
+      : null;
 
   return (
     <section className="min-h-screen flex items-center justify-center px-6">
@@ -77,17 +115,43 @@ export function IntelligenceRadarSlide({
           <RadarChart
             categories={categoryNames}
             studentScores={studentScores}
-            corpusScores={corpusScores}
+            corpusScores={corpusScores.length > 0 ? corpusScores : undefined}
+            maxValue={chartMax}
             accentColor={accentColor}
+            onCategoryHover={setActiveIndex}
+            activeCategoryIndex={activeIndex}
+            gridStyle={gridStyle}
           />
         </motion.div>
+
+        {/* Category description (tap/hover reveal) */}
+        <div
+          className="h-8 flex items-center justify-center mt-2"
+          aria-live="polite"
+        >
+          <AnimatePresence mode="wait">
+            {activeDescription && (
+              <motion.p
+                key={activeIndex}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                className="text-sm text-center"
+                style={{ color: "#c8ccd4" }}
+              >
+                {activeDescription}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Legend */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.7 }}
-          className="flex items-center justify-center gap-6 mt-6"
+          className="flex items-center justify-center gap-6 mt-2"
           aria-label="Chart legend"
         >
           <div className="flex items-center gap-2">
@@ -100,7 +164,7 @@ export function IntelligenceRadarSlide({
               Your Profile
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          {!hideCorpus && <div className="flex items-center gap-2">
             <span
               className="w-3 h-3 rounded-full border"
               style={{
@@ -112,7 +176,7 @@ export function IntelligenceRadarSlide({
             <span className="text-sm" style={{ color: "#9aa0ac" }}>
               Entrepreneur Average
             </span>
-          </div>
+          </div>}
         </motion.div>
       </div>
     </section>

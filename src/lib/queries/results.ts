@@ -8,7 +8,6 @@ import {
   type PersonalityFacet,
 } from "@/lib/assessment/personality-bank";
 import {
-  averageByCategory,
   PERSONALITY_DIMENSION_NAMES,
   PERSONALITY_DIMENSION_KEYS,
 } from "@/lib/assessment/personality-dimensions";
@@ -25,6 +24,9 @@ import type {
   EntrepreneurMatch,
   NarrativeBlock,
   CorpusAverage,
+  RadarCategory,
+  ReasoningMatch,
+  MatchRunnerUp,
 } from "@/lib/schemas/results";
 
 // --- Raw JSONB types from the Python pipeline (consensus-based scoring) ---
@@ -205,6 +207,101 @@ function extractCorpusAverage(
   return categories.length > 0 ? { categories } : null;
 }
 
+/**
+ * Compute bidirectional radar data from move_details.
+ * Per category: studentScore = fraction of moves demonstrated,
+ * entrepreneurScore = mean agreement_rate. Both 0–1.
+ * Averaged across vignettes of the same type.
+ */
+function computeRadarFromMoveDetails(
+  responses: ScoredResponse[],
+  type: "practical" | "creative"
+): RadarCategory[] {
+  const typed = responses.filter((r) => r.vignette_type === type);
+  if (typed.length === 0) return [];
+
+  // Per-vignette: category -> { studentScore, entrepreneurScore }
+  const vignetteResults: Map<
+    string,
+    { studentScore: number; entrepreneurScore: number }
+  >[] = [];
+
+  for (const r of typed) {
+    if (!Array.isArray(r.scoring_result.move_details)) continue;
+
+    // Group moves by category
+    const byCategory = new Map<string, RawMoveDetail[]>();
+    for (const md of r.scoring_result.move_details) {
+      const arr = byCategory.get(md.category);
+      if (arr) arr.push(md);
+      else byCategory.set(md.category, [md]);
+    }
+
+    const catScores = new Map<
+      string,
+      { studentScore: number; entrepreneurScore: number }
+    >();
+    for (const [category, moves] of byCategory) {
+      const studentPresent = moves.filter((m) => m.student_present).length;
+      const studentScore = studentPresent / moves.length;
+      const entrepreneurScore =
+        moves.reduce((sum, m) => sum + m.agreement_rate, 0) / moves.length;
+      catScores.set(category, { studentScore, entrepreneurScore });
+    }
+
+    vignetteResults.push(catScores);
+  }
+
+  if (vignetteResults.length === 0) return [];
+
+  // Collect all categories seen across vignettes
+  const allCategories = new Set<string>();
+  for (const vr of vignetteResults) {
+    for (const cat of vr.keys()) allCategories.add(cat);
+  }
+
+  // Average across vignettes per category
+  const result: RadarCategory[] = [];
+  for (const category of allCategories) {
+    let studentSum = 0;
+    let entrepreneurSum = 0;
+    let count = 0;
+    for (const vr of vignetteResults) {
+      const scores = vr.get(category);
+      if (scores) {
+        studentSum += scores.studentScore;
+        entrepreneurSum += scores.entrepreneurScore;
+        count++;
+      }
+    }
+    if (count > 0) {
+      result.push({
+        category,
+        studentScore: studentSum / count,
+        entrepreneurScore: entrepreneurSum / count,
+      });
+    }
+  }
+
+  // Preserve category order from first response's move_details
+  const firstMoveDetails = typed[0].scoring_result.move_details ?? [];
+  const categoryOrder: string[] = [];
+  const seen = new Set<string>();
+  for (const md of firstMoveDetails) {
+    if (!seen.has(md.category)) {
+      categoryOrder.push(md.category);
+      seen.add(md.category);
+    }
+  }
+  result.sort((a, b) => {
+    const ai = categoryOrder.indexOf(a.category);
+    const bi = categoryOrder.indexOf(b.category);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
+
+  return result;
+}
+
 // --- Main query ---
 
 /**
@@ -275,6 +372,10 @@ export async function getResultsByToken(
   const piCorpusAverage = extractCorpusAverage(scored, "practical");
   const ciCorpusAverage = extractCorpusAverage(scored, "creative");
 
+  // 6b. Compute bidirectional radar data from move_details
+  const piRadar = computeRadarFromMoveDetails(scored, "practical");
+  const ciRadar = computeRadarFromMoveDetails(scored, "creative");
+
   // 7. Archetype
   const archetype = deriveArchetype(piCategories, ciCategories);
 
@@ -339,6 +440,7 @@ export async function getResultsByToken(
   // 11. Communication match (was entrepreneurMatch) + communication profile
   let communicationMatch: EntrepreneurMatch | null = null;
   let communicationProfile: { category: string; value: number }[] | null = null;
+  let communicationCorpusAverage: CorpusAverage | null = null;
   let communicationNarrative: NarrativeBlock[] = [];
 
   const { data: studentProfile } = await supabase
@@ -387,9 +489,54 @@ export async function getResultsByToken(
       communicationNarrative = getCommunicationNarrative(communicationProfile);
     }
 
-    // Average both vectors by 5 categories for radar chart
-    const studentCategoryProfile = averageByCategory(studentVector);
-    const entrepreneurCategoryProfile = averageByCategory(entrepreneurVector);
+    // Compute corpus average across all entrepreneur personality vectors
+    if (communicationProfile) {
+      const { data: allProfiles } = await supabase
+        .from("entrepreneur_personality_profiles")
+        .select("personality_vector")
+        .not("personality_vector", "is", null);
+
+      if (allProfiles && allProfiles.length > 0) {
+        const dimSums = new Map<string, { sum: number; count: number }>();
+
+        for (const row of allProfiles) {
+          const vec = row.personality_vector as PersonalityVector | null;
+          if (!vec) continue;
+          for (const k of PERSONALITY_DIMENSION_KEYS) {
+            if (vec[k] == null) continue;
+            const existing = dimSums.get(k);
+            if (existing) {
+              existing.sum += vec[k];
+              existing.count += 1;
+            } else {
+              dimSums.set(k, { sum: vec[k], count: 1 });
+            }
+          }
+        }
+
+        const corpusCategories = communicationProfile
+          .filter((p) => dimSums.has(p.category))
+          .map((p) => {
+            const a = dimSums.get(p.category)!;
+            return {
+              category: p.category,
+              averageScore: Math.round((a.sum / a.count) * 100 * 10) / 10,
+            };
+          });
+
+        if (corpusCategories.length > 0) {
+          communicationCorpusAverage = { categories: corpusCategories };
+        }
+      }
+    }
+
+    // Build full 20-dim profiles for radar chart comparison
+    const studentCategoryProfile = PERSONALITY_DIMENSION_KEYS
+      .filter((k) => studentVector[k] != null)
+      .map((k) => ({ category: k, value: studentVector[k] }));
+    const entrepreneurCategoryProfile = PERSONALITY_DIMENSION_KEYS
+      .filter((k) => entrepreneurVector[k] != null)
+      .map((k) => ({ category: k, value: entrepreneurVector[k] }));
 
     // Top 3 shared traits: smallest absolute difference where both score notably
     const dimensionDiffs = Object.keys(studentVector)
@@ -445,6 +592,178 @@ export async function getResultsByToken(
     };
   }
 
+  // 12. Reasoning match (intelligence-based entrepreneur matching)
+  let reasoningMatch: ReasoningMatch | null = null;
+
+  const { data: reasoningProfile } = await supabase
+    .from("student_reasoning_profiles")
+    .select(
+      "matched_entrepreneur_id, matched_entrepreneur_name, matched_combined_similarity, matched_pi_similarity, matched_ci_similarity, matched_bio_snippet, top_5_matches"
+    )
+    .eq("session_id", session.id)
+    .single();
+
+  if (reasoningProfile?.matched_entrepreneur_id) {
+    // Fetch entrepreneur details
+    const { data: matchedEntrepreneur } = await supabase
+      .from("entrepreneurs")
+      .select("category, companies, industries")
+      .eq("id", reasoningProfile.matched_entrepreneur_id)
+      .single();
+
+    // Build move-key → category mapping from scored PI responses
+    const moveToCategoryMap = new Map<string, string>();
+    for (const r of piResponses) {
+      if (Array.isArray(r.scoring_result.move_details)) {
+        for (const md of r.scoring_result.move_details) {
+          if (!moveToCategoryMap.has(md.move_key)) {
+            moveToCategoryMap.set(md.move_key, md.category);
+          }
+        }
+      }
+    }
+
+    // Student category scores from piRadar (move_details-based, 0-1 → 0-100)
+    const studentCategoryScores = piRadar.map((rc) => ({
+      category: rc.category,
+      score: Math.round(rc.studentScore * 100 * 10) / 10,
+    }));
+
+    // Fetch matched entrepreneur's global reasoning profile
+    const { data: entrepreneurReasoningRow } = await supabase
+      .from("entrepreneur_reasoning_profiles")
+      .select("reasoning_move_probabilities")
+      .eq("entrepreneur_id", reasoningProfile.matched_entrepreneur_id)
+      .eq("situation_type", "global")
+      .single();
+
+    // Helper: compute per-category scores from move probabilities
+    function computeCategoryScoresFromMoveProbs(
+      moveProbs: Record<string, number>,
+      categoryOrder: { category: string }[]
+    ): { category: string; score: number }[] {
+      const catAcc = new Map<string, { sum: number; count: number }>();
+      for (const [moveKey, prob] of Object.entries(moveProbs)) {
+        const cat = moveToCategoryMap.get(moveKey);
+        if (!cat) continue;
+        const existing = catAcc.get(cat);
+        if (existing) {
+          existing.sum += prob;
+          existing.count += 1;
+        } else {
+          catAcc.set(cat, { sum: prob, count: 1 });
+        }
+      }
+      return categoryOrder.map((sc) => {
+        const acc = catAcc.get(sc.category);
+        return {
+          category: sc.category,
+          score: acc ? Math.round((acc.sum / acc.count) * 100 * 10) / 10 : 0,
+        };
+      });
+    }
+
+    // Compute entrepreneur category scores
+    const entrepreneurCategoryScores = entrepreneurReasoningRow?.reasoning_move_probabilities
+      ? computeCategoryScoresFromMoveProbs(
+          entrepreneurReasoningRow.reasoning_move_probabilities as Record<string, number>,
+          studentCategoryScores
+        )
+      : studentCategoryScores.map((sc) => ({ category: sc.category, score: 0 }));
+
+    // Top shared strengths: categories where both score similarly
+    const categoryDiffs = studentCategoryScores.map((sc, i) => ({
+      category: sc.category,
+      studentScore: sc.score,
+      entrepreneurScore: entrepreneurCategoryScores[i]?.score ?? 0,
+      diff: Math.abs(sc.score - (entrepreneurCategoryScores[i]?.score ?? 0)),
+      avgScore: (sc.score + (entrepreneurCategoryScores[i]?.score ?? 0)) / 2,
+    }));
+
+    const topSharedStrengths = categoryDiffs
+      .slice()
+      .sort((a, b) => a.diff - b.diff)
+      .slice(0, 3)
+      .map((d) => ({ name: d.category, value: Math.round(d.avgScore) }));
+
+    const biggestDifferences = categoryDiffs
+      .slice()
+      .sort((a, b) => b.diff - a.diff)
+      .slice(0, 3)
+      .map((d) => ({
+        name: d.category,
+        studentValue: Math.round(d.studentScore),
+        entrepreneurValue: Math.round(d.entrepreneurScore),
+      }));
+
+    // Runners-up from top_5_matches (skip first = primary match)
+    const top5Reasoning =
+      (reasoningProfile.top_5_matches as
+        | {
+            entrepreneur_id: string;
+            name: string;
+            combined_similarity: number;
+            pi_similarity: number;
+            ci_similarity: number;
+          }[]
+        | null) ?? [];
+    const runnerUpEntries = top5Reasoning.slice(1, 5);
+    const runnerUpIds = runnerUpEntries.map((e) => e.entrepreneur_id);
+
+    let runnersUp: MatchRunnerUp[] = [];
+
+    if (runnerUpIds.length > 0) {
+      const [{ data: runnerUpEntrepreneurs }, { data: runnerUpReasoningProfiles }] =
+        await Promise.all([
+          supabase
+            .from("entrepreneurs")
+            .select("id, category, companies, industries")
+            .in("id", runnerUpIds),
+          supabase
+            .from("entrepreneur_reasoning_profiles")
+            .select("entrepreneur_id, reasoning_move_probabilities")
+            .in("entrepreneur_id", runnerUpIds)
+            .eq("situation_type", "global"),
+        ]);
+
+      runnersUp = runnerUpEntries.map((entry) => {
+        const entDetails = runnerUpEntrepreneurs?.find(
+          (e) => e.id === entry.entrepreneur_id
+        );
+        const entReasoning = runnerUpReasoningProfiles?.find(
+          (r) => r.entrepreneur_id === entry.entrepreneur_id
+        );
+
+        const categoryScores = entReasoning?.reasoning_move_probabilities
+          ? computeCategoryScoresFromMoveProbs(
+              entReasoning.reasoning_move_probabilities as Record<string, number>,
+              studentCategoryScores
+            )
+          : [];
+
+        return {
+          entrepreneurName: entry.name,
+          bioSnippet: null,
+          companies: (entDetails?.companies as string[]) ?? [],
+          industries: (entDetails?.industries as string[]) ?? [],
+          categoryScores,
+        };
+      });
+    }
+
+    reasoningMatch = {
+      entrepreneurName: reasoningProfile.matched_entrepreneur_name,
+      bioSnippet: reasoningProfile.matched_bio_snippet ?? null,
+      companies: (matchedEntrepreneur?.companies as string[]) ?? [],
+      industries: (matchedEntrepreneur?.industries as string[]) ?? [],
+      studentCategoryScores,
+      entrepreneurCategoryScores,
+      topSharedStrengths,
+      biggestDifferences,
+      runnersUp,
+    };
+  }
+
   return {
     applicant: {
       displayName: applicant.display_name ?? null,
@@ -452,13 +771,15 @@ export async function getResultsByToken(
     },
     piCategories,
     ciCategories,
+    piRadar,
+    ciRadar,
     piCorpusAverage,
     ciCorpusAverage,
     archetype,
     intelligenceNarrative,
-    reasoningMatch: null,
+    reasoningMatch,
     communicationProfile,
-    communicationCorpusAverage: null,
+    communicationCorpusAverage,
     communicationNarrative,
     communicationMatch,
     personality,

@@ -350,10 +350,18 @@ describe("resultsPageDataSchema", () => {
     text: "You generate options with ease.",
   };
 
+  const baseRadarCategory = {
+    category: "Option Generation",
+    studentScore: 0.65,
+    entrepreneurScore: 0.72,
+  };
+
   const minimalValidData = {
     applicant: baseApplicant,
     piCategories: [baseCategoryScore],
     ciCategories: [baseCategoryScore],
+    piRadar: [baseRadarCategory],
+    ciRadar: [baseRadarCategory],
     piCorpusAverage: null,
     ciCorpusAverage: null,
     archetype: baseArchetype,

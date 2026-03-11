@@ -3,6 +3,10 @@
 import { motion } from "motion/react";
 import type { CommunicationMatch } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
+import {
+  PERSONALITY_DIMENSION_NAMES,
+  PERSONALITY_DIMENSION_CATEGORIES,
+} from "@/lib/assessment/personality-dimensions";
 
 interface CommunicationMatchSlideProps {
   data: CommunicationMatch | null;
@@ -10,6 +14,15 @@ interface CommunicationMatchSlideProps {
 }
 
 const ACCENT_COLOR = "#2dd4bf";
+
+/** Colors for the 5 meta-category sector arcs */
+const SECTOR_COLORS: Record<string, string> = {
+  "Energy & Dynamism": "#2dd4bf",
+  "Confidence & Authority": "#63b3ed",
+  "Warmth & Interpersonal": "#f87171",
+  "Communication Style": "#a78bfa",
+  "Self-Presentation": "#fbbf24",
+};
 
 // Stagger timing helper
 function staggerDelay(index: number, base = 0.3, step = 0.1): number {
@@ -60,18 +73,45 @@ export function CommunicationMatchSlide({
     );
   }
 
-  // --- Build radar data from 5-point meta-category profiles ---
-  // Use studentProfile for category ordering (merged with prop for null case)
+  // --- Build radar data from full 20-dim profiles ---
   const radarSource = data.studentProfile.length > 0 ? data.studentProfile : studentProfile;
+
+  // Build an index map: pv_key -> position in the profile array
+  const keyToIndex = new Map(radarSource.map((p, i) => [p.category, i]));
+
   const categoryNames = radarSource.map((p) => p.category);
-  const studentScores = radarSource.map((p) => p.value);
+  const studentScores = radarSource.map((p) => p.value * 100);
+  const tooltipLabels = radarSource.map(
+    (p) => PERSONALITY_DIMENSION_NAMES[p.category] ?? p.category
+  );
 
   // Align entrepreneur profile scores to the same category order
   const entrepreneurScores = radarSource.map((studentCat) => {
     const match = data.entrepreneurProfile.find(
       (e) => e.category === studentCat.category
     );
-    return match?.value ?? 0;
+    return (match?.value ?? 0) * 100;
+  });
+
+  // Build sector groups from the 5 meta-categories
+  const sectorGroups = Object.entries(PERSONALITY_DIMENSION_CATEGORIES).map(
+    ([catName, keys]) => ({
+      label: catName,
+      color: SECTOR_COLORS[catName] ?? ACCENT_COLOR,
+      indices: keys
+        .map((k) => keyToIndex.get(k))
+        .filter((i): i is number => i !== undefined),
+    })
+  );
+
+  // Per-dot colors: each dot gets its sector group color
+  const dotColors = radarSource.map((p) => {
+    for (const [catName, keys] of Object.entries(PERSONALITY_DIMENSION_CATEGORIES)) {
+      if (keys.includes(p.category)) {
+        return SECTOR_COLORS[catName] ?? ACCENT_COLOR;
+      }
+    }
+    return ACCENT_COLOR;
   });
 
   return (
@@ -184,13 +224,16 @@ export function CommunicationMatchSlide({
               </div>
             )}
 
-            {/* Dual radar overlay — 5-point meta-category comparison */}
-            <div className="w-full max-w-md mx-auto mb-4">
+            {/* Dual radar overlay — full 20-dim comparison */}
+            <div className="w-full max-w-lg mx-auto mb-4">
               <RadarChart
                 categories={categoryNames}
                 studentScores={studentScores}
                 corpusScores={entrepreneurScores}
                 accentColor={ACCENT_COLOR}
+                sectorGroups={sectorGroups}
+                tooltipLabels={tooltipLabels}
+                dotColors={dotColors}
               />
             </div>
 
@@ -263,7 +306,7 @@ export function CommunicationMatchSlide({
           </div>
         </motion.div>
 
-        {/* Runner-up pills — display only (no modal, no full card data) */}
+        {/* Runner-up pills */}
         {data.runnersUp.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}

@@ -78,6 +78,14 @@ export const personalityDataSchema = z.object({
   summary: personalitySummarySchema,
 });
 
+// --- Radar chart data (from move_details, bidirectional) ---
+
+export const radarCategorySchema = z.object({
+  category: z.string(),
+  studentScore: z.number().min(0).max(1),
+  entrepreneurScore: z.number().min(0).max(1),
+});
+
 // --- New narrative and corpus schemas ---
 
 export const narrativeBlockSchema = z.object({
@@ -138,6 +146,8 @@ export const resultsPageDataSchema = z.object({
   }),
   piCategories: z.array(categoryScoreSchema),
   ciCategories: z.array(categoryScoreSchema),
+  piRadar: z.array(radarCategorySchema),
+  ciRadar: z.array(radarCategorySchema),
   piCorpusAverage: corpusAverageSchema.nullable(),
   ciCorpusAverage: corpusAverageSchema.nullable(),
   archetype: archetypeSchema,
@@ -168,6 +178,7 @@ export type EntrepreneurMatch = z.infer<typeof entrepreneurMatchSchema>;
 export type NarrativeBlock = z.infer<typeof narrativeBlockSchema>;
 export type CorpusAverageCategory = z.infer<typeof corpusAverageCategorySchema>;
 export type CorpusAverage = z.infer<typeof corpusAverageSchema>;
+export type RadarCategory = z.infer<typeof radarCategorySchema>;
 export type MatchRunnerUp = z.infer<typeof matchRunnerUpSchema>;
 export type ReasoningMatch = z.infer<typeof reasoningMatchSchema>;
 export type CommunicationMatch = z.infer<typeof communicationMatchSchema>;
