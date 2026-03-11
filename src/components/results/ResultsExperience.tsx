@@ -186,7 +186,6 @@ export function ResultsExperience({ data }: Props) {
       <ReasoningMatchSlide
         key="reasoning-match"
         data={data.reasoningMatch}
-        studentPiCategories={data.piCategories}
       />,
     ];
 
@@ -211,7 +210,6 @@ export function ResultsExperience({ data }: Props) {
           <CommunicationMatchSlide
             key="comm-match"
             data={data.communicationMatch}
-            studentProfile={data.communicationMatch.studentProfile}
           />,
         );
       }

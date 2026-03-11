@@ -8,7 +8,6 @@ import {
   type PersonalityFacet,
 } from "@/lib/assessment/personality-bank";
 import {
-  PERSONALITY_DIMENSION_NAMES,
   PERSONALITY_DIMENSION_KEYS,
 } from "@/lib/assessment/personality-dimensions";
 import type { PersonalityVector } from "@/lib/assessment/personality-dimensions";
@@ -21,12 +20,10 @@ import type {
   ResultsPageData,
   CategoryScore,
   PersonalityData,
-  EntrepreneurMatch,
   NarrativeBlock,
+  NarrativeMatch,
   CorpusAverage,
   RadarCategory,
-  ReasoningMatch,
-  MatchRunnerUp,
 } from "@/lib/schemas/results";
 
 // --- Raw JSONB types from the Python pipeline (consensus-based scoring) ---
@@ -437,42 +434,23 @@ export async function getResultsByToken(
     }
   }
 
-  // 11. Communication match (was entrepreneurMatch) + communication profile
-  let communicationMatch: EntrepreneurMatch | null = null;
+  // 11. Communication match (narrative-driven) + communication profile
+  let communicationMatch: NarrativeMatch | null = null;
   let communicationProfile: { category: string; value: number }[] | null = null;
   let communicationCorpusAverage: CorpusAverage | null = null;
   let communicationNarrative: NarrativeBlock[] = [];
 
-  const { data: studentProfile } = await supabase
+  const { data: studentPersonalityProfile } = await supabase
     .from("student_personality_profiles")
-    .select(
-      "matched_entrepreneur_id, matched_entrepreneur_name, matched_cosine_similarity, matched_bio_snippet, top_5_matches, personality_vector",
-    )
+    .select("matched_entrepreneur_id, matched_entrepreneur_name, matched_bio_snippet, top_5_matches, personality_vector")
     .eq("session_id", session.id)
     .single();
 
-  if (studentProfile?.matched_entrepreneur_id) {
-    // Fetch entrepreneur details
-    const { data: entrepreneur } = await supabase
-      .from("entrepreneurs")
-      .select("category, companies, industries")
-      .eq("id", studentProfile.matched_entrepreneur_id)
-      .single();
-
-    // Fetch entrepreneur's personality vector for comparison
-    const { data: entrepreneurProfileRow } = await supabase
-      .from("entrepreneur_personality_profiles")
-      .select("personality_vector")
-      .eq("entrepreneur_id", studentProfile.matched_entrepreneur_id)
-      .single();
-
+  // Build communication radar profile, corpus average, and narrative from student vector
+  if (studentPersonalityProfile) {
     const studentVector =
-      (studentProfile.personality_vector as PersonalityVector | null) ?? {};
-    const entrepreneurVector =
-      (entrepreneurProfileRow?.personality_vector as PersonalityVector | null) ??
-      {};
+      (studentPersonalityProfile.personality_vector as PersonalityVector | null) ?? {};
 
-    // Build full 20-dim communication profile from student vector
     communicationProfile = PERSONALITY_DIMENSION_KEYS
       .filter((k) => studentVector[k] != null)
       .map((k) => ({
@@ -529,238 +507,121 @@ export async function getResultsByToken(
         }
       }
     }
+  }
 
-    // Build full 20-dim profiles for radar chart comparison
-    const studentCategoryProfile = PERSONALITY_DIMENSION_KEYS
-      .filter((k) => studentVector[k] != null)
-      .map((k) => ({ category: k, value: studentVector[k] }));
-    const entrepreneurCategoryProfile = PERSONALITY_DIMENSION_KEYS
-      .filter((k) => entrepreneurVector[k] != null)
-      .map((k) => ({ category: k, value: entrepreneurVector[k] }));
+  // Build communication match narrative
+  if (studentPersonalityProfile?.matched_entrepreneur_id) {
+    const top5Comm = (studentPersonalityProfile.top_5_matches as { entrepreneur_id: string; name: string }[] | null) ?? [];
+    const runnerUpEntriesComm = top5Comm.slice(1, 3); // 2 runners-up
+    const allCommEntrepreneurIds = [
+      studentPersonalityProfile.matched_entrepreneur_id,
+      ...runnerUpEntriesComm.map(e => e.entrepreneur_id),
+    ];
 
-    // Top 3 shared traits: smallest absolute difference where both score notably
-    const dimensionDiffs = Object.keys(studentVector)
-      .filter((k) => studentVector[k] != null && entrepreneurVector[k] != null)
-      .map((k) => ({
-        key: k,
-        name: PERSONALITY_DIMENSION_NAMES[k] ?? k,
-        studentValue: studentVector[k],
-        entrepreneurValue: entrepreneurVector[k],
-        diff: Math.abs(studentVector[k] - entrepreneurVector[k]),
-        avgValue: (studentVector[k] + entrepreneurVector[k]) / 2,
-      }));
+    const [{ data: commEntrepreneurs }, { data: commNarratives }] = await Promise.all([
+      supabase
+        .from("entrepreneurs")
+        .select("id, name, companies, industries, bio_narrative")
+        .in("id", allCommEntrepreneurIds),
+      supabase
+        .from("entrepreneur_communication_narratives")
+        .select("entrepreneur_id, communication_style, signature_moves, strengths, blindspots")
+        .in("entrepreneur_id", allCommEntrepreneurIds),
+    ]);
 
-    const topSharedTraits = dimensionDiffs
-      .slice()
-      .sort((a, b) => a.diff - b.diff)
-      .slice(0, 3)
-      .map((d) => ({ name: d.name, value: Math.round(d.avgValue * 100) }));
+    function buildCommNarrative(
+      entrepreneurId: string,
+      entrepreneurName: string,
+      fallbackBioSnippet: string | null,
+    ) {
+      const ent = commEntrepreneurs?.find(e => e.id === entrepreneurId);
+      const narrative = commNarratives?.find(n => n.entrepreneur_id === entrepreneurId);
 
-    const biggestDifferences = dimensionDiffs
-      .slice()
-      .sort((a, b) => b.diff - a.diff)
-      .slice(0, 3)
-      .map((d) => ({
-        name: d.name,
-        studentValue: Math.round(d.studentValue * 100),
-        entrepreneurValue: Math.round(d.entrepreneurValue * 100),
-      }));
-
-    // Runners-up from top_5_matches (skip the first which is the primary match)
-    const top5 =
-      (studentProfile.top_5_matches as
-        | { entrepreneur_id: string; name: string; cosine_similarity: number }[]
-        | null) ?? [];
-    const runnersUp = top5.slice(1, 5).map((e) => ({
-      name: e.name,
-      similarity: Math.round(e.cosine_similarity * 100),
-    }));
+      return {
+        entrepreneurName: ent?.name ?? entrepreneurName,
+        entrepreneurId,
+        companies: (ent?.companies as string[]) ?? [],
+        industries: (ent?.industries as string[]) ?? [],
+        bioNarrative: (ent?.bio_narrative as string) ?? null,
+        fallbackBioSnippet,
+        domainStyle: (narrative?.communication_style as string) ?? null,
+        signatureMoves: (narrative?.signature_moves as { title: string; description: string }[]) ?? [],
+        strengths: (narrative?.strengths as string) ?? null,
+        blindspots: (narrative?.blindspots as string) ?? null,
+      };
+    }
 
     communicationMatch = {
-      entrepreneurName: studentProfile.matched_entrepreneur_name,
-      entrepreneurId: studentProfile.matched_entrepreneur_id,
-      cosineSimilarity: studentProfile.matched_cosine_similarity,
-      bioSnippet: studentProfile.matched_bio_snippet ?? null,
-      category: entrepreneur?.category ?? "entrepreneur",
-      companies: (entrepreneur?.companies as string[]) ?? [],
-      industries: (entrepreneur?.industries as string[]) ?? [],
-      studentProfile: studentCategoryProfile,
-      entrepreneurProfile: entrepreneurCategoryProfile,
-      topSharedTraits,
-      biggestDifferences,
-      runnersUp,
+      primary: buildCommNarrative(
+        studentPersonalityProfile.matched_entrepreneur_id,
+        studentPersonalityProfile.matched_entrepreneur_name,
+        studentPersonalityProfile.matched_bio_snippet ?? null,
+      ),
+      runnersUp: runnerUpEntriesComm.map(entry =>
+        buildCommNarrative(entry.entrepreneur_id, entry.name, null)
+      ),
     };
   }
 
-  // 12. Reasoning match (intelligence-based entrepreneur matching)
-  let reasoningMatch: ReasoningMatch | null = null;
+  // 12. Reasoning match (narrative-driven)
+  let reasoningMatch: NarrativeMatch | null = null;
 
   const { data: reasoningProfile } = await supabase
     .from("student_reasoning_profiles")
-    .select(
-      "matched_entrepreneur_id, matched_entrepreneur_name, matched_combined_similarity, matched_pi_similarity, matched_ci_similarity, matched_bio_snippet, top_5_matches"
-    )
+    .select("matched_entrepreneur_id, matched_entrepreneur_name, matched_bio_snippet, top_5_matches")
     .eq("session_id", session.id)
     .single();
 
   if (reasoningProfile?.matched_entrepreneur_id) {
-    // Fetch entrepreneur details
-    const { data: matchedEntrepreneur } = await supabase
-      .from("entrepreneurs")
-      .select("category, companies, industries")
-      .eq("id", reasoningProfile.matched_entrepreneur_id)
-      .single();
+    const top5Reasoning = (reasoningProfile.top_5_matches as { entrepreneur_id: string; name: string }[] | null) ?? [];
+    const runnerUpEntriesReasoning = top5Reasoning.slice(1, 3); // 2 runners-up
+    const allReasoningEntrepreneurIds = [
+      reasoningProfile.matched_entrepreneur_id,
+      ...runnerUpEntriesReasoning.map(e => e.entrepreneur_id),
+    ];
 
-    // Build move-key → category mapping from scored PI responses
-    const moveToCategoryMap = new Map<string, string>();
-    for (const r of piResponses) {
-      if (Array.isArray(r.scoring_result.move_details)) {
-        for (const md of r.scoring_result.move_details) {
-          if (!moveToCategoryMap.has(md.move_key)) {
-            moveToCategoryMap.set(md.move_key, md.category);
-          }
-        }
-      }
-    }
+    const [{ data: reasoningEntrepreneurs }, { data: reasoningNarratives }] = await Promise.all([
+      supabase
+        .from("entrepreneurs")
+        .select("id, name, companies, industries, bio_narrative")
+        .in("id", allReasoningEntrepreneurIds),
+      supabase
+        .from("entrepreneur_reasoning_narratives")
+        .select("entrepreneur_id, reasoning_style, signature_moves, strengths, blindspots")
+        .in("entrepreneur_id", allReasoningEntrepreneurIds),
+    ]);
 
-    // Student category scores from piRadar (move_details-based, 0-1 → 0-100)
-    const studentCategoryScores = piRadar.map((rc) => ({
-      category: rc.category,
-      score: Math.round(rc.studentScore * 100 * 10) / 10,
-    }));
+    function buildReasoningNarrative(
+      entrepreneurId: string,
+      entrepreneurName: string,
+      fallbackBioSnippet: string | null,
+    ) {
+      const ent = reasoningEntrepreneurs?.find(e => e.id === entrepreneurId);
+      const narrative = reasoningNarratives?.find(n => n.entrepreneur_id === entrepreneurId);
 
-    // Fetch matched entrepreneur's global reasoning profile
-    const { data: entrepreneurReasoningRow } = await supabase
-      .from("entrepreneur_reasoning_profiles")
-      .select("reasoning_move_probabilities")
-      .eq("entrepreneur_id", reasoningProfile.matched_entrepreneur_id)
-      .eq("situation_type", "global")
-      .single();
-
-    // Helper: compute per-category scores from move probabilities
-    function computeCategoryScoresFromMoveProbs(
-      moveProbs: Record<string, number>,
-      categoryOrder: { category: string }[]
-    ): { category: string; score: number }[] {
-      const catAcc = new Map<string, { sum: number; count: number }>();
-      for (const [moveKey, prob] of Object.entries(moveProbs)) {
-        const cat = moveToCategoryMap.get(moveKey);
-        if (!cat) continue;
-        const existing = catAcc.get(cat);
-        if (existing) {
-          existing.sum += prob;
-          existing.count += 1;
-        } else {
-          catAcc.set(cat, { sum: prob, count: 1 });
-        }
-      }
-      return categoryOrder.map((sc) => {
-        const acc = catAcc.get(sc.category);
-        return {
-          category: sc.category,
-          score: acc ? Math.round((acc.sum / acc.count) * 100 * 10) / 10 : 0,
-        };
-      });
-    }
-
-    // Compute entrepreneur category scores
-    const entrepreneurCategoryScores = entrepreneurReasoningRow?.reasoning_move_probabilities
-      ? computeCategoryScoresFromMoveProbs(
-          entrepreneurReasoningRow.reasoning_move_probabilities as Record<string, number>,
-          studentCategoryScores
-        )
-      : studentCategoryScores.map((sc) => ({ category: sc.category, score: 0 }));
-
-    // Top shared strengths: categories where both score similarly
-    const categoryDiffs = studentCategoryScores.map((sc, i) => ({
-      category: sc.category,
-      studentScore: sc.score,
-      entrepreneurScore: entrepreneurCategoryScores[i]?.score ?? 0,
-      diff: Math.abs(sc.score - (entrepreneurCategoryScores[i]?.score ?? 0)),
-      avgScore: (sc.score + (entrepreneurCategoryScores[i]?.score ?? 0)) / 2,
-    }));
-
-    const topSharedStrengths = categoryDiffs
-      .slice()
-      .sort((a, b) => a.diff - b.diff)
-      .slice(0, 3)
-      .map((d) => ({ name: d.category, value: Math.round(d.avgScore) }));
-
-    const biggestDifferences = categoryDiffs
-      .slice()
-      .sort((a, b) => b.diff - a.diff)
-      .slice(0, 3)
-      .map((d) => ({
-        name: d.category,
-        studentValue: Math.round(d.studentScore),
-        entrepreneurValue: Math.round(d.entrepreneurScore),
-      }));
-
-    // Runners-up from top_5_matches (skip first = primary match)
-    const top5Reasoning =
-      (reasoningProfile.top_5_matches as
-        | {
-            entrepreneur_id: string;
-            name: string;
-            combined_similarity: number;
-            pi_similarity: number;
-            ci_similarity: number;
-          }[]
-        | null) ?? [];
-    const runnerUpEntries = top5Reasoning.slice(1, 5);
-    const runnerUpIds = runnerUpEntries.map((e) => e.entrepreneur_id);
-
-    let runnersUp: MatchRunnerUp[] = [];
-
-    if (runnerUpIds.length > 0) {
-      const [{ data: runnerUpEntrepreneurs }, { data: runnerUpReasoningProfiles }] =
-        await Promise.all([
-          supabase
-            .from("entrepreneurs")
-            .select("id, category, companies, industries")
-            .in("id", runnerUpIds),
-          supabase
-            .from("entrepreneur_reasoning_profiles")
-            .select("entrepreneur_id, reasoning_move_probabilities")
-            .in("entrepreneur_id", runnerUpIds)
-            .eq("situation_type", "global"),
-        ]);
-
-      runnersUp = runnerUpEntries.map((entry) => {
-        const entDetails = runnerUpEntrepreneurs?.find(
-          (e) => e.id === entry.entrepreneur_id
-        );
-        const entReasoning = runnerUpReasoningProfiles?.find(
-          (r) => r.entrepreneur_id === entry.entrepreneur_id
-        );
-
-        const categoryScores = entReasoning?.reasoning_move_probabilities
-          ? computeCategoryScoresFromMoveProbs(
-              entReasoning.reasoning_move_probabilities as Record<string, number>,
-              studentCategoryScores
-            )
-          : [];
-
-        return {
-          entrepreneurName: entry.name,
-          bioSnippet: null,
-          companies: (entDetails?.companies as string[]) ?? [],
-          industries: (entDetails?.industries as string[]) ?? [],
-          categoryScores,
-        };
-      });
+      return {
+        entrepreneurName: ent?.name ?? entrepreneurName,
+        entrepreneurId,
+        companies: (ent?.companies as string[]) ?? [],
+        industries: (ent?.industries as string[]) ?? [],
+        bioNarrative: (ent?.bio_narrative as string) ?? null,
+        fallbackBioSnippet,
+        domainStyle: (narrative?.reasoning_style as string) ?? null,
+        signatureMoves: (narrative?.signature_moves as { title: string; description: string }[]) ?? [],
+        strengths: (narrative?.strengths as string) ?? null,
+        blindspots: (narrative?.blindspots as string) ?? null,
+      };
     }
 
     reasoningMatch = {
-      entrepreneurName: reasoningProfile.matched_entrepreneur_name,
-      bioSnippet: reasoningProfile.matched_bio_snippet ?? null,
-      companies: (matchedEntrepreneur?.companies as string[]) ?? [],
-      industries: (matchedEntrepreneur?.industries as string[]) ?? [],
-      studentCategoryScores,
-      entrepreneurCategoryScores,
-      topSharedStrengths,
-      biggestDifferences,
-      runnersUp,
+      primary: buildReasoningNarrative(
+        reasoningProfile.matched_entrepreneur_id,
+        reasoningProfile.matched_entrepreneur_name,
+        reasoningProfile.matched_bio_snippet ?? null,
+      ),
+      runnersUp: runnerUpEntriesReasoning.map(entry =>
+        buildReasoningNarrative(entry.entrepreneur_id, entry.name, null)
+      ),
     };
   }
 
