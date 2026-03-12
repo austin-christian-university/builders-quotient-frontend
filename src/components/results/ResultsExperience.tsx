@@ -299,7 +299,7 @@ export function ResultsExperience({ data }: Props) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goNext, goPrev]);
+  }, [goNext, goPrev, splashComplete]);
 
   // Animation variants
   const axis = isDesktop ? "y" : "x";
