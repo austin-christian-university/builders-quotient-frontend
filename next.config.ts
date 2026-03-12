@@ -1,4 +1,3 @@
-import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -10,6 +9,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-// TODO: Re-enable withSentryConfig once @sentry/nextjs supports Next.js 16 proxy.ts
+// TODO: Re-enable withSentryConfig once @sentry/nextjs supports Next.js 16 middleware
 // See: https://github.com/getsentry/sentry-javascript/issues/16151
 export default nextConfig;
