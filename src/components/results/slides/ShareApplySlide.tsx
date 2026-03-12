@@ -398,25 +398,40 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 originalSrcs.push(img.src);
                 try {
                     const canvas = document.createElement("canvas");
-                    canvas.width = img.naturalWidth;
-                    canvas.height = img.naturalHeight;
+                    canvas.width = img.naturalWidth || 100;
+                    canvas.height = img.naturalHeight || 100;
                     canvas.getContext("2d")!.drawImage(img, 0, 0);
                     img.src = canvas.toDataURL("image/png");
                 } catch { /* keep original */ }
             }
 
-            const blob = await toBlob(printRef.current, {
-                pixelRatio: 2,
+            const captureOpts = {
+                // 4× gives ~1200×1730 output from the 300px card — close to
+                // Instagram Story / phone-wallpaper resolution (1080×1920).
+                pixelRatio: 4,
                 style: { transform: "none" },
-                skipFonts: true,
+                // Embed fonts so Inter / Inter Tight render correctly in the
+                // SVG foreignObject clone (prevents text reflow & overlap).
+                skipFonts: false,
                 filter: (node: HTMLElement) => {
                     // Skip decorative blur overlays that slow serialization
-                    if (node.style?.filter?.includes("blur") || node.className?.includes?.("blur-")) {
-                        return false;
-                    }
+                    const style = node.style;
+                    if (style?.filter?.includes("blur")) return false;
+                    // className may be SVGAnimatedString on SVG elements — check type
+                    const cls = typeof node.className === "string" ? node.className : "";
+                    if (cls.includes("blur-")) return false;
                     return true;
                 },
-            });
+            };
+
+            // Safari returns a blank image on the first toBlob() call (well-known
+            // html-to-image bug). Calling it twice with the first result discarded
+            // is the standard workaround.
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            if (isSafari) {
+                await toBlob(printRef.current, captureOpts).catch(() => {});
+            }
+            const blob = await toBlob(printRef.current, captureOpts);
 
             // Restore original image srcs
             imgs.forEach((img, i) => { img.src = originalSrcs[i]; });
@@ -424,22 +439,30 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
             if (!blob) throw new Error("Image capture returned empty");
 
             const filename = `builder-profile-${cards[currentIndex].id}.png`;
-            const file = new File([blob], filename, { type: "image/png" });
 
-            // Try Web Share API first (works on mobile Safari / Android)
-            if (navigator.canShare?.({ files: [file] })) {
-                await navigator.share({ files: [file] });
-            } else {
-                // Blob URL + anchor download (desktop)
-                const blobUrl = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.download = filename;
-                link.href = blobUrl;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(blobUrl);
+            // Only use Web Share API on mobile devices (touch + small screen).
+            // On macOS desktop, canShare() returns true but opens a share sheet
+            // instead of saving — confusing for a "save" button.
+            const isMobile = "ontouchstart" in window && window.innerWidth < 768;
+
+            if (isMobile && navigator.canShare) {
+                const file = new File([blob], filename, { type: "image/png" });
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file] });
+                    return;
+                }
             }
+
+            // Anchor download (desktop + fallback)
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.download = filename;
+            link.href = blobUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            // Delay revocation so the browser can start the download
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
         } catch (err) {
             if (err instanceof Error && err.name === "AbortError") return;
             console.error("Capture failed:", err);
@@ -478,14 +501,14 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 style={{ background: "#4da3ff" }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 0.2, scale: 1 }}
-                transition={{ duration: 2, ease: "easeOut" }}
+                transition={{ duration: 2, ease: "easeOut", delay: 0.5 }}
             />
 
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: EASE }}
+                transition={{ duration: 1.4, ease: EASE, delay: 0.5 }}
                 className="text-center z-10 mb-4 shrink-0 mt-8"
             >
                 <p className="text-white/50 uppercase tracking-[0.3em] text-xs font-semibold">Share Your Profile</p>
@@ -503,7 +526,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
             <motion.div
                 initial={{ opacity: 0, y: 32 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.9, ease: EASE, delay: 0.15 }}
+                transition={{ duration: 1.8, ease: EASE, delay: 0.8 }}
                 className="z-10 w-full max-w-md flex items-center justify-between gap-1 md:gap-4 relative"
             >
                 {/* Left Nav */}
@@ -553,7 +576,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
             <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: EASE, delay: 0.35 }}
+                transition={{ duration: 1.4, ease: EASE, delay: 1.2 }}
                 className="z-10 w-full max-w-[280px] mt-6 flex flex-col gap-2 relative"
             >
                 {/* Save to Camera Roll */}
