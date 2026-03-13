@@ -11,7 +11,7 @@ Sentry.init({
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: 1,
 
-  // NOTE: enableLogs is NOT supported in Edge runtime — causes MIDDLEWARE_INVOCATION_FAILED
-  // See: https://github.com/getsentry/sentry-javascript/issues/16151
+  // enableLogs not supported in edge runtime
+  // https://github.com/getsentry/sentry-javascript/issues/16151
 
 });
