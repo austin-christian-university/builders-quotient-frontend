@@ -24,29 +24,18 @@ export const metadata: Metadata = {
     template: "%s | Builders Quotient",
   },
   description:
-    "Measure your entrepreneurial intelligence. A psychometric assessment of practical thinking, creative reasoning, and entrepreneur personality.",
+    "Discover your Builder DNA. A psychometric assessment of practical thinking, creative reasoning, and entrepreneur personality.",
   openGraph: {
     title: "Builders Quotient | Austin Christian University",
-    description:
-      "Measure your entrepreneurial intelligence through AI-narrated vignettes and personality profiling.",
+    description: "Discover your Builder DNA.",
     siteName: "Builders Quotient",
     type: "website",
     url: SITE_URL,
-    images: [
-      {
-        url: `${SITE_URL}/og-image.jpg`,
-        width: 1200,
-        height: 800,
-        alt: "Austin Christian University",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Builders Quotient | Austin Christian University",
-    description:
-      "Measure your entrepreneurial intelligence through AI-narrated vignettes and personality profiling.",
-    images: [`${SITE_URL}/og-image.jpg`],
+    description: "Discover your Builder DNA.",
   },
 };
 
