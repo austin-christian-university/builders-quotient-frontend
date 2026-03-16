@@ -206,6 +206,7 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
     const categoryNames = profile.map((p) => p.category);
     const studentScores = profile.map((p) => p.value * 100);
 
+    // Keep labels for unique React keys; they clip naturally on the small card
     const sectorGroups = Object.entries(PERSONALITY_DIMENSION_CATEGORIES).map(
         ([catName, keys]) => ({
             label: catName,
@@ -253,6 +254,7 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
                         gridStyle="axesOnly"
                         sectorGroups={sectorGroups}
                         dotColors={dotColors}
+                        interactive={false}
                     />
                 </div>
 

@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import type { PersonalityData } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
+import { useContainerWidth } from "@/lib/hooks/use-container-width";
 
 interface PersonalityRadarSlideProps {
   data: PersonalityData;
@@ -11,6 +12,7 @@ interface PersonalityRadarSlideProps {
 const ACCENT_COLOR = "#a78bfa";
 
 export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
+  const [containerRef, containerWidth] = useContainerWidth();
   // Use only the 8 scored facets (exclude attention-check facet if present)
   const facets = data.facetScores.filter((f) => f.facet !== "AC");
 
@@ -64,11 +66,12 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
         transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="flex-1 min-h-0 flex items-center justify-center py-2"
       >
-        <div className="w-full max-w-md mx-auto max-h-full">
+        <div ref={containerRef} className="w-full max-w-md mx-auto max-h-full px-2">
           <RadarChart
             categories={categoryNames}
             studentScores={studentScores}
             accentColor={ACCENT_COLOR}
+            containerWidth={containerWidth}
           />
         </div>
       </motion.div>

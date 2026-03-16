@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import type { CorpusAverage } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
+import { useContainerWidth } from "@/lib/hooks/use-container-width";
 import {
   PERSONALITY_DIMENSION_NAMES,
   PERSONALITY_DIMENSION_CATEGORIES,
@@ -28,14 +29,15 @@ const SECTOR_COLORS: Record<string, string> = {
 
 /** Full arc labels */
 const SECTOR_FULL_LABELS: Record<string, string> = {
-  "Energy & Dynamism": "Energy & Dynamism",
-  "Confidence & Authority": "Confidence & Authority",
-  "Warmth & Interpersonal": "Warmth & Interpersonal",
-  "Communication Style": "Communication Style",
+  "Energy & Dynamism": "Energy",
+  "Confidence & Authority": "Confidence",
+  "Warmth & Interpersonal": "Warmth",
+  "Communication Style": "Style",
   "Self-Presentation": "Self-Presentation",
 };
 
 export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) {
+  const [containerRef, containerWidth] = useContainerWidth();
   // Build an index map: pv_key -> position in the profile array
   const keyToIndex = new Map(data.profile.map((p, i) => [p.category, i]));
 
@@ -113,7 +115,7 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
         transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="flex-1 min-h-0 flex items-center justify-center py-2"
       >
-        <div className="w-full max-w-md mx-auto max-h-full">
+        <div ref={containerRef} className="w-full max-w-md mx-auto max-h-full px-2">
           <RadarChart
             categories={categoryNames}
             studentScores={studentScores}
@@ -122,6 +124,7 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
             sectorGroups={sectorGroups}
             tooltipLabels={tooltipLabels}
             dotColors={dotColors}
+            containerWidth={containerWidth}
           />
         </div>
       </motion.div>
@@ -167,7 +170,8 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
           className="text-center mt-2 text-xs"
           style={{ color: "rgba(154,160,172,0.6)" }}
         >
-          Hover or tap any point to see the dimension
+          <span className="hidden [@media(hover:hover)]:inline">Hover or click any point to see the dimension</span>
+          <span className="[@media(hover:hover)]:hidden">Tap any point to see the dimension</span>
         </motion.p>
       </div>
     </section>

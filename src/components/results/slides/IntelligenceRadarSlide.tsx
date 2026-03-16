@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useContainerWidth } from "@/lib/hooks/use-container-width";
 import type { RadarCategory } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
 import {
@@ -43,6 +44,7 @@ export function IntelligenceRadarSlide({
 }: IntelligenceRadarSlideProps) {
   const accentColor = ACCENT_COLOR[variant];
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [containerRef, containerWidth] = useContainerWidth();
 
   const categoryNames = data.radar.map((c) => getShortLabel(c.category));
 
@@ -115,7 +117,7 @@ export function IntelligenceRadarSlide({
         transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="flex-1 min-h-0 flex items-center justify-center py-2"
       >
-        <div className="w-full max-w-md mx-auto max-h-full">
+        <div ref={containerRef} className="w-full max-w-md mx-auto max-h-full px-2">
           <RadarChart
             categories={categoryNames}
             studentScores={studentScores}
@@ -125,6 +127,7 @@ export function IntelligenceRadarSlide({
             onCategoryHover={setActiveIndex}
             activeCategoryIndex={activeIndex}
             gridStyle={gridStyle}
+            containerWidth={containerWidth}
           />
         </div>
       </motion.div>
@@ -137,7 +140,7 @@ export function IntelligenceRadarSlide({
           aria-live="polite"
         >
           <AnimatePresence mode="wait">
-            {activeDescription && (
+            {activeDescription ? (
               <motion.p
                 key={activeIndex}
                 initial={{ opacity: 0, y: 4 }}
@@ -148,6 +151,19 @@ export function IntelligenceRadarSlide({
                 style={{ color: "#c8ccd4" }}
               >
                 {activeDescription}
+              </motion.p>
+            ) : (
+              <motion.p
+                key="hint"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-xs text-center"
+                style={{ color: "rgba(154,160,172,0.6)" }}
+              >
+                <span className="hidden [@media(hover:hover)]:inline">Hover or click a label to learn more</span>
+                <span className="[@media(hover:hover)]:hidden">Tap a label to learn more</span>
               </motion.p>
             )}
           </AnimatePresence>

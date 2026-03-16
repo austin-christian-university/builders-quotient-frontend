@@ -33,6 +33,25 @@ interface RadarChartProps {
    * - "crosshair": no rings or axes, just vertical + horizontal center lines
    */
   gridStyle?: "full" | "axesOnly" | "crosshair";
+  /** Container pixel width — enables scale-compensated label sizing. */
+  containerWidth?: number;
+  /** When false, disables all hover/click/tooltip interaction even if sectorGroups exist. Defaults to true. */
+  interactive?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Label splitting helper
+// ---------------------------------------------------------------------------
+
+/** Split a label into 1–2 lines for better fit on small viewports. */
+function splitLabel(text: string): string[] {
+  const words = text.split(" ");
+  if (words.length <= 1) return [text];
+  if (words.length === 2) return text.length <= 12 ? [text] : words;
+  if (words.length === 3) return [words[0], words.slice(1).join(" ")];
+  // 4+ words: split at midpoint
+  const mid = Math.ceil(words.length / 2);
+  return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
 }
 
 // ---------------------------------------------------------------------------
@@ -146,9 +165,12 @@ export function RadarChart({
   dotColors,
   maxValue = 100,
   gridStyle = "full",
+  containerWidth = 0,
+  interactive = true,
 }: RadarChartProps) {
   const n = categories.length;
   const hasSectors = !!sectorGroups && sectorGroups.length > 0;
+  const isInteractive = hasSectors && interactive;
 
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipTextRef = useRef<SVGTextElement>(null);
@@ -169,6 +191,23 @@ export function RadarChart({
   const subtleStroke = "rgba(255,255,255,0.06)";
   const step = 360 / n;
 
+  // Scale-compensated font size for category labels
+  const TARGET_ACTUAL_PX = 11;
+  const MAX_COMPENSATED = 15;
+  const rawScaleFactor = containerWidth > 0 ? containerWidth / size : 1;
+  const compensatedFontSize = Math.min(
+    MAX_COMPENSATED,
+    Math.max(labelFontSize, TARGET_ACTUAL_PX / rawScaleFactor)
+  );
+  // ViewBox padding prevents label clipping on small containers
+  const fontGrowth = compensatedFontSize - labelFontSize;
+  const fontGrowthPad =
+    !hasSectors && fontGrowth > 0 ? Math.round(fontGrowth * 6 + 6) : 0;
+  // Size-based padding for small charts (share cards at 320) where labels
+  // are proportionally wider relative to the viewBox
+  const sizeBasedPad = !hasSectors && size < 480 ? 24 : 0;
+  const vbPad = Math.max(fontGrowthPad, sizeBasedPad);
+
   // Pre-compute dot positions (in SVG coords)
   const dotPositions = useMemo(() => {
     const floor = maxValue * VISUAL_FLOOR_PCT;
@@ -185,7 +224,7 @@ export function RadarChart({
   // --- Single onMouseMove on SVG finds the nearest dot ---
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
-      if (!hasSectors || tappedIndex !== null) return;
+      if (!isInteractive || tappedIndex !== null) return;
       const svg = svgRef.current;
       if (!svg) return;
       const { x, y } = svgPoint(svg, e.clientX, e.clientY);
@@ -195,7 +234,7 @@ export function RadarChart({
         onCategoryHover?.(nearest);
       }
     },
-    [hasSectors, tappedIndex, dotPositions, hitThreshold, hoveredIndex, onCategoryHover]
+    [isInteractive, tappedIndex, dotPositions, hitThreshold, hoveredIndex, onCategoryHover]
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -207,7 +246,7 @@ export function RadarChart({
   // --- Tap to sticky-toggle on mobile ---
   const handleSvgClick = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
-      if (!hasSectors) return;
+      if (!isInteractive) return;
       const svg = svgRef.current;
       if (!svg) return;
       const { x, y } = svgPoint(svg, e.clientX, e.clientY);
@@ -224,7 +263,7 @@ export function RadarChart({
         onCategoryHover?.(null);
       }
     },
-    [hasSectors, dotPositions, hitThreshold, onCategoryHover]
+    [isInteractive, dotPositions, hitThreshold, onCategoryHover]
   );
 
   // --- Sector label click highlights that group ---
@@ -247,13 +286,13 @@ export function RadarChart({
 
   // Active group
   const activeGroup =
-    hasSectors && activeIndex !== null
+    isInteractive && activeIndex !== null
       ? sectorGroups!.find((g) => g.indices.includes(activeIndex))
       : null;
 
   // Tooltip
   const tooltipContent =
-    hasSectors && activeIndex !== null
+    isInteractive && activeIndex !== null
       ? {
         label: tooltipLabels?.[activeIndex] ?? categories[activeIndex],
         groupName: activeGroup?.label ?? "",
@@ -279,20 +318,20 @@ export function RadarChart({
     tooltipX = outward.x;
     tooltipY = outward.y;
     const halfPill = (tooltipWidth + 24) / 2; // 12px LR padding
-    tooltipX = Math.max(halfPill + 4, Math.min(size - halfPill - 4, tooltipX));
-    tooltipY = Math.max(20, Math.min(size - 20, tooltipY));
+    tooltipX = Math.max(-vbPad + halfPill + 4, Math.min(size + vbPad - halfPill - 4, tooltipX));
+    tooltipY = Math.max(-vbPad + 20, Math.min(size + vbPad - 20, tooltipY));
   }
 
   return (
     <svg
       ref={svgRef}
-      viewBox={`0 0 ${size} ${size}`}
-      style={{ maxWidth: "100%", height: "auto", overflow: "visible", cursor: hasSectors ? "crosshair" : undefined }}
+      viewBox={`${-vbPad} ${-vbPad} ${size + vbPad * 2} ${size + vbPad * 2}`}
+      style={{ maxWidth: "100%", height: "auto", overflow: "visible", cursor: isInteractive ? "crosshair" : undefined }}
       className={className}
       aria-hidden="true"
-      onMouseMove={hasSectors ? handleMouseMove : undefined}
-      onMouseLeave={hasSectors ? handleMouseLeave : undefined}
-      onClick={hasSectors ? handleSvgClick : undefined}
+      onMouseMove={isInteractive ? handleMouseMove : undefined}
+      onMouseLeave={isInteractive ? handleMouseLeave : undefined}
+      onClick={isInteractive ? handleSvgClick : undefined}
     >
       {/* Glow filters */}
       {hasSectors && (
@@ -490,7 +529,19 @@ export function RadarChart({
       {!hasSectors &&
         categories.map((label, i) => {
           const angle = step * i;
-          const { x, y } = polarToCartesian(cx, cy, labelRadius, angle);
+          // Push top/bottom labels slightly further out to avoid overlap
+          const angleRad = ((angle - 90) * Math.PI) / 180;
+          const sinA = Math.sin(angleRad);
+          const verticalness = Math.abs(sinA);
+          // Bottom labels need more room (multi-line text grows downward)
+          const isBottom = sinA > 0;
+          const extraPad = verticalness * (isBottom ? 18 : 12);
+          const { x, y } = polarToCartesian(
+            cx,
+            cy,
+            labelRadius + extraPad,
+            angle
+          );
           const anchor = textAnchor(x, cx);
           const isActive = activeCategoryIndex === i;
           const isInteractive = !!onCategoryHover;
@@ -499,15 +550,19 @@ export function RadarChart({
           const glowOpacity = isActive ? "99" : "33"; // 60% vs 20% alpha
           const textShadow = `0 0 10px ${labelColor}${glowOpacity}, 0 0 20px ${labelColor}${glowOpacity}`;
 
+          const lines = splitLabel(label.toUpperCase());
+          const lineHeight = compensatedFontSize * 1.25;
+          const baseY = y - ((lines.length - 1) * lineHeight) / 2;
+
           return (
             <text
               key={i}
               data-radar="label"
               x={x}
-              y={y}
+              y={baseY}
               textAnchor={anchor}
               dominantBaseline="middle"
-              fontSize={labelFontSize}
+              fontSize={compensatedFontSize}
               fill={isActive ? "#ffffff" : labelColor}
               opacity={isActive ? 0.85 : 0.4}
               fontFamily="'Inter Tight', Inter, sans-serif"
@@ -528,13 +583,17 @@ export function RadarChart({
               onClick={
                 isInteractive
                   ? (e) => {
-                    e.stopPropagation();
-                    onCategoryHover(activeCategoryIndex === i ? null : i);
-                  }
+                      e.stopPropagation();
+                      onCategoryHover(activeCategoryIndex === i ? null : i);
+                    }
                   : undefined
               }
             >
-              {label.toUpperCase()}
+              {lines.map((line, j) => (
+                <tspan key={j} x={x} dy={j === 0 ? 0 : lineHeight}>
+                  {line}
+                </tspan>
+              ))}
             </text>
           );
         })}
