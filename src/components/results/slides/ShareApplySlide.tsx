@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "motion/react";
+import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from "react";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "motion/react";
 import type { ResultsPageData } from "@/lib/schemas/results";
-import { toBlob } from "html-to-image";
 import { RadarChart } from "@/components/results/RadarChart";
 import { getShortLabel } from "@/components/results/short-labels";
 import {
     PERSONALITY_DIMENSION_CATEGORIES,
 } from "@/lib/assessment/personality-dimensions";
+import { useShareCardCache } from "@/lib/hooks/use-share-card-cache";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -39,6 +39,47 @@ const LinkIcon = () => (
     </svg>
 );
 
+const ShareIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" />
+    </svg>
+);
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function anchorDownload(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+// Mobile detection via useSyncExternalStore (coarse pointer + narrow viewport)
+function getMobileSnapshot() {
+    return window.matchMedia("(pointer: coarse)").matches && window.innerWidth < 768;
+}
+function getMobileServerSnapshot() {
+    return false;
+}
+function subscribeMobile(callback: () => void) {
+    const mql = window.matchMedia("(pointer: coarse)");
+    mql.addEventListener("change", callback);
+    window.addEventListener("resize", callback);
+    return () => {
+        mql.removeEventListener("change", callback);
+        window.removeEventListener("resize", callback);
+    };
+}
+function useIsMobile() {
+    return useSyncExternalStore(subscribeMobile, getMobileSnapshot, getMobileServerSnapshot);
+}
+
 // ---------------------------------------------------------------------------
 // Card Components
 // ---------------------------------------------------------------------------
@@ -61,10 +102,10 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
 
     return (
         <div className="flex flex-col h-full bg-[#0a0a0c] p-6 relative overflow-hidden" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            {/* Glow */}
+            {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full blur-[60px] pointer-events-none"
-                style={{ background: `${accentColor}18` }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 pointer-events-none"
+                style={{ background: `radial-gradient(circle, ${accentColor}18 0%, transparent 70%)` }}
             />
 
             <div className="relative z-10 flex flex-col h-full">
@@ -144,10 +185,10 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
 
     return (
         <div className="flex flex-col h-full bg-[#0a0a0c] p-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            {/* Glow */}
+            {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
-                className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-[50px] pointer-events-none"
-                style={{ background: `${accentColor}20` }}
+                className="absolute -top-16 -right-16 w-56 h-56 pointer-events-none"
+                style={{ background: `radial-gradient(circle, ${accentColor}20 0%, transparent 70%)` }}
             />
 
             <div className="relative z-10 flex flex-col h-full">
@@ -197,6 +238,15 @@ const COMM_SECTOR_COLORS: Record<string, string> = {
 };
 const COMM_ACCENT = "#2dd4bf";
 
+/** Shortened sector labels for the share card (matches main CommunicationRadarSlide) */
+const COMM_SECTOR_SHORT_LABELS: Record<string, string> = {
+    "Energy & Dynamism": "Energy",
+    "Confidence & Authority": "Confidence",
+    "Warmth & Interpersonal": "Warmth",
+    "Communication Style": "Style",
+    "Self-Presentation": "Presentation",
+};
+
 function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageData; isExporting: boolean }) {
     const profile = data.communicationProfile;
     if (!profile || profile.length === 0) return null;
@@ -206,10 +256,9 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
     const categoryNames = profile.map((p) => p.category);
     const studentScores = profile.map((p) => p.value * 100);
 
-    // Keep labels for unique React keys; they clip naturally on the small card
     const sectorGroups = Object.entries(PERSONALITY_DIMENSION_CATEGORIES).map(
         ([catName, keys]) => ({
-            label: catName,
+            label: COMM_SECTOR_SHORT_LABELS[catName] ?? catName,
             color: COMM_SECTOR_COLORS[catName] ?? COMM_ACCENT,
             indices: keys
                 .map((k) => keyToIndex.get(k))
@@ -228,10 +277,10 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
 
     return (
         <div className="flex flex-col h-full bg-[#0a0a0c] p-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            {/* Glow */}
+            {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
-                className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-[50px] pointer-events-none"
-                style={{ background: `${COMM_ACCENT}20` }}
+                className="absolute -top-16 -right-16 w-56 h-56 pointer-events-none"
+                style={{ background: `radial-gradient(circle, ${COMM_ACCENT}20 0%, transparent 70%)` }}
             />
 
             <div className="relative z-10 flex flex-col h-full">
@@ -266,7 +315,7 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
                         </div>
-                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">How You Present &amp; Connect</p>
+                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Style</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
@@ -325,6 +374,12 @@ function TiltWrapper({
     cardRef: React.RefObject<HTMLDivElement | null>;
     isExporting: boolean;
 }) {
+    const [isCoarse, setIsCoarse] = useState(false);
+
+    useEffect(() => {
+        setIsCoarse(window.matchMedia("(pointer: coarse)").matches);
+    }, []);
+
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
@@ -342,8 +397,10 @@ function TiltWrapper({
     const sheenBgPosition = useTransform(() => `${sheenPositionX.get()} ${sheenPositionY.get()}`);
     const sheenBgOpacity = useTransform(() => Math.min(sheenOpacity.get() * 2, 0.5));
 
+    const disabled = isExporting || isCoarse;
+
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isExporting) return;
+        if (disabled) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
@@ -360,36 +417,36 @@ function TiltWrapper({
         y.set(0);
     };
 
-    // Turn off perspective during export to ensure html-to-image captures perfectly flat
-    const currentRotateX = isExporting ? "0deg" : rotateX;
-    const currentRotateY = isExporting ? "0deg" : rotateY;
+    // Turn off perspective during export or on mobile (no hover = no tilt)
+    const currentRotateX = disabled ? "0deg" : rotateX;
+    const currentRotateY = disabled ? "0deg" : rotateY;
 
     return (
         <motion.div
             className="relative w-full aspect-[9/16] max-w-[300px] perspective-[1000px] max-h-[55vh] md:max-h-[60vh] mx-auto select-none touch-manipulation"
-            style={{ perspective: isExporting ? "none" : 1000 }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
+            style={{ perspective: disabled ? "none" : 1000 }}
+            onMouseMove={disabled ? undefined : handleMouseMove}
+            onMouseLeave={disabled ? undefined : handleMouseLeave}
         >
             <motion.div
                 className="w-full h-full relative"
                 style={{
                     rotateX: currentRotateX,
                     rotateY: currentRotateY,
-                    transformStyle: "preserve-3d"
+                    transformStyle: disabled ? undefined : "preserve-3d"
                 }}
             >
                 <div
                     ref={cardRef}
                     className="w-full h-full absolute inset-0 rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] bg-[#0a0a0c] border border-white/10"
                     style={{
-                        willChange: isExporting ? 'auto' : 'transform',
+                        willChange: disabled ? 'auto' : 'transform',
                     }}
                 >
                     {children}
 
-                    {/* Holographic Sheen Overlay */}
-                    {!isExporting && (
+                    {/* Holographic Sheen Overlay — hidden on mobile (no hover) and during export */}
+                    {!disabled && (
                         <motion.div
                             className="absolute inset-0 pointer-events-none mix-blend-screen rounded-2xl bg-gradient-to-tr from-white/0 via-white/30 to-white/0"
                             style={{
@@ -418,8 +475,10 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
     const [isExporting, setIsExporting] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState<1 | -1>(1);
+    const [pendingShareBlob, setPendingShareBlob] = useState<Blob | null>(null);
 
     const printRef = useRef<HTMLDivElement>(null);
+    const isMobile = useIsMobile();
 
     // Build available cards dynamically
     const cards: { id: string; render: (exp: boolean) => React.ReactNode }[] = [];
@@ -468,6 +527,12 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
         setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
     };
 
+    // Pre-generate share card blob in the background
+    const currentCardId = cards[currentIndex]?.id ?? "";
+    const { getBlob, cachedBlob } = useShareCardCache(printRef, currentCardId, {
+        enabled: true,
+    });
+
     const handleCopyLink = useCallback(async () => {
         const shareUrl = typeof window !== "undefined" ? window.location.href : "";
         try {
@@ -479,124 +544,102 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
         }
     }, []);
 
+    /** Try to share a blob via the native share sheet. Returns true on success. */
+    const tryNativeShare = useCallback(async (blob: Blob, filename: string): Promise<boolean> => {
+        if (!navigator.canShare) return false;
+        const file = new File([blob], filename, { type: "image/png" });
+        if (!navigator.canShare({ files: [file] })) return false;
+        await navigator.share({ files: [file] });
+        return true;
+    }, []);
+
+    /** Share from the preview overlay (fresh gesture) */
+    const handleOverlayShare = useCallback(async () => {
+        if (!pendingShareBlob) return;
+        const filename = `builder-profile-${currentCardId}.png`;
+        try {
+            const shared = await tryNativeShare(pendingShareBlob, filename);
+            if (!shared) anchorDownload(pendingShareBlob, filename);
+        } catch (err) {
+            if (err instanceof Error && err.name === "AbortError") return;
+            anchorDownload(pendingShareBlob, filename);
+        } finally {
+            setPendingShareBlob(null);
+        }
+    }, [pendingShareBlob, currentCardId, tryNativeShare]);
+
+    const handleDismissOverlay = useCallback(() => {
+        setPendingShareBlob(null);
+    }, []);
+
     const handleDownloadImage = useCallback(async () => {
         if (!printRef.current) return;
+        const filename = `builder-profile-${cards[currentIndex].id}.png`;
+
         try {
-            setIsExporting(true);
-
-            // Let Framer Motion snap to flat (0deg rotation) before capture
-            await new Promise((resolve) => setTimeout(resolve, 150));
-
-            // Inline <img> srcs as data URLs so the cloner doesn't re-fetch
-            const imgs = printRef.current.querySelectorAll("img");
-            const originalSrcs: string[] = [];
-            for (const img of imgs) {
-                originalSrcs.push(img.src);
-                try {
-                    const canvas = document.createElement("canvas");
-                    canvas.width = img.naturalWidth || 100;
-                    canvas.height = img.naturalHeight || 100;
-                    canvas.getContext("2d")!.drawImage(img, 0, 0);
-                    img.src = canvas.toDataURL("image/png");
-                } catch { /* keep original */ }
-            }
-
-            const captureOpts = {
-                // 4× gives ~1200×1730 output from the 300px card — close to
-                // Instagram Story / phone-wallpaper resolution (1080×1920).
-                pixelRatio: 4,
-                style: { transform: "none" },
-                // Embed fonts so Inter / Inter Tight render correctly in the
-                // SVG foreignObject clone (prevents text reflow & overlap).
-                skipFonts: false,
-                filter: (node: HTMLElement) => {
-                    // Skip decorative blur overlays that slow serialization
-                    const style = node.style;
-                    if (style?.filter?.includes("blur")) return false;
-                    // className may be SVGAnimatedString on SVG elements — check type
-                    const cls = typeof node.className === "string" ? node.className : "";
-                    if (cls.includes("blur-")) return false;
-                    return true;
-                },
-            };
-
-            // Safari returns a blank image on the first toBlob() call (well-known
-            // html-to-image bug). Calling it twice with the first result discarded
-            // is the standard workaround.
-            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-            if (isSafari) {
-                await toBlob(printRef.current, captureOpts).catch(() => {});
-            }
-            const blob = await toBlob(printRef.current, captureOpts);
-
-            // Restore original image srcs
-            imgs.forEach((img, i) => { img.src = originalSrcs[i]; });
-
-            if (!blob) throw new Error("Image capture returned empty");
-
-            const filename = `builder-profile-${cards[currentIndex].id}.png`;
-
-            // Only use Web Share API on mobile devices (touch + small screen).
-            // On macOS desktop, canShare() returns true but opens a share sheet
-            // instead of saving — confusing for a "save" button.
-            const isMobile = "ontouchstart" in window && window.innerWidth < 768;
-
-            if (isMobile && navigator.canShare) {
-                const file = new File([blob], filename, { type: "image/png" });
-                if (navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file] });
+            // ------- Mobile path: use native share sheet -------
+            if (isMobile) {
+                // Happy path: blob is pre-cached, fire share immediately (gesture preserved)
+                if (cachedBlob) {
+                    const shared = await tryNativeShare(cachedBlob, filename);
+                    if (shared) return;
+                    // canShare failed — fall through to anchor download
+                    anchorDownload(cachedBlob, filename);
                     return;
                 }
+
+                // Blob not ready yet — generate on demand
+                setIsExporting(true);
+                const blob = await getBlob();
+                setIsExporting(false);
+
+                // Try share — may fail with NotAllowedError if gesture expired
+                try {
+                    const shared = await tryNativeShare(blob, filename);
+                    if (shared) return;
+                    anchorDownload(blob, filename);
+                } catch (err) {
+                    if (err instanceof Error && err.name === "AbortError") return;
+                    if (err instanceof Error && err.name === "NotAllowedError") {
+                        // Gesture expired — show preview overlay for a fresh tap
+                        setPendingShareBlob(blob);
+                        return;
+                    }
+                    anchorDownload(blob, filename);
+                }
+                return;
             }
 
-            // Anchor download (desktop + fallback)
-            const blobUrl = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.download = filename;
-            link.href = blobUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            // Delay revocation so the browser can start the download
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+            // ------- Desktop path: anchor download -------
+            setIsExporting(true);
+            const blob = await getBlob();
+            anchorDownload(blob, filename);
         } catch (err) {
             if (err instanceof Error && err.name === "AbortError") return;
             console.error("Capture failed:", err);
         } finally {
             setIsExporting(false);
         }
-    }, [currentIndex, cards]);
+    }, [currentIndex, cards, isMobile, cachedBlob, getBlob, tryNativeShare]);
 
     const isAdmissions = data.applicant.assessmentType === "admissions";
 
-    // Animation variants for carousel
-    const slideVariants = {
-        enter: (dir: number) => ({
-            x: dir > 0 ? 50 : -50,
-            opacity: 0,
-            scale: 0.95,
-        }),
-        center: {
-            x: 0,
-            opacity: 1,
-            scale: 1,
-        },
-        exit: (dir: number) => ({
-            x: dir < 0 ? 50 : -50,
-            opacity: 0,
-            scale: 0.95,
-        }),
-    };
+    // Track previous index so we know which card is exiting (and in which direction)
+    const prevIndexRef = useRef(currentIndex);
+    const prevIndex = prevIndexRef.current;
+    useEffect(() => {
+        prevIndexRef.current = currentIndex;
+    }, [currentIndex]);
 
     return (
         <section className="flex min-h-full md:h-full flex-col items-center justify-center px-4 py-8 md:py-16 relative overflow-x-hidden">
-            {/* Background glow */}
+            {/* Background glow — radial gradient instead of blur() for iOS perf */}
             <motion.div
                 aria-hidden="true"
-                className="absolute w-[100vw] h-[100vw] max-w-[700px] max-h-[700px] rounded-full blur-[130px] bottom-0 left-1/2 -translate-x-1/2 mix-blend-screen opacity-20 pointer-events-none"
-                style={{ background: "#4da3ff" }}
+                className="absolute w-[100vw] h-[100vw] max-w-[700px] max-h-[700px] bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
+                style={{ background: "radial-gradient(circle, rgba(77,163,255,0.22) 0%, rgba(77,163,255,0.08) 40%, transparent 70%)" }}
                 initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 0.2, scale: 1 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 2, ease: "easeOut", delay: 0.5 }}
             />
 
@@ -639,20 +682,28 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 {/* The Card */}
                 <div className="flex-1 w-full flex justify-center py-2">
                     <TiltWrapper cardRef={printRef} isExporting={isExporting}>
-                        <AnimatePresence mode="popLayout" custom={direction} initial={false}>
-                            <motion.div
-                                key={currentIndex}
-                                custom={direction}
-                                variants={slideVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.4, ease: EASE }}
-                                className="absolute inset-0"
-                            >
-                                {cards[currentIndex].render(isExporting)}
-                            </motion.div>
-                        </AnimatePresence>
+                        {cards.map((card, i) => {
+                            const isActive = i === currentIndex;
+                            const isExiting = i === prevIndex && prevIndex !== currentIndex;
+                            const targetX = isActive ? 0 : isExiting ? -direction * 50 : direction * 50;
+                            return (
+                                <motion.div
+                                    key={card.id}
+                                    className="absolute inset-0"
+                                    initial={false}
+                                    animate={{
+                                        opacity: isActive ? 1 : 0,
+                                        x: targetX,
+                                        scale: isActive ? 1 : 0.95,
+                                    }}
+                                    transition={{ duration: 0.35, ease: EASE }}
+                                    aria-hidden={!isActive}
+                                    style={{ pointerEvents: isActive ? "auto" : "none" }}
+                                >
+                                    {card.render(isExporting)}
+                                </motion.div>
+                            );
+                        })}
                     </TiltWrapper>
                 </div>
 
@@ -675,7 +726,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 transition={{ duration: 1.4, ease: EASE, delay: 1.2 }}
                 className="z-10 w-full max-w-[280px] mt-6 flex flex-col gap-2 relative"
             >
-                {/* Save to Camera Roll */}
+                {/* Save / Share */}
                 <button
                     onClick={handleDownloadImage}
                     disabled={isExporting}
@@ -684,12 +735,17 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                     {isExporting ? (
                         <div className="flex items-center gap-2 text-white/70">
                             <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                            <span>Preparing image...</span>
+                            <span>Preparing image{"\u2026"}</span>
                         </div>
+                    ) : isMobile ? (
+                        <>
+                            <ShareIcon />
+                            <span>Share Image</span>
+                        </>
                     ) : (
                         <>
                             <DownloadIcon />
-                            <span>Save to Camera Roll</span>
+                            <span>Save Image</span>
                         </>
                     )}
                 </button>
@@ -724,7 +780,86 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                     </>
                 )}
             </motion.div>
+
+            {/* Share preview overlay — shown when gesture expired before navigator.share() */}
+            <AnimatePresence>
+                {pendingShareBlob && (
+                    <SharePreviewOverlay
+                        blob={pendingShareBlob}
+                        onShare={handleOverlayShare}
+                        onDismiss={handleDismissOverlay}
+                    />
+                )}
+            </AnimatePresence>
         </section>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Share Preview Overlay
+// ---------------------------------------------------------------------------
+
+function SharePreviewOverlay({
+    blob,
+    onShare,
+    onDismiss,
+}: {
+    blob: Blob;
+    onShare: () => void;
+    onDismiss: () => void;
+}) {
+    const [objectUrl, setObjectUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        const url = URL.createObjectURL(blob);
+        setObjectUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [blob]);
+
+    return (
+        <motion.div
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm px-6"
+            style={{ overscrollBehavior: "contain" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+        >
+            {/* Preview image */}
+            {objectUrl && (
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    className="w-full max-w-[260px] mb-6"
+                >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={objectUrl}
+                        alt="Your builder profile card"
+                        className="w-full rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/10"
+                    />
+                </motion.div>
+            )}
+
+            {/* Share button — fresh gesture */}
+            <button
+                onClick={onShare}
+                className="w-full max-w-[260px] rounded-full border border-white/20 bg-white/10 backdrop-blur-sm py-3.5 px-6 text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:bg-white/15 mb-3"
+            >
+                <ShareIcon />
+                <span>Share Image</span>
+            </button>
+
+            {/* Cancel */}
+            <button
+                onClick={onDismiss}
+                className="text-white/50 text-sm py-2 px-4 hover:text-white transition-colors"
+            >
+                Cancel
+            </button>
+        </motion.div>
     );
 }
 
