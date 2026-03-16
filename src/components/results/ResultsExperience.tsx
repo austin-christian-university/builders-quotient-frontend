@@ -87,14 +87,14 @@ function NavArrow({ direction, onClick, isDesktop, prominent }: NavArrowProps) {
 
   // Mobile: left/right edges. Desktop: top/bottom center, tight to edge.
   const position = isForward
-    ? "right-2 top-1/2 -translate-y-1/2 md:right-auto md:top-auto md:translate-y-0 md:bottom-3 md:left-1/2 md:-translate-x-1/2"
-    : "left-2 top-1/2 -translate-y-1/2 md:top-3 md:translate-y-0 md:left-1/2 md:-translate-x-1/2";
+    ? "right-2 top-[85%] -translate-y-1/2 md:right-auto md:top-auto md:translate-y-0 md:bottom-3 md:left-1/2 md:-translate-x-1/2"
+    : "left-2 top-[85%] -translate-y-1/2 md:top-3 md:translate-y-0 md:left-1/2 md:-translate-x-1/2";
 
   const label = isForward ? "Next section" : "Previous section";
 
   const baseStyle = prominent
     ? "h-11 w-11 rounded-full border border-white/15 bg-white/10 backdrop-blur-md text-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:bg-white/20 hover:text-white/90"
-    : "h-10 w-10 text-white/25 hover:text-white/50";
+    : "h-10 w-10 rounded-full border border-white/8 bg-white/5 backdrop-blur-md text-white/40 shadow-[0_2px_12px_rgba(0,0,0,0.2)] hover:bg-white/10 hover:text-white/60";
 
   // Bounce: vertical on desktop, horizontal on mobile
   const bounceAxis = isDesktop ? "y" : "x";
@@ -407,7 +407,7 @@ export function ResultsExperience({ data }: Props) {
         {reducedMotion ? (
           <div
             ref={slideScrollRef}
-            className="h-full overflow-y-auto md:overflow-hidden overscroll-contain"
+            className="h-full overflow-y-auto md:overflow-hidden overscroll-contain scrollbar-hide"
             key={currentSection}
           >
             {sections[currentSection]}
@@ -423,7 +423,7 @@ export function ResultsExperience({ data }: Props) {
               animate="center"
               exit="exit"
               transition={transition}
-              className="h-full overflow-y-auto md:overflow-hidden overscroll-contain"
+              className="h-full overflow-y-auto md:overflow-hidden overscroll-contain scrollbar-hide"
             >
               {sections[currentSection]}
             </motion.div>

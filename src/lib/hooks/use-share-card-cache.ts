@@ -9,29 +9,13 @@ const isSafari =
   /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 /**
- * Generates a PNG blob from a card element, with Safari double-call workaround
- * and image inlining for cross-origin safety.
+ * Generates a PNG blob from a card element, with Safari double-call workaround.
+ * Images use inline data URLs (ACU_CREST_DATA_URL), so no src-swapping needed.
  */
 async function generateBlob(
   el: HTMLElement,
   pixelRatio: number
 ): Promise<Blob> {
-  // Inline <img> srcs as data URLs so the cloner doesn't re-fetch
-  const imgs = el.querySelectorAll("img");
-  const originalSrcs: string[] = [];
-  for (const img of imgs) {
-    originalSrcs.push(img.src);
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth || 100;
-      canvas.height = img.naturalHeight || 100;
-      canvas.getContext("2d")!.drawImage(img, 0, 0);
-      img.src = canvas.toDataURL("image/png");
-    } catch {
-      /* keep original */
-    }
-  }
-
   const captureOpts = {
     pixelRatio,
     style: { transform: "none" },
@@ -45,20 +29,13 @@ async function generateBlob(
     },
   };
 
-  try {
-    // Safari returns blank on first toBlob() call — discard it
-    if (isSafari) {
-      await toBlob(el, captureOpts).catch(() => {});
-    }
-    const blob = await toBlob(el, captureOpts);
-    if (!blob) throw new Error("Image capture returned empty");
-    return blob;
-  } finally {
-    // Restore original image srcs
-    imgs.forEach((img, i) => {
-      img.src = originalSrcs[i];
-    });
+  // Safari returns blank on first toBlob() call — discard it
+  if (isSafari) {
+    await toBlob(el, captureOpts).catch(() => {});
   }
+  const blob = await toBlob(el, captureOpts);
+  if (!blob) throw new Error("Image capture returned empty");
+  return blob;
 }
 
 interface UseShareCardCacheOptions {

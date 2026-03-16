@@ -44,7 +44,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                     {prefersReducedMotion ? (
                         <div className="relative h-[200px] w-[200px] sm:h-[240px] sm:w-[240px]">
                             <Image
-                                src="/White-Crest.png"
+                                src="/White-Crest-sm.png"
                                 alt="Austin Christian University Crest"
                                 fill
                                 className="object-contain"
@@ -75,7 +75,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                             className="relative h-[200px] w-[200px] sm:h-[240px] sm:w-[240px]"
                         >
                             <Image
-                                src="/White-Crest.png"
+                                src="/White-Crest-sm.png"
                                 alt="Austin Christian University Crest"
                                 fill
                                 className="object-contain"

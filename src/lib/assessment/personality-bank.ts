@@ -52,6 +52,17 @@ export const FACET_LABELS: Record<PersonalityFacet, string> = {
   AC: "Attention Checks",
 };
 
+export const FACET_DESCRIPTIONS: Record<Exclude<PersonalityFacet, "AC">, string> = {
+  AM: "Your drive to set high goals and pursue them with sustained effort, even when the work gets hard or progress slows.",
+  RT: "Your comfort with uncertainty and willingness to make calculated bets when the outcome isn\u2019t guaranteed.",
+  IN: "Your tendency to seek novel solutions and challenge conventional approaches rather than defaulting to what already exists.",
+  AU: "Your preference for self-direction \u2014 defining your own priorities, making independent decisions, and owning your path.",
+  SE: "Your confidence in your ability to figure things out, adapt to unfamiliar challenges, and make things happen.",
+  ST: "Your capacity to maintain composure and decision-making quality when under pressure or facing setbacks.",
+  IL: "Your belief that your outcomes are shaped primarily by your own choices and actions, not luck or external circumstances.",
+  GR: "Your persistence with long-term goals \u2014 staying focused and following through even when progress is slow or unglamorous.",
+};
+
 export const QUESTIONS_PER_PAGE = 6;
 
 export const PERSONALITY_ITEMS: PersonalityItem[] = [

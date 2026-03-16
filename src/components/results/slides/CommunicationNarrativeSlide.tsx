@@ -90,7 +90,7 @@ export function CommunicationNarrativeSlide({
 
         <div
           ref={scrollRef}
-          className="h-full overflow-y-auto"
+          className="h-full overflow-y-auto scrollbar-hide"
           style={{ overscrollBehavior: "contain" }}
         >
           <div className="w-full max-w-4xl mx-auto pb-4">
@@ -100,7 +100,7 @@ export function CommunicationNarrativeSlide({
                 <motion.h3
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
+                  transition={{ duration: 0.4, delay: 0.35 }}
                   className="text-sm font-semibold uppercase tracking-[0.2em]"
                   style={{ color: ACCENT }}
                 >
@@ -110,11 +110,11 @@ export function CommunicationNarrativeSlide({
                 {visibleStrengths.map((block, i) => (
                   <motion.div
                     key={`strength-${block.category}-${i}`}
-                    initial={{ opacity: 0, y: 16 }}
+                    initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
-                      duration: 0.5,
-                      delay: 0.3 + i * 0.15,
+                      duration: 0.6,
+                      delay: 0.5 + i * 0.35,
                       ease: [0.16, 1, 0.3, 1],
                     }}
                     className="rounded-2xl border p-4 flex flex-col gap-1.5"
@@ -142,7 +142,7 @@ export function CommunicationNarrativeSlide({
                 <motion.h3
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.4, delay: 0.25 }}
+                  transition={{ duration: 0.4, delay: 0.5 + visibleStrengths.length * 0.35 }}
                   className="text-sm font-semibold uppercase tracking-[0.2em]"
                   style={{ color: ACCENT_MUTED }}
                 >
@@ -152,11 +152,11 @@ export function CommunicationNarrativeSlide({
                 {visibleGrowth.map((block, i) => (
                   <motion.div
                     key={`growth-${block.category}-${i}`}
-                    initial={{ opacity: 0, y: 16 }}
+                    initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
-                      duration: 0.5,
-                      delay: 0.35 + i * 0.15,
+                      duration: 0.6,
+                      delay: 0.65 + visibleStrengths.length * 0.35 + i * 0.35,
                       ease: [0.16, 1, 0.3, 1],
                     }}
                     className="rounded-2xl border p-4 flex flex-col gap-1.5"

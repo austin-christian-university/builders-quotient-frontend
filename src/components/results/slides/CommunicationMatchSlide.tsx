@@ -131,7 +131,7 @@ export function CommunicationMatchSlide({ data }: CommunicationMatchSlideProps) 
 
         <div
           ref={scrollRef}
-          className="h-full overflow-y-auto"
+          className="h-full overflow-y-auto scrollbar-hide"
           style={{ overscrollBehavior: "contain" }}
         >
           <div className="max-w-2xl mx-auto pb-4">

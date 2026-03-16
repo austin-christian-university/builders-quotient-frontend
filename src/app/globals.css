@@ -101,6 +101,15 @@ body {
   font-family: var(--font-sans);
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .skip-to-content {
   position: absolute;
   left: -9999px;

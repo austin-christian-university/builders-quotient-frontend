@@ -9,6 +9,7 @@ import {
     PERSONALITY_DIMENSION_CATEGORIES,
 } from "@/lib/assessment/personality-dimensions";
 import { useShareCardCache } from "@/lib/hooks/use-share-card-cache";
+import { ACU_CREST_DATA_URL } from "@/lib/crest-data-url";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -154,7 +155,7 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
                     <div className="flex flex-col items-center gap-2">
                         <div className="h-14 opacity-60">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
+                            <img src={ACU_CREST_DATA_URL} alt="ACU" className="h-full w-auto object-contain" />
                         </div>
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Match</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
@@ -218,7 +219,7 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
                     <div className="flex flex-col items-center gap-2">
                         <div className="h-14 opacity-60">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
+                            <img src={ACU_CREST_DATA_URL} alt="ACU" className="h-full w-auto object-contain" />
                         </div>
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Profile</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
@@ -313,7 +314,7 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
                     <div className="flex flex-col items-center gap-2">
                         <div className="h-14 opacity-60">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
+                            <img src={ACU_CREST_DATA_URL} alt="ACU" className="h-full w-auto object-contain" />
                         </div>
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Style</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
@@ -349,7 +350,7 @@ function ArchetypeCard({ data, isExporting }: { data: ResultsPageData, isExporti
                     <div className="flex flex-col items-center gap-2">
                         <div className="h-14 opacity-60">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
+                            <img src={ACU_CREST_DATA_URL} alt="ACU" className="h-full w-auto object-contain" />
                         </div>
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Archetype</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>

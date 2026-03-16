@@ -33,7 +33,7 @@ const SECTOR_FULL_LABELS: Record<string, string> = {
   "Confidence & Authority": "Confidence",
   "Warmth & Interpersonal": "Warmth",
   "Communication Style": "Style",
-  "Self-Presentation": "Self-Presentation",
+  "Self-Presentation": "Presentation",
 };
 
 export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) {
@@ -115,7 +115,7 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
         transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="flex-1 min-h-0 flex items-center justify-center py-2"
       >
-        <div ref={containerRef} className="w-full max-w-md mx-auto max-h-full px-2">
+        <div ref={containerRef} className="w-full max-w-lg mx-auto max-h-full px-2">
           <RadarChart
             categories={categoryNames}
             studentScores={studentScores}

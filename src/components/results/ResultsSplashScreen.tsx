@@ -56,7 +56,7 @@ export function ResultsSplashScreen({ onComplete }: Props) {
             <div className="flex flex-col items-center gap-8">
               <div className="relative h-[160px] w-[160px] sm:h-[200px] sm:w-[200px]">
                 <Image
-                  src="/White-Crest.png"
+                  src="/White-Crest-sm.png"
                   alt="Austin Christian University Crest"
                   fill
                   className="object-contain"
@@ -96,7 +96,7 @@ export function ResultsSplashScreen({ onComplete }: Props) {
                 className="relative h-[160px] w-[160px] sm:h-[200px] sm:w-[200px]"
               >
                 <Image
-                  src="/White-Crest.png"
+                  src="/White-Crest-sm.png"
                   alt="Austin Christian University Crest"
                   fill
                   className="object-contain"
