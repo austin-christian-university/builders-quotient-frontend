@@ -16,9 +16,11 @@ The current metadata setup has several issues:
 
 ### Favicon & Apple Icon
 
-Copy the ACU interlocking monogram (`icon.png` from `../acu-website/app/icon.png`) into:
-- `src/app/icon.png` — Next.js auto-discovers this for `<link rel="icon">`
-- `src/app/apple-icon.png` — Next.js auto-discovers this for `<link rel="apple-touch-icon">`
+Copy the ACU interlocking monogram (`icon.png` from `../acu-website/app/icon.png`), resized appropriately:
+- `src/app/icon.png` — Resized to 512x512. Next.js auto-discovers this for `<link rel="icon">`
+- `src/app/apple-icon.png` — Resized to 180x180 (Apple's recommended size). Next.js auto-discovers this for `<link rel="apple-touch-icon">`
+
+The source file is 1326x1326 — resize to avoid serving an unnecessarily large favicon on every page load.
 
 Remove `src/app/favicon.ico` (superseded by `icon.png`).
 
@@ -44,7 +46,16 @@ Replace `public/og-image.jpg` (group photo, 1200x800) with a build-time generate
   3. Divider: 60x2px gradient bar, `#4da3ff` to `rgba(233,185,73,0.7)`, centered, 20px margin
   4. Tagline: "Discover your Builder DNA" — 17px, `#9aa0ac`
 
-**Implementation:** Use Next.js `ImageResponse` API in `src/app/opengraph-image.tsx`. This generates the image at build time (static route, not dynamic). The constellation is drawn using absolute-positioned div elements with border-radius (since `ImageResponse` doesn't support SVG elements directly). Delete `public/og-image.jpg` after.
+**Implementation:** Use Next.js `ImageResponse` API in `src/app/opengraph-image.tsx`. This generates the image at build time (static route, not dynamic). The constellation is drawn using absolute-positioned div elements with border-radius for nodes; connection lines use thin rotated divs with calculated width and `transform: rotate(...)` (Satori does not support SVG elements). Some positional imprecision on lines is acceptable.
+
+**Font loading:** Satori does not have access to `next/font/google` fonts from `layout.tsx`. Load Inter Tight 700 (title) and Inter 600 (eyebrow) via `fetch` from Google Fonts CDN and pass them in the `ImageResponse` `fonts` option array.
+
+**Required exports from `opengraph-image.tsx`:**
+- `export const size = { width: 1200, height: 630 }` — ensures `og:image:width/height` meta tags are set
+- `export const alt = "Builders Quotient — Discover your Builder DNA"` — accessibility
+- `export const contentType = "image/png"`
+
+Delete `public/og-image.jpg` after.
 
 ### Metadata Updates in `layout.tsx`
 
@@ -105,6 +116,7 @@ Delete from `public/`:
 
 1. `npm run build` succeeds
 2. Dev server shows new favicon in browser tab
-3. OG image renders at `/_next/static/media/opengraph-image.*` (or test with og-image debugger)
-4. Social card preview tools (Twitter Card Validator, Facebook Sharing Debugger) show correct 1200x630 image
-5. No references to deleted files remain in codebase
+3. OG image renders at `/opengraph-image` (Next.js serves it at this route when using `opengraph-image.tsx`)
+4. Inspect HTML source to confirm `<meta property="og:image">`, `og:image:width`, `og:image:height`, and `og:image:alt` tags are present
+5. Social card preview tools (Twitter Card Validator, Facebook Sharing Debugger) show correct 1200x630 image
+6. No references to deleted files remain in codebase
