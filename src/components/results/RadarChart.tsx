@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo, useLayoutEffect } from "react";
+import { useState, useCallback, useRef, useMemo, useLayoutEffect, useId } from "react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -168,6 +168,7 @@ export function RadarChart({
   containerWidth = 0,
   interactive = true,
 }: RadarChartProps) {
+  const uid = useId();
   const n = categories.length;
   const hasSectors = !!sectorGroups && sectorGroups.length > 0;
   const isInteractive = hasSectors && interactive;
@@ -181,7 +182,7 @@ export function RadarChart({
 
   const cx = size / 2;
   const cy = size / 2;
-  const labelPad = size * (hasSectors ? 0.26 : 0.2);
+  const labelPad = size * (hasSectors ? 0.22 : 0.2);
   const maxRadius = cx - labelPad;
   const labelFontSize = 12;
   const labelRadius = maxRadius + 14;
@@ -206,7 +207,9 @@ export function RadarChart({
   // Size-based padding for small charts (share cards at 320) where labels
   // are proportionally wider relative to the viewBox
   const sizeBasedPad = !hasSectors && size < 480 ? 24 : 0;
-  const vbPad = Math.max(fontGrowthPad, sizeBasedPad);
+  // Sector charts at small sizes need extra padding for arc labels
+  const sectorSmallPad = hasSectors && size < 480 ? 32 : 0;
+  const vbPad = Math.max(fontGrowthPad, sizeBasedPad, sectorSmallPad);
 
   // Pre-compute dot positions (in SVG coords)
   const dotPositions = useMemo(() => {
@@ -339,7 +342,7 @@ export function RadarChart({
           {sectorGroups!.map((group) => (
             <filter
               key={`glow-${group.label}`}
-              id={`arc-glow-${group.label.replace(/\s+/g, "-")}`}
+              id={`${uid}-arc-glow-${group.label.replace(/\s+/g, "-")}`}
               x="-50%"
               y="-50%"
               width="200%"
@@ -432,7 +435,7 @@ export function RadarChart({
           const isGroupActive =
             activeIndex !== null && group.indices.includes(activeIndex);
 
-          const glowFilterId = `arc-glow-${group.label.replace(/\s+/g, "-")}`;
+          const glowFilterId = `${uid}-arc-glow-${group.label.replace(/\s+/g, "-")}`;
 
           return (
             <g key={group.label}>
@@ -457,7 +460,7 @@ export function RadarChart({
                 y={arcLabelPos.y}
                 textAnchor={anchor}
                 dominantBaseline="middle"
-                fontSize={12}
+                fontSize={16}
                 fontFamily="'Inter Tight', Inter, sans-serif"
                 fontWeight={700}
                 letterSpacing="0.1em"
@@ -584,6 +587,14 @@ export function RadarChart({
                 isInteractive
                   ? (e) => {
                       e.stopPropagation();
+                      onCategoryHover(activeCategoryIndex === i ? null : i);
+                    }
+                  : undefined
+              }
+              onTouchEnd={
+                isInteractive
+                  ? (e) => {
+                      e.preventDefault(); // Bypass iOS double-tap-to-click delay
                       onCategoryHover(activeCategoryIndex === i ? null : i);
                     }
                   : undefined
