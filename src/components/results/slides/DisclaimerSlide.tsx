@@ -14,7 +14,7 @@ const fadeUp = {
 
 export function DisclaimerSlide() {
   return (
-    <section className="flex h-full flex-col items-center justify-center px-6 relative overflow-hidden">
+    <section className="flex min-h-full md:h-full flex-col items-center justify-center px-6 py-8 md:py-16 relative md:overflow-hidden">
       {/* Soft ambient glow */}
       <motion.div
         className="absolute w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] rounded-full bg-secondary/10 blur-[120px]"

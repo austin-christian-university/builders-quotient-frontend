@@ -6,6 +6,9 @@ import type { ResultsPageData } from "@/lib/schemas/results";
 import { toBlob } from "html-to-image";
 import { RadarChart } from "@/components/results/RadarChart";
 import { getShortLabel } from "@/components/results/short-labels";
+import {
+    PERSONALITY_DIMENSION_CATEGORIES,
+} from "@/lib/assessment/personality-dimensions";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -177,6 +180,91 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
                             <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
                         </div>
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Profile</p>
+                        <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const COMM_SECTOR_COLORS: Record<string, string> = {
+    "Energy & Dynamism": "#2dd4bf",
+    "Confidence & Authority": "#63b3ed",
+    "Warmth & Interpersonal": "#f87171",
+    "Communication Style": "#a78bfa",
+    "Self-Presentation": "#fbbf24",
+};
+const COMM_ACCENT = "#2dd4bf";
+
+function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageData; isExporting: boolean }) {
+    const profile = data.communicationProfile;
+    if (!profile || profile.length === 0) return null;
+
+    const keyToIndex = new Map(profile.map((p, i) => [p.category, i]));
+
+    const categoryNames = profile.map((p) => p.category);
+    const studentScores = profile.map((p) => p.value * 100);
+
+    const sectorGroups = Object.entries(PERSONALITY_DIMENSION_CATEGORIES).map(
+        ([catName, keys]) => ({
+            label: catName,
+            color: COMM_SECTOR_COLORS[catName] ?? COMM_ACCENT,
+            indices: keys
+                .map((k) => keyToIndex.get(k))
+                .filter((i): i is number => i !== undefined),
+        })
+    );
+
+    const dotColors = profile.map((p) => {
+        for (const [catName, keys] of Object.entries(PERSONALITY_DIMENSION_CATEGORIES)) {
+            if (keys.includes(p.category)) {
+                return COMM_SECTOR_COLORS[catName] ?? COMM_ACCENT;
+            }
+        }
+        return COMM_ACCENT;
+    });
+
+    return (
+        <div className="flex flex-col h-full bg-[#0a0a0c] p-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+            {/* Glow */}
+            <div
+                className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-[50px] pointer-events-none"
+                style={{ background: `${COMM_ACCENT}20` }}
+            />
+
+            <div className="relative z-10 flex flex-col h-full">
+                {/* Eyebrow + subtitle */}
+                <div className="mb-2">
+                    <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold">Communication Style</span>
+                    <p className="text-[10px] font-semibold mt-1" style={{ color: `${COMM_ACCENT}AA` }}>
+                        How You Present &amp; Connect
+                    </p>
+                </div>
+
+                {/* Radar */}
+                <div className="flex-1 flex items-center justify-center min-h-0">
+                    <RadarChart
+                        categories={categoryNames}
+                        studentScores={studentScores}
+                        accentColor={COMM_ACCENT}
+                        size={320}
+                        maxValue={100}
+                        gridStyle="axesOnly"
+                        sectorGroups={sectorGroups}
+                        dotColors={dotColors}
+                    />
+                </div>
+
+                {/* Footer */}
+                <div className="mt-auto">
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent mb-3" />
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="h-14 opacity-60">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/White-Crest.png" alt="ACU" className="h-full w-auto object-contain" />
+                        </div>
+                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">How You Present &amp; Connect</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
@@ -357,6 +445,12 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
             render: (exp) => <RadarShareCard data={data} variant="ci" isExporting={exp} />,
         });
     }
+    if (data.communicationProfile && data.communicationProfile.length > 0) {
+        cards.push({
+            id: "communication-radar",
+            render: (exp) => <CommunicationRadarShareCard data={data} isExporting={exp} />,
+        });
+    }
     cards.push({
         id: "archetype",
         render: (exp) => <ArchetypeCard data={data} isExporting={exp} />,
@@ -493,7 +587,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
     };
 
     return (
-        <section className="flex h-full flex-col items-center justify-center px-4 relative overflow-hidden">
+        <section className="flex min-h-full md:h-full flex-col items-center justify-center px-4 py-8 md:py-16 relative overflow-x-hidden">
             {/* Background glow */}
             <motion.div
                 aria-hidden="true"

@@ -80,13 +80,14 @@ export function IntelligenceRadarSlide({
       : null;
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-3xl mx-auto">
+    <section className="min-h-full md:h-full flex flex-col md:overflow-hidden px-6 py-8 md:py-16">
+      {/* Header */}
+      <div className="shrink-0 text-center">
         <motion.p
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-xs uppercase tracking-[0.3em] mb-3 text-center"
+          className="text-xs uppercase tracking-[0.3em] mb-2 text-center"
           style={{ color: "#9aa0ac" }}
         >
           {eyebrow}
@@ -96,7 +97,7 @@ export function IntelligenceRadarSlide({
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-2xl font-semibold text-center mb-10"
+          className="text-2xl font-semibold text-center"
           style={{
             color: "#f5f6fa",
             fontFamily: "'Inter Tight', Inter, sans-serif",
@@ -105,13 +106,16 @@ export function IntelligenceRadarSlide({
         >
           {title}
         </motion.h2>
+      </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md mx-auto"
-        >
+      {/* Chart — flexes to fill available space */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="flex-1 min-h-0 flex items-center justify-center py-2"
+      >
+        <div className="w-full max-w-md mx-auto max-h-full">
           <RadarChart
             categories={categoryNames}
             studentScores={studentScores}
@@ -122,11 +126,14 @@ export function IntelligenceRadarSlide({
             activeCategoryIndex={activeIndex}
             gridStyle={gridStyle}
           />
-        </motion.div>
+        </div>
+      </motion.div>
 
+      {/* Footer */}
+      <div className="shrink-0">
         {/* Category description (tap/hover reveal) */}
         <div
-          className="h-8 flex items-center justify-center mt-2"
+          className="h-8 flex items-center justify-center"
           aria-live="polite"
         >
           <AnimatePresence mode="wait">
@@ -151,7 +158,7 @@ export function IntelligenceRadarSlide({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.7 }}
-          className="flex items-center justify-center gap-6 mt-2"
+          className="flex items-center justify-center gap-6 mt-1"
           aria-label="Chart legend"
         >
           <div className="flex items-center gap-2">

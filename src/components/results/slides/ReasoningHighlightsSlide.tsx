@@ -21,7 +21,8 @@ export function ReasoningHighlightsSlide({
   data,
 }: ReasoningHighlightsSlideProps) {
   return (
-    <section className="min-h-screen flex items-center justify-center px-6">
+    <section className="min-h-full md:h-full flex flex-col md:overflow-hidden px-6 py-8 md:py-16">
+      <div className="flex-1 min-h-0 flex items-center justify-center">
       <div className="w-full max-w-3xl mx-auto">
         <motion.p
           initial={{ opacity: 0, y: -8 }}
@@ -68,6 +69,33 @@ export function ReasoningHighlightsSlide({
           })}
         </div>
       </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.5 + data.highlights.length * 0.4 + 0.3 }}
+        className="flex items-center justify-center gap-6 pb-6 md:pb-8"
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block w-2 h-2 rounded-full"
+            style={{ backgroundColor: ACCENT_COLOR.pi }}
+          />
+          <span className="text-[11px] uppercase tracking-[0.15em]" style={{ color: "#6b7080" }}>
+            Practical Intelligence
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block w-2 h-2 rounded-full"
+            style={{ backgroundColor: ACCENT_COLOR.ci }}
+          />
+          <span className="text-[11px] uppercase tracking-[0.15em]" style={{ color: "#6b7080" }}>
+            Creative Intelligence
+          </span>
+        </div>
+      </motion.div>
     </section>
   );
 }

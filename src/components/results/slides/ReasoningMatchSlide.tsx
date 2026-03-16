@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type { NarrativeMatch } from "@/lib/schemas/results";
 import { NarrativeMatchCard } from "@/components/results/NarrativeMatchCard";
@@ -19,11 +19,32 @@ export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
   const activeMatch = allMatches[activeIndex] ?? null;
   const isPrimary = activeIndex === 0;
 
+  const [canScrollDown, setCanScrollDown] = useState(false);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const overflows = el.scrollHeight > el.clientHeight + 8;
+    setCanScrollDown(overflows && el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+    setCanScrollUp(overflows && el.scrollTop > 8);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", checkScroll, { passive: true });
+    const timer = setTimeout(checkScroll, 350);
+    return () => {
+      el.removeEventListener("scroll", checkScroll);
+      clearTimeout(timer);
+    };
+  }, [checkScroll, activeIndex]);
+
   const handlePillClick = useCallback(
     (index: number) => {
       if (index === activeIndex) return;
       setActiveIndex(index);
-      // Scroll card to top on switch
       scrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
     },
     [activeIndex]
@@ -32,7 +53,7 @@ export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
   // Null state
   if (!data) {
     return (
-      <section className="min-h-screen flex items-center justify-center px-6">
+      <section className="h-full flex items-center justify-center px-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,7 +91,7 @@ export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
   }
 
   return (
-    <section className="h-full flex flex-col px-6 py-8">
+    <section className="min-h-full md:h-full flex flex-col md:overflow-hidden px-6 py-8 md:py-16">
       {/* Fixed top: Eyebrow + Header */}
       <div className="shrink-0 text-center mb-4">
         <motion.p
@@ -98,30 +119,52 @@ export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
       </div>
 
       {/* Scrollable middle: Narrative card */}
-      <div
-        ref={scrollRef}
-        className="flex-1 min-h-0 overflow-y-auto"
-        style={{ overscrollBehavior: "contain" }}
-      >
-        <div className="max-w-2xl mx-auto pb-4">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeMatch?.entrepreneurId ?? "empty"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              {activeMatch && (
-                <NarrativeMatchCard
-                  data={activeMatch}
-                  accentColor={ACCENT}
-                  domainLabel="Reasoning Style"
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+      <div className="relative flex-1 min-h-0">
+        {/* Scroll indicator — top */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 left-0 right-0 z-10 h-px transition-opacity duration-300"
+          style={{
+            opacity: canScrollUp ? 1 : 0,
+            background: `linear-gradient(90deg, transparent 0%, ${ACCENT}90 50%, transparent 100%)`,
+          }}
+        />
+
+        <div
+          ref={scrollRef}
+          className="h-full overflow-y-auto"
+          style={{ overscrollBehavior: "contain" }}
+        >
+          <div className="max-w-2xl mx-auto pb-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeMatch?.entrepreneurId ?? "empty"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                {activeMatch && (
+                  <NarrativeMatchCard
+                    data={activeMatch}
+                    accentColor={ACCENT}
+                    domainLabel="Reasoning Style"
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
+
+        {/* Scroll indicator — bottom */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-0 right-0 h-px transition-opacity duration-300"
+          style={{
+            opacity: canScrollDown ? 1 : 0,
+            background: `linear-gradient(90deg, transparent 0%, ${ACCENT}90 50%, transparent 100%)`,
+          }}
+        />
       </div>
 
       {/* Fixed bottom: Match pills */}

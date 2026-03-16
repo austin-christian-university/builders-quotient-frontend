@@ -19,6 +19,7 @@ import { PersonalityNarrativeSlide } from "./slides/PersonalityNarrativeSlide";
 import { DisclaimerSlide } from "./slides/DisclaimerSlide";
 import { ShareApplySlide } from "./slides/ShareApplySlide";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
+import { useSwipeNavigation } from "@/lib/hooks/use-swipe-navigation";
 import * as analytics from "@/lib/analytics/events";
 
 // ---------------------------------------------------------------------------
@@ -77,28 +78,54 @@ type NavArrowProps = {
   direction: "forward" | "back";
   onClick: () => void;
   isDesktop: boolean;
+  /** Prominent glassmorphism style with infinite bounce */
+  prominent?: boolean;
 };
 
-function NavArrow({ direction, onClick, isDesktop }: NavArrowProps) {
+function NavArrow({ direction, onClick, isDesktop, prominent }: NavArrowProps) {
   const isForward = direction === "forward";
 
-  // Mobile: left/right edges. Desktop: top/bottom center.
+  // Mobile: left/right edges. Desktop: top/bottom center, tight to edge.
   const position = isForward
-    ? "right-4 top-1/2 -translate-y-1/2 md:right-auto md:top-auto md:translate-y-0 md:bottom-8 md:left-1/2 md:-translate-x-1/2"
-    : "left-4 top-1/2 -translate-y-1/2 md:top-8 md:translate-y-0 md:left-1/2 md:-translate-x-1/2";
+    ? "right-2 top-1/2 -translate-y-1/2 md:right-auto md:top-auto md:translate-y-0 md:bottom-3 md:left-1/2 md:-translate-x-1/2"
+    : "left-2 top-1/2 -translate-y-1/2 md:top-3 md:translate-y-0 md:left-1/2 md:-translate-x-1/2";
 
   const label = isForward ? "Next section" : "Previous section";
 
+  const baseStyle = prominent
+    ? "h-11 w-11 rounded-full border border-white/15 bg-white/10 backdrop-blur-md text-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:bg-white/20 hover:text-white/90"
+    : "h-10 w-10 text-white/25 hover:text-white/50";
+
+  // Bounce: vertical on desktop, horizontal on mobile
+  const bounceAxis = isDesktop ? "y" : "x";
+  const bounceDir = isForward ? 1 : -1;
+
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`absolute z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/10 backdrop-blur-sm transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${position}`}
+      className={`absolute z-10 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:rounded-full ${baseStyle} ${position}`}
+      animate={
+        prominent
+          ? { [bounceAxis]: [0, 6 * bounceDir, 0] }
+          : undefined
+      }
+      transition={
+        prominent
+          ? {
+              delay: 2,
+              duration: 1.2,
+              ease: "easeInOut",
+              repeat: Infinity,
+              repeatDelay: 0.8,
+            }
+          : undefined
+      }
     >
       <svg
-        width="20"
-        height="20"
+        width="16"
+        height="16"
         viewBox="0 0 20 20"
         fill="none"
         aria-hidden="true"
@@ -120,7 +147,7 @@ function NavArrow({ direction, onClick, isDesktop }: NavArrowProps) {
           strokeLinejoin="round"
         />
       </svg>
-    </button>
+    </motion.button>
   );
 }
 
@@ -138,6 +165,34 @@ export function ResultsExperience({ data }: Props) {
   const [splashComplete, setSplashComplete] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
+  const slideScrollRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+
+  const checkSlideScroll = useCallback(() => {
+    const el = slideScrollRef.current;
+    if (!el) {
+      setCanScrollUp(false);
+      setCanScrollDown(false);
+      return;
+    }
+    const overflows = el.scrollHeight > el.clientHeight + 8;
+    setCanScrollUp(overflows && el.scrollTop > 8);
+    setCanScrollDown(overflows && el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+  }, []);
+
+  // Attach scroll listener to current slide container
+  useEffect(() => {
+    const el = slideScrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", checkSlideScroll, { passive: true });
+    // Re-check after animation settles
+    const timer = setTimeout(checkSlideScroll, 450);
+    return () => {
+      el.removeEventListener("scroll", checkSlideScroll);
+      clearTimeout(timer);
+    };
+  }, [checkSlideScroll, currentSection, splashComplete]);
 
   const handleSplashComplete = useCallback(() => {
     setSplashComplete(true);
@@ -301,6 +356,13 @@ export function ResultsExperience({ data }: Props) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goNext, goPrev, splashComplete]);
 
+  // Swipe navigation (mobile only)
+  const swipeRef = useSwipeNavigation({
+    onSwipeLeft: goNext,
+    onSwipeRight: goPrev,
+    enabled: !isDesktop && splashComplete,
+  });
+
   // Animation variants
   const axis = isDesktop ? "y" : "x";
   const variants = {
@@ -330,10 +392,11 @@ export function ResultsExperience({ data }: Props) {
       )}
 
       <motion.main
+        ref={swipeRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: splashComplete ? 1 : 0 }}
         transition={reducedMotion ? { duration: 0.15 } : { duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="relative h-[100svh] overflow-hidden bg-bg-base"
+        className="relative h-[100svh] overflow-hidden bg-bg-base touch-manipulation"
       >
         {/* Progress indicator */}
         <div className="absolute right-4 top-4 z-10 text-xs text-text-secondary md:bottom-4 md:left-4 md:right-auto md:top-auto">
@@ -342,12 +405,17 @@ export function ResultsExperience({ data }: Props) {
 
         {/* Section content */}
         {reducedMotion ? (
-          <div className="h-full" key={currentSection}>
+          <div
+            ref={slideScrollRef}
+            className="h-full overflow-y-auto md:overflow-hidden overscroll-contain"
+            key={currentSection}
+          >
             {sections[currentSection]}
           </div>
         ) : (
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
+              ref={slideScrollRef}
               key={currentSection}
               custom={direction}
               variants={variants}
@@ -355,19 +423,37 @@ export function ResultsExperience({ data }: Props) {
               animate="center"
               exit="exit"
               transition={transition}
-              className="h-full"
+              className="h-full overflow-y-auto md:overflow-hidden overscroll-contain"
             >
               {sections[currentSection]}
             </motion.div>
           </AnimatePresence>
         )}
 
+        {/* Mobile scroll indicators */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 left-0 right-0 z-10 h-px transition-opacity duration-300 md:hidden"
+          style={{
+            opacity: canScrollUp ? 1 : 0,
+            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-px transition-opacity duration-300 md:hidden"
+          style={{
+            opacity: canScrollDown ? 1 : 0,
+            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)",
+          }}
+        />
+
         {/* Navigation arrows */}
         {!isFirst && (
           <NavArrow direction="back" onClick={goPrev} isDesktop={isDesktop} />
         )}
         {!isLast && (
-          <NavArrow direction="forward" onClick={goNext} isDesktop={isDesktop} />
+          <NavArrow direction="forward" onClick={goNext} isDesktop={isDesktop} prominent={isFirst} />
         )}
       </motion.main>
     </>

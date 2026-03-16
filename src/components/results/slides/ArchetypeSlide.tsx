@@ -23,7 +23,7 @@ export function ArchetypeSlide({ data }: Props) {
               : "from-primary via-secondary";
 
     return (
-        <section className="flex h-full flex-col items-center justify-center px-6 relative overflow-hidden">
+        <section className="flex min-h-full md:h-full flex-col items-center justify-center px-6 py-8 md:py-16 relative md:overflow-hidden">
             {/* Domain-colored background glow: blue for PI, gold for CI, blended for balanced */}
             <motion.div
                 aria-hidden="true"

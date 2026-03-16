@@ -15,14 +15,20 @@ export function IntelligenceNarrativeSlide({
   const strengths = data.narrative.filter((b) => b.type === "strength");
   const growthAreas = data.narrative.filter((b) => b.type === "growth");
 
+  // Limit cards so content fits within the viewport on desktop
+  // (nav arrows occupy top/bottom zones on md+)
+  const maxCards = 3;
+  const visibleStrengths = strengths.slice(0, maxCards);
+  const visibleGrowth = growthAreas.slice(0, maxCards);
+
   return (
-    <section className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-4xl mx-auto">
+    <section className="min-h-full md:h-full flex flex-col px-6 py-8 md:py-16">
+      <div className="w-full max-w-4xl mx-auto my-auto">
         <motion.p
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-xs uppercase tracking-[0.3em] mb-3 text-center"
+          className="text-xs uppercase tracking-[0.3em] mb-2 text-center"
           style={{ color: "#9aa0ac" }}
         >
           Your Intelligence Profile
@@ -32,7 +38,7 @@ export function IntelligenceNarrativeSlide({
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-2xl font-semibold text-center mb-12"
+          className="text-2xl font-semibold text-center mb-6"
           style={{
             color: "#f5f6fa",
             fontFamily: "'Inter Tight', Inter, sans-serif",
@@ -42,9 +48,9 @@ export function IntelligenceNarrativeSlide({
           Strengths &amp; Growth Areas
         </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* Strengths column */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-3">
             <motion.h3
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -55,7 +61,7 @@ export function IntelligenceNarrativeSlide({
               Strengths
             </motion.h3>
 
-            {strengths.map((block, i) => (
+            {visibleStrengths.map((block, i) => (
               <motion.div
                 key={`strength-${block.category}-${i}`}
                 initial={{ opacity: 0, y: 16 }}
@@ -65,7 +71,7 @@ export function IntelligenceNarrativeSlide({
                   delay: 0.3 + i * 0.15,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                className="rounded-2xl border p-5 flex flex-col gap-2"
+                className="rounded-2xl border p-4 flex flex-col gap-1.5"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   borderColor: "rgba(255,255,255,0.08)",
@@ -86,7 +92,7 @@ export function IntelligenceNarrativeSlide({
           </div>
 
           {/* Growth Areas column */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-3">
             <motion.h3
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -97,7 +103,7 @@ export function IntelligenceNarrativeSlide({
               Growth Areas
             </motion.h3>
 
-            {growthAreas.map((block, i) => (
+            {visibleGrowth.map((block, i) => (
               <motion.div
                 key={`growth-${block.category}-${i}`}
                 initial={{ opacity: 0, y: 16 }}
@@ -107,7 +113,7 @@ export function IntelligenceNarrativeSlide({
                   delay: 0.35 + i * 0.15,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                className="rounded-2xl border p-5 flex flex-col gap-2"
+                className="rounded-2xl border p-4 flex flex-col gap-1.5"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   borderColor: "rgba(255,255,255,0.08)",
