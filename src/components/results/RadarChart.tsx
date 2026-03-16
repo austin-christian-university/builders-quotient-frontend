@@ -255,10 +255,10 @@ export function RadarChart({
   const tooltipContent =
     hasSectors && activeIndex !== null
       ? {
-          label: tooltipLabels?.[activeIndex] ?? categories[activeIndex],
-          groupName: activeGroup?.label ?? "",
-          groupColor: activeGroup?.color ?? accentColor,
-        }
+        label: tooltipLabels?.[activeIndex] ?? categories[activeIndex],
+        groupName: activeGroup?.label ?? "",
+        groupColor: activeGroup?.color ?? accentColor,
+      }
       : null;
 
   // Measure tooltip text width after render so the pill auto-sizes
@@ -494,6 +494,11 @@ export function RadarChart({
           const anchor = textAnchor(x, cx);
           const isActive = activeCategoryIndex === i;
           const isInteractive = !!onCategoryHover;
+
+          const labelColor = dotColors?.[i] ?? accentColor;
+          const glowOpacity = isActive ? "99" : "33"; // 60% vs 20% alpha
+          const textShadow = `0 0 10px ${labelColor}${glowOpacity}, 0 0 20px ${labelColor}${glowOpacity}`;
+
           return (
             <text
               key={i}
@@ -503,9 +508,17 @@ export function RadarChart({
               textAnchor={anchor}
               dominantBaseline="middle"
               fontSize={labelFontSize}
-              fill={isActive ? "#f5f6fa" : "#9aa0ac"}
-              fontFamily="Inter, sans-serif"
-              style={isInteractive ? { cursor: "pointer" } : undefined}
+              fill={isActive ? "#ffffff" : labelColor}
+              opacity={isActive ? 0.85 : 0.4}
+              fontFamily="'Inter Tight', Inter, sans-serif"
+              fontWeight={600}
+              letterSpacing="0.08em"
+              style={{
+                textShadow,
+                transition: "all 0.2s ease",
+                cursor: isInteractive ? "pointer" : "default",
+                pointerEvents: isInteractive ? "all" : "none",
+              }}
               onMouseEnter={
                 isInteractive ? () => onCategoryHover(i) : undefined
               }
@@ -514,11 +527,14 @@ export function RadarChart({
               }
               onClick={
                 isInteractive
-                  ? () => onCategoryHover(activeCategoryIndex === i ? null : i)
+                  ? (e) => {
+                    e.stopPropagation();
+                    onCategoryHover(activeCategoryIndex === i ? null : i);
+                  }
                   : undefined
               }
             >
-              {label}
+              {label.toUpperCase()}
             </text>
           );
         })}
