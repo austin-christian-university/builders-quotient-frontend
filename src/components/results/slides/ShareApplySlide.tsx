@@ -770,7 +770,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                             <div className="flex-1 h-px bg-white/5" />
                         </div>
                         <a
-                            href="https://apply.austinchristianu.org"
+                            href="https://www.austinchristianuniversity.org/apply"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-full inline-flex items-center justify-center rounded-full py-3.5 px-8 text-sm font-bold text-[#0a0a0c] uppercase tracking-[0.1em] transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(233,185,73,0.3)] touch-manipulation"
