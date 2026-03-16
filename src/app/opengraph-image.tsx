@@ -45,7 +45,7 @@ export default async function OGImage() {
   // [x, y, coreR, ringR, ringOpacity]
   const satelliteNodes: [number, number, number, number, number][] = [
     [80, 250, 3, 8, 0.25],
-    [450, 280, 3.5, 9, 0.25],
+    [450, 500, 3.5, 9, 0.25],
     [750, 320, 3.5, 9, 0.25],
     [1120, 340, 3, 8, 0.25],
   ];
@@ -123,20 +123,6 @@ export default async function OGImage() {
           position: "relative",
         }}
       >
-        {/* Center glow */}
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            left: 250,
-            top: 90,
-            width: 700,
-            height: 450,
-            borderRadius: "50%",
-            backgroundColor: "rgba(77,163,255,0.05)",
-          }}
-        />
-
         {/* Primary connection lines */}
         {primaryConnections.map(([i, j, opacity, lineWidth], idx) => {
           const [x1, y1] = primaryNodes[i];
