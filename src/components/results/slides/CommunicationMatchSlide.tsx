@@ -88,7 +88,7 @@ export function CommunicationMatchSlide({ data }: CommunicationMatchSlideProps) 
   }
 
   return (
-    <section className="min-h-full md:h-full flex flex-col md:overflow-hidden px-6 py-8 md:py-16">
+    <section className="h-full flex flex-col overflow-hidden px-6 py-8 md:py-16">
       {/* Fixed top: Eyebrow + Header */}
       <div className="shrink-0 text-center mb-4">
         <motion.p
@@ -122,7 +122,7 @@ export function CommunicationMatchSlide({ data }: CommunicationMatchSlideProps) 
         {/* Scroll indicator — top */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-0 right-0 z-10 h-px transition-opacity duration-300"
+          className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 z-10 h-px w-full max-w-2xl transition-opacity duration-300"
           style={{
             opacity: canScrollUp ? 1 : 0,
             background: `linear-gradient(90deg, transparent 0%, ${ACCENT}90 50%, transparent 100%)`,
@@ -158,7 +158,7 @@ export function CommunicationMatchSlide({ data }: CommunicationMatchSlideProps) 
         {/* Scroll indicator — bottom */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 left-0 right-0 h-px transition-opacity duration-300"
+          className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 h-px w-full max-w-2xl transition-opacity duration-300"
           style={{
             opacity: canScrollDown ? 1 : 0,
             background: `linear-gradient(90deg, transparent 0%, ${ACCENT}90 50%, transparent 100%)`,
