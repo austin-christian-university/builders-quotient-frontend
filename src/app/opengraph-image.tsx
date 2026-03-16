@@ -27,6 +27,7 @@ export default async function OGImage() {
     ).then((res) => res.arrayBuffer()),
   ]);
 
+  // [x, y, coreR, ringR, ringOpacity, haloR]
   const primaryNodes: [number, number, number, number, number, number][] = [
     [150, 100, 5, 11, 0.4, 20],
     [350, 180, 6, 13, 0.45, 22],
@@ -41,6 +42,7 @@ export default async function OGImage() {
     [1000, 400, 5.5, 12, 0.4, 20],
   ];
 
+  // [x, y, coreR, ringR, ringOpacity]
   const satelliteNodes: [number, number, number, number, number][] = [
     [80, 250, 3, 8, 0.25],
     [450, 280, 3.5, 9, 0.25],
@@ -48,6 +50,7 @@ export default async function OGImage() {
     [1120, 340, 3, 8, 0.25],
   ];
 
+  // [x, y, r, opacity]
   const ambientDots: [number, number, number, number][] = [
     [250, 530, 2.5, 0.55],
     [550, 60, 2.5, 0.5],
@@ -60,6 +63,7 @@ export default async function OGImage() {
     [1150, 500, 2, 0.45],
   ];
 
+  // [x, y, r, opacity]
   const starSpecks: [number, number, number, number][] = [
     [120, 180, 1.2, 0.6],
     [280, 280, 1.2, 0.5],
@@ -73,6 +77,7 @@ export default async function OGImage() {
     [960, 180, 1, 0.4],
   ];
 
+  // [fromIdx, toIdx, opacity, lineWidth]
   const primaryConnections: [number, number, number, number][] = [
     [0, 1, 0.4, 1],
     [1, 2, 0.35, 1],
@@ -96,6 +101,7 @@ export default async function OGImage() {
     [1, 8, 0.08, 0.5],
   ];
 
+  // [satIdx, priIdx, opacity]
   const satelliteConnections: [number, number, number][] = [
     [0, 6, 0.12],
     [1, 1, 0.1],
