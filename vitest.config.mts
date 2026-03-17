@@ -8,6 +8,7 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["**/*.test.{ts,tsx}"],
+    exclude: ["**/node_modules/**", "**/.next/**", ".worktrees/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "json"],

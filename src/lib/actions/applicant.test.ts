@@ -236,23 +236,23 @@ describe("captureEmail", () => {
     );
   });
 
-  // --- Merge flow ---
+  // --- Duplicate detection ---
 
-  it("merges and redirects when confirmDuplicate matches", async () => {
+  it("returns duplicateFound when duplicate exists (merge handled by linkToExistingProfile)", async () => {
     applicantQueryResults.set("applicants", {
       data: { id: TEST_EXISTING_APPLICANT_ID },
       error: null,
     });
 
-    await captureEmail(
-      makeFormData({
-        confirmDuplicate: "true",
-        existingApplicantId: TEST_EXISTING_APPLICANT_ID,
-      })
-    );
+    const result = await captureEmail(makeFormData());
 
-    expect(mockRedirect).toHaveBeenCalledWith(
-      "/assess/thank-you?path=student"
-    );
+    expect(result).toEqual({
+      success: false,
+      duplicateFound: true,
+      duplicateEmail: true,
+      duplicatePhone: false,
+      existingApplicantId: TEST_EXISTING_APPLICANT_ID,
+    });
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 });

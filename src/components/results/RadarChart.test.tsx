@@ -181,7 +181,7 @@ describe("RadarChart", () => {
     );
     const labels = container.querySelectorAll("[data-radar='label']");
     const texts = Array.from(labels).map((el) => el.textContent);
-    expect(texts).toEqual(expect.arrayContaining(FIVE_CATEGORIES));
+    expect(texts).toEqual(expect.arrayContaining(FIVE_CATEGORIES.map(c => c.toUpperCase())));
   });
 
   it("renders 8-point chart labels correctly", () => {
@@ -267,7 +267,8 @@ describe("RadarChart", () => {
       />
     );
     const svg = container.querySelector("svg");
-    expect(svg?.getAttribute("viewBox")).toBe("0 0 320 320");
+    // size=320 < 480 triggers sizeBasedPad=24, expanding the viewBox
+    expect(svg?.getAttribute("viewBox")).toBe("-24 -24 368 368");
   });
 
   it("has aria-hidden on svg (decorative chart)", () => {
