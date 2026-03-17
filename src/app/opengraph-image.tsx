@@ -288,70 +288,79 @@ export default async function OGImage() {
           />
         ))}
 
-        {/* Centered text stack — LAST in DOM for top stacking */}
+        {/* Eyebrow — pinned to top, above all stars */}
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            position: "absolute",
+            top: 28,
+            left: 0,
+            width: 1200,
             justifyContent: "center",
+            fontFamily: "Inter",
+            fontSize: 22,
+            fontWeight: 600,
+            letterSpacing: "0.3em",
+            color: "rgba(233,185,73,0.9)",
+          }}
+        >
+          AUSTIN CHRISTIAN UNIVERSITY
+        </div>
+
+        {/* Title — centered */}
+        <div
+          style={{
+            display: "flex",
             position: "absolute",
             left: 0,
             top: 0,
             width: 1200,
             height: 630,
+            alignItems: "center",
+            justifyContent: "center",
+            fontFamily: "Inter Tight",
+            fontSize: 110,
+            fontWeight: 700,
+            color: "#f5f6fa",
+            lineHeight: 1.1,
+            letterSpacing: "-0.02em",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              fontFamily: "Inter",
-              fontSize: 22,
-              fontWeight: 600,
-              letterSpacing: "0.3em",
-              color: "rgba(233,185,73,0.9)",
-              marginBottom: 28,
-            }}
-          >
-            AUSTIN CHRISTIAN UNIVERSITY
-          </div>
-          <div
-            style={{
-              display: "flex",
-              fontFamily: "Inter Tight",
-              fontSize: 110,
-              fontWeight: 700,
-              color: "#f5f6fa",
-              lineHeight: 1.1,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Builders Quotient
-          </div>
-          <div
-            style={{
-              display: "flex",
-              width: 100,
-              height: 3,
-              backgroundImage:
-                "linear-gradient(90deg, #4da3ff, rgba(233,185,73,0.7))",
-              marginTop: 24,
-              marginBottom: 24,
-              borderRadius: 1,
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              fontFamily: "Inter",
-              fontSize: 36,
-              fontWeight: 400,
-              color: "#9aa0ac",
-              lineHeight: 1.5,
-            }}
-          >
-            Discover your Builder DNA
-          </div>
+          Builders Quotient
+        </div>
+
+        {/* Golden divider — 90% width, fades from transparent to gold to transparent */}
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            bottom: 80,
+            left: 60,
+            width: 1080,
+            height: 3,
+            backgroundImage:
+              "linear-gradient(90deg, transparent, rgba(233,185,73,1) 30%, rgba(233,185,73,1) 70%, transparent)",
+            borderRadius: 2,
+          }}
+        />
+
+        {/* Tagline — pinned below constellations */}
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            bottom: 32,
+            left: 0,
+            width: 1200,
+            justifyContent: "center",
+            fontFamily: "Inter",
+            fontSize: 36,
+            fontWeight: 400,
+            color: "#9aa0ac",
+            lineHeight: 1.5,
+          }}
+        >
+          Discover your Builder DNA
         </div>
       </div>
     ),
