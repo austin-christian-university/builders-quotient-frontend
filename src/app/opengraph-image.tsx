@@ -306,11 +306,11 @@ export default async function OGImage() {
             style={{
               display: "flex",
               fontFamily: "Inter",
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: 600,
               letterSpacing: "0.3em",
               color: "rgba(233,185,73,0.9)",
-              marginBottom: 24,
+              marginBottom: 28,
             }}
           >
             AUSTIN CHRISTIAN UNIVERSITY
@@ -319,7 +319,7 @@ export default async function OGImage() {
             style={{
               display: "flex",
               fontFamily: "Inter Tight",
-              fontSize: 82,
+              fontSize: 110,
               fontWeight: 700,
               color: "#f5f6fa",
               lineHeight: 1.1,
@@ -331,7 +331,7 @@ export default async function OGImage() {
           <div
             style={{
               display: "flex",
-              width: 80,
+              width: 100,
               height: 3,
               backgroundImage:
                 "linear-gradient(90deg, #4da3ff, rgba(233,185,73,0.7))",
@@ -344,7 +344,7 @@ export default async function OGImage() {
             style={{
               display: "flex",
               fontFamily: "Inter",
-              fontSize: 28,
+              fontSize: 36,
               fontWeight: 400,
               color: "#9aa0ac",
               lineHeight: 1.5,
