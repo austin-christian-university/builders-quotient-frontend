@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
-export const alt = "Builders Quotient — Discover your Builder DNA";
+export const alt = "Builder&#x27;s Quotient — Discover your Builder DNA";
 export const contentType = "image/png";
 
 function lineProps(x1: number, y1: number, x2: number, y2: number) {
@@ -326,7 +326,7 @@ export default async function OGImage() {
             letterSpacing: "-0.02em",
           }}
         >
-          Builders Quotient
+          Builder&#x27;s Quotient
         </div>
 
         {/* Golden divider — 90% width, fades from transparent to gold to transparent */}
@@ -334,7 +334,7 @@ export default async function OGImage() {
           style={{
             display: "flex",
             position: "absolute",
-            bottom: 80,
+            top: 375,
             left: 60,
             width: 1080,
             height: 3,
