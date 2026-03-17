@@ -33,7 +33,7 @@ export function ArchetypeSlide({ data }: Props) {
                 transition={{ duration: 2, ease: "easeOut" }}
             />
 
-            <div className="z-10 text-center flex flex-col items-center w-full max-w-sm" style={{ perspective: "1000px" }}>
+            <div className="z-10 text-center flex flex-col items-center w-full max-w-sm">
                 <motion.p
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -44,10 +44,10 @@ export function ArchetypeSlide({ data }: Props) {
                 </motion.p>
 
                 <motion.div
-                    initial={{ opacity: 0, rotateX: 20, y: 40 }}
-                    animate={{ opacity: 1, rotateX: 0, y: 0 }}
+                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 1.2, type: "spring", bounce: 0.4, delay: 0.2 }}
-                    className="relative w-full rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden flex flex-col items-center justify-center p-8 group shadow-2xl"
+                    className="relative w-full rounded-[2rem] border border-white/10 bg-[#151517]/80 overflow-hidden flex flex-col items-center justify-center p-8 group shadow-2xl"
                 >
                     {/* Inner glow */}
                     <div
