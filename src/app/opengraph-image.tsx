@@ -306,11 +306,11 @@ export default async function OGImage() {
             style={{
               display: "flex",
               fontFamily: "Inter",
-              fontSize: 11,
+              fontSize: 18,
               fontWeight: 600,
               letterSpacing: "0.3em",
               color: "rgba(233,185,73,0.9)",
-              marginBottom: 20,
+              marginBottom: 24,
             }}
           >
             AUSTIN CHRISTIAN UNIVERSITY
@@ -319,11 +319,11 @@ export default async function OGImage() {
             style={{
               display: "flex",
               fontFamily: "Inter Tight",
-              fontSize: 48,
+              fontSize: 82,
               fontWeight: 700,
               color: "#f5f6fa",
               lineHeight: 1.1,
-              letterSpacing: "-0.01em",
+              letterSpacing: "-0.02em",
             }}
           >
             Builders Quotient
@@ -331,12 +331,12 @@ export default async function OGImage() {
           <div
             style={{
               display: "flex",
-              width: 60,
-              height: 2,
+              width: 80,
+              height: 3,
               backgroundImage:
                 "linear-gradient(90deg, #4da3ff, rgba(233,185,73,0.7))",
-              marginTop: 20,
-              marginBottom: 20,
+              marginTop: 24,
+              marginBottom: 24,
               borderRadius: 1,
             }}
           />
@@ -344,7 +344,7 @@ export default async function OGImage() {
             style={{
               display: "flex",
               fontFamily: "Inter",
-              fontSize: 17,
+              fontSize: 28,
               fontWeight: 400,
               color: "#9aa0ac",
               lineHeight: 1.5,
