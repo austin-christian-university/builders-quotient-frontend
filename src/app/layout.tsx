@@ -31,11 +31,27 @@ export const metadata: Metadata = {
     siteName: "Builders Quotient",
     type: "website",
     url: SITE_URL,
+    images: [
+      {
+        url: `${SITE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "Builder's Quotient — Discover your Builder DNA",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Builders Quotient | Austin Christian University",
     description: "Discover your Builder DNA.",
+    images: [
+      {
+        url: `${SITE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "Builder's Quotient — Discover your Builder DNA",
+      },
+    ],
   },
 };
 
