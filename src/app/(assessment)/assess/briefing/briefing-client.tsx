@@ -7,7 +7,7 @@ import { completeBriefing } from "@/lib/actions/briefing";
 import * as analytics from "@/lib/analytics/events";
 
 export function BriefingClient({ sessionId }: { sessionId: string }) {
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const skippedRef = useRef(false);
 
   const handleContinue = () => {
