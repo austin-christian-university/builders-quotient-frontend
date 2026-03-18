@@ -97,16 +97,20 @@ function Explainer() {
           </div>
         </ScrollReveal>
 
-        {/* Part B: Stats */}
-        <div className="mt-20 rounded-2xl border border-border-glass bg-bg-elevated/40 px-6 py-10 backdrop-blur-sm md:px-10 md:py-12">
-          <div className="grid gap-10 sm:grid-cols-3 sm:gap-6">
+        {/* Part B: Stats - Bento Box Layout */}
+        <div className="mt-20">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {stats.map((stat, i) => (
-              <ScrollReveal key={stat.label} delay={i * 0.12}>
-                <div className="text-center">
-                  <p className="font-display text-[length:var(--text-fluid-5xl)] font-bold tabular-nums text-secondary">
+              <ScrollReveal 
+                key={stat.label} 
+                delay={i * 0.12} 
+                className={`relative overflow-hidden rounded-3xl border border-white/5 bg-white/[0.02] p-8 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-300 hover:bg-white/[0.04] hover:-translate-y-1 ${i === 2 ? 'sm:col-span-2 lg:col-span-1' : ''}`}
+              >
+                <div className="relative z-10 flex h-full flex-col justify-center text-center">
+                  <p className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-5xl xl:text-6xl leading-none tracking-tighter font-bold tabular-nums text-transparent bg-clip-text bg-gradient-to-br from-secondary via-secondary-hover to-secondary/50 whitespace-nowrap drop-shadow-sm pb-1">
                     {stat.value}
                   </p>
-                  <p className="mt-1 text-[length:var(--text-fluid-sm)] font-medium text-text-primary">
+                  <p className="mt-3 text-[length:var(--text-fluid-sm)] font-medium text-text-secondary/80 tracking-wide uppercase">
                     {stat.label}
                   </p>
                 </div>
@@ -114,7 +118,7 @@ function Explainer() {
             ))}
           </div>
           <ScrollReveal delay={0.4}>
-            <p className="mx-auto mt-8 max-w-2xl text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+            <p className="mx-auto mt-10 max-w-2xl text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
               We analyzed hundreds of thousands of videos to find the
               highest-quality entrepreneurial decision-making moments&nbsp;&mdash;
               and distilled them into a rigorous scoring framework.
@@ -135,14 +139,14 @@ function Explainer() {
             </div>
           </ScrollReveal>
 
-          <div className="mx-auto mt-12 max-w-xl space-y-5">
+          <div className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-2">
             {outcomes.map((item, i) => (
               <ScrollReveal key={i} delay={i * 0.08}>
-                <div className="flex items-start gap-4">
-                  <span className="mt-0.5 shrink-0 text-primary">
+                <div className="group flex h-full items-start gap-5 rounded-2xl border border-white/[0.03] bg-white/[0.01] p-6 transition-all duration-300 hover:bg-white/[0.04] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)]">
+                  <div className="flex shrink-0 items-center justify-center rounded-full bg-primary/10 p-3 text-primary transition-colors group-hover:bg-primary/20 group-hover:text-primary-hover shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
                     {item.icon}
-                  </span>
-                  <p className="text-[length:var(--text-fluid-base)] text-text-primary">
+                  </div>
+                  <p className="mt-1 text-[length:var(--text-fluid-base)] font-medium text-text-primary/90 transition-colors group-hover:text-white leading-snug">
                     {item.text}
                   </p>
                 </div>
@@ -153,7 +157,7 @@ function Explainer() {
           <ScrollReveal delay={0.5}>
             <p className="mx-auto mt-10 max-w-2xl text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
               Custom-built algorithms score your responses across
-              40,000&nbsp;unique dimension combinations and match you
+              40,000&nbsp;unique dimensions and match you
               against our entire entrepreneur database.
             </p>
           </ScrollReveal>
