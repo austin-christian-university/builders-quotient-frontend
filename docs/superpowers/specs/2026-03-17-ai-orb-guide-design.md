@@ -17,6 +17,8 @@ A talking AI orb — a luminous floating sphere with a warm mentor voice — del
 - **Duration**: ~60–90 seconds
 - **Blocking**: Full-screen, must listen or explicitly skip. Continue button disabled until audio completes or Skip is pressed. Replay option available after audio finishes.
 - **Gate**: Server-side — requires active session with status `assigned` (post-setup). Redirects to setup if no session, or to step 1 if briefing already completed.
+- **Completion tracking**: On continue/skip, a server action sets `briefing_completed_at` timestamp on the `assessment_sessions` row, then redirects to `/assess/1`. Session resumption logic checks: if no steps completed and `briefing_completed_at` is null, redirect to `/assess/briefing`; if `briefing_completed_at` is set but no steps completed, redirect to `/assess/1`.
+- **Metadata**: `{ title: "Assessment Briefing" }`
 
 **Script content (warm mentor tone):**
 
@@ -33,7 +35,7 @@ A talking AI orb — a luminous floating sphere with a warm mentor voice — del
 - **Route**: None — renders inline on the `/assess/3` page before the vignette loads
 - **Duration**: ~30–45 seconds
 - **Blocking**: Same interaction model — must listen or skip, replay available
-- **Gate**: Client-side state in a wrapper component. If CI briefing not yet seen, render OrbGuide first. On continue, swap to VignetteExperience.
+- **Gate**: Client-side wrapper component with `sessionStorage` flag (`ci_briefing_seen`). If flag absent, render OrbGuide first. On continue/skip, set the flag and swap to VignetteExperience. The server-side `vignette_served_at` timestamp is recorded only after the briefing is dismissed (the step page defers vignette data fetching to after the gate clears). On page refresh, `sessionStorage` persists within the tab — if lost (new tab), user sees the briefing again, which is acceptable since it's only ~30s.
 
 **Script content:**
 
@@ -51,7 +53,7 @@ A talking AI orb — a luminous floating sphere with a warm mentor voice — del
 - **Luminous orb**: Center-screen, ~120–150px diameter. Built with `radial-gradient` for the sphere body, inner highlight for depth, `box-shadow` for glow aura. Color: electric blue (`#4da3ff`) base with white inner highlights.
 - **Idle animation**: Gentle breathing pulse — subtle scale oscillation (1.0 → 1.03) and glow intensity variation. CSS `@keyframes`, ~4s cycle.
 - **Speaking animation**: More active pulse — slightly larger scale range (1.0 → 1.06), brighter glow. Toggled via `data-speaking` attribute on the orb element when audio is playing.
-- **Respects `prefers-reduced-motion`**: Static glow, no animation.
+- **Respects `prefers-reduced-motion`**: Static glow, no orb animation, no caption fade transitions (instant display).
 
 ### Caption Area
 
@@ -59,11 +61,12 @@ A talking AI orb — a luminous floating sphere with a warm mentor voice — del
 - Displays the current caption sentence, fading in as each segment's `startTime` is reached
 - Sentence-by-sentence (not word-by-word — distinct from vignette teleprompter)
 - Text style: `text-text-primary`, body size, `leading-relaxed`
+- Caption container uses `aria-live="polite"` for screen reader announcements
 
 ### Controls
 
 - **Bottom of screen**, centered, pill-style buttons
-- **Skip** (ghost button): Always visible. Ends audio, enables Continue immediately. Fires `onSkip` callback.
+- **Skip** (ghost button): Always visible. Ends audio, enables Continue immediately. Does not navigate — user still clicks Continue. The parent can distinguish skip vs. full-listen for analytics via the callback.
 - **Continue** (primary pill): Disabled (dimmed) while audio plays. Enables when audio ends or Skip is pressed. Fires `onContinue` callback.
 - **Replay** (text link): Appears after audio completes, above/beside Continue. Restarts audio from beginning, re-disables Continue.
 
@@ -87,7 +90,7 @@ type OrbGuideProps = {
 - Pre-recorded MP3 files generated via ElevenLabs
 - Warm mentor voice — to be selected during implementation
 - Two files: one for pre-exam briefing (~60–90s), one for CI transition (~30–45s)
-- Storage: Supabase Storage (new `assets` bucket or existing infrastructure) with signed URLs, or static files in `public/audio/` if simpler
+- Storage: Static files in `public/audio/` — these are fixed assets, not user content, so no need for Supabase Storage or signed URLs. The `audioUrl` in `OrbScript` is a simple static path (e.g., `/audio/briefing-pre-exam.mp3`).
 - Playback via native `<audio>` element, `timeupdate` event drives caption sync
 - Caption timing arrays are hardcoded constants co-authored with the audio files
 
@@ -129,12 +132,24 @@ type OrbGuideProps = {
 | File | Change |
 |------|--------|
 | `src/app/(assessment)/assess/overview/overview-content.tsx` | Trim to hero + stats + CTA |
-| `src/app/(assessment)/assess/[step]/page.tsx` | When step=3, render CI briefing gate before vignette |
-| `src/app/(assessment)/assess/setup/setup-client.tsx` | Redirect to `/assess/briefing` on completion instead of `/assess/1` |
+| `src/app/(assessment)/assess/[step]/page.tsx` | When step=3, render CI briefing gate wrapper before vignette |
+| `src/lib/actions/session.ts` | Redirect to `/assess/briefing` instead of `/assess/1` on session creation; update resumption logic to route through briefing if `briefing_completed_at` is null |
 
-## No Database Changes
+## Database Changes
 
-Caption timing and scripts are static constants. No new tables or columns needed. The session's existing `status` and step progression logic handles gating.
+One new column on `assessment_sessions`:
+
+| Column | Type | Default | Purpose |
+|--------|------|---------|---------|
+| `briefing_completed_at` | `timestamptz` | `null` | Tracks whether the pre-exam briefing has been seen. Set by a server action when the user continues/skips the briefing. |
+
+## Error Handling
+
+**Audio fails to load** (network error, 404): Show all captions as static text (full script visible), enable the Continue button immediately, and display a subtle "Audio unavailable" indicator near the orb. The briefing still functions as a readable screen.
+
+**Browser autoplay blocked**: The briefing page has a "Begin" button before audio starts (similar to the vignette "Begin Scenario" button), ensuring user interaction precedes playback. This satisfies autoplay policies.
+
+**No audio output on device**: Captions serve as the primary content channel. Audio is enhancement, not the sole delivery mechanism.
 
 ## Audio Production Workflow
 
