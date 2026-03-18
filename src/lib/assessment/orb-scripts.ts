@@ -9,129 +9,391 @@ export type OrbCaption = {
 export type OrbScript = {
   audioUrl: string;
   captions: OrbCaption[];
-  /** Per-word timing for precise text reveal sync (if available). */
+  /** Per-word timing from ElevenLabs alignment for precise text reveal. */
   wordTimings?: AudioWordTiming[];
 };
 
-/**
- * Generates proportional word-level timing estimates from caption boundaries.
- * Character-weighted with punctuation pauses — usable as a stopgap until
- * real ElevenLabs timestamps are generated via `scripts/generate-briefing-timestamps.mjs`.
- */
-function deriveWordTimings(captions: OrbCaption[]): AudioWordTiming[] {
-  const timings: AudioWordTiming[] = [];
-
-  for (const caption of captions) {
-    const words = caption.text.split(/\s+/).filter(Boolean);
-    if (words.length === 0) continue;
-
-    const duration = caption.endTime - caption.startTime;
-
-    // Weight each word by character count + punctuation pause
-    const weights = words.map((w) => {
-      let weight = w.length;
-      if (/[.!?][\u201D\u2019"']*$/.test(w)) weight += 3; // sentence end
-      else if (/[,;:\u2014][\u201D\u2019"']*$/.test(w)) weight += 1.5; // clause break
-      return weight;
-    });
-
-    const totalWeight = weights.reduce((a, b) => a + b, 0);
-    let elapsed = caption.startTime;
-
-    for (let i = 0; i < words.length; i++) {
-      const wordDuration = (weights[i] / totalWeight) * duration;
-      timings.push({
-        word: words[i],
-        start: Math.round(elapsed * 1000) / 1000,
-        end: Math.round((elapsed + wordDuration) * 1000) / 1000,
-      });
-      elapsed += wordDuration;
-    }
-  }
-
-  return timings;
-}
-
-// ─── Pre-exam briefing ──────────────────────────────────────────────
+// ─── Pre-exam briefing (~76s) ───────────────────────────────────────
 
 const PRE_EXAM_CAPTIONS: OrbCaption[] = [
   {
     startTime: 0,
-    endTime: 16.3,
+    endTime: 18.843,
     text: "Hey, welcome! Before you dive in, let\u2019s give you a walkthrough of what\u2019s about to happen. You\u2019re about to hear four scenarios drawn from the lives of real entrepreneurs. The first two will be about problem solving, the second two will be about seeing opportunities!",
   },
   {
-    startTime: 17.41,
-    endTime: 29.28,
+    startTime: 19.539,
+    endTime: 33.552,
     text: "Each scenario follows the same rhythm: you\u2019ll hear the story narrated to you, then respond in three phases \u2014 understand, analyze, and communicate. You\u2019ll also get some time to think before each response!",
   },
   {
-    startTime: 30.58,
-    endTime: 38.76,
+    startTime: 34.249,
+    endTime: 44.176,
     text: "There are no right answers here. We\u2019re looking at how you think, not what you know. A thoughtful wrong answer beats a lucky right one every time.",
   },
   {
-    startTime: 39.36,
-    endTime: 50.96,
+    startTime: 44.779,
+    endTime: 59.048,
     text: "These first two are for practical intelligence \u2014 your ability to tackle big problems! Your job is to reason through them like you\u2019re in the room. Ask questions, challenge assumptions, think out loud.",
   },
   {
-    startTime: 51.34,
-    endTime: 60.48,
+    startTime: 59.722,
+    endTime: 73.282,
     text: "Narrate your thinking as it happens. If you\u2019re unsure, say so. If you\u2019d want more info, tell us what and why. The more you externalize your process, the richer your profile.",
   },
   {
-    startTime: 60.5,
-    endTime: 62.14,
+    startTime: 73.979,
+    endTime: 76.069,
     text: "Alright, you\u2019re ready. Let\u2019s go.",
   },
 ];
 
+const PRE_EXAM_WORD_TIMINGS: AudioWordTiming[] = [
+  { word: "Hey,", start: 0, end: 0.511 },
+  { word: "welcome!", start: 0.755, end: 1.382 },
+  { word: "Before", start: 1.985, end: 2.415 },
+  { word: "you", start: 2.473, end: 2.566 },
+  { word: "dive", start: 2.635, end: 2.902 },
+  { word: "in,", start: 2.949, end: 3.32 },
+  { word: "let\u2019s", start: 3.646, end: 3.901 },
+  { word: "give", start: 3.947, end: 4.122 },
+  { word: "you", start: 4.156, end: 4.249 },
+  { word: "a", start: 4.331, end: 4.365 },
+  { word: "walkthrough", start: 4.435, end: 4.934 },
+  { word: "of", start: 5.143, end: 5.259 },
+  { word: "what\u2019s", start: 5.306, end: 5.503 },
+  { word: "about", start: 5.526, end: 5.759 },
+  { word: "to", start: 5.793, end: 5.851 },
+  { word: "happen.", start: 5.909, end: 6.444 },
+  { word: "You\u2019re", start: 7.14, end: 7.43 },
+  { word: "about", start: 7.454, end: 7.663 },
+  { word: "to", start: 7.697, end: 7.755 },
+  { word: "hear", start: 7.825, end: 7.999 },
+  { word: "four", start: 8.15, end: 8.406 },
+  { word: "scenarios", start: 8.487, end: 9.044 },
+  { word: "drawn", start: 9.125, end: 9.601 },
+  { word: "from", start: 9.718, end: 9.892 },
+  { word: "the", start: 9.927, end: 9.996 },
+  { word: "lives", start: 10.066, end: 10.437 },
+  { word: "of", start: 10.507, end: 10.6 },
+  { word: "real", start: 10.751, end: 11.006 },
+  { word: "entrepreneurs.", start: 11.088, end: 12.005 },
+  { word: "The", start: 12.608, end: 12.748 },
+  { word: "first", start: 12.829, end: 13.096 },
+  { word: "two", start: 13.131, end: 13.363 },
+  { word: "will", start: 13.572, end: 13.769 },
+  { word: "be", start: 13.816, end: 13.886 },
+  { word: "about", start: 13.92, end: 14.141 },
+  { word: "problem", start: 14.199, end: 14.547 },
+  { word: "solving,", start: 14.605, end: 15.07 },
+  { word: "the", start: 15.511, end: 15.639 },
+  { word: "second", start: 15.755, end: 16.265 },
+  { word: "two", start: 16.648, end: 16.811 },
+  { word: "will", start: 16.857, end: 16.997 },
+  { word: "be", start: 17.043, end: 17.113 },
+  { word: "about", start: 17.147, end: 17.38 },
+  { word: "seeing", start: 17.461, end: 17.798 },
+  { word: "opportunities!", start: 17.867, end: 18.843 },
+  { word: "Each", start: 19.539, end: 19.736 },
+  { word: "scenario", start: 19.771, end: 20.247 },
+  { word: "follows", start: 20.329, end: 20.677 },
+  { word: "the", start: 20.735, end: 20.805 },
+  { word: "same", start: 20.897, end: 21.199 },
+  { word: "rhythm:", start: 21.246, end: 21.826 },
+  { word: "you\u2019ll", start: 22.43, end: 22.639 },
+  { word: "hear", start: 22.697, end: 22.836 },
+  { word: "the", start: 22.883, end: 22.952 },
+  { word: "story", start: 22.999, end: 23.301 },
+  { word: "narrated", start: 23.382, end: 23.823 },
+  { word: "to", start: 23.87, end: 23.928 },
+  { word: "you,", start: 23.997, end: 24.288 },
+  { word: "then", start: 24.671, end: 24.856 },
+  { word: "respond", start: 24.926, end: 25.344 },
+  { word: "in", start: 25.402, end: 25.46 },
+  { word: "three", start: 25.518, end: 25.727 },
+  { word: "phases", start: 25.762, end: 26.238 },
+  { word: "\u2014", start: 26.482, end: 26.54 },
+  { word: "understand,", start: 26.656, end: 27.55 },
+  { word: "analyze,", start: 27.759, end: 28.572 },
+  { word: "and", start: 28.688, end: 28.839 },
+  { word: "communicate.", start: 28.897, end: 29.721 },
+  { word: "You\u2019ll", start: 30.325, end: 30.58 },
+  { word: "also", start: 30.65, end: 30.917 },
+  { word: "get", start: 30.987, end: 31.103 },
+  { word: "some", start: 31.137, end: 31.277 },
+  { word: "time", start: 31.3, end: 31.486 },
+  { word: "to", start: 31.521, end: 31.567 },
+  { word: "think", start: 31.637, end: 31.892 },
+  { word: "before", start: 31.985, end: 32.333 },
+  { word: "each", start: 32.45, end: 32.659 },
+  { word: "response!", start: 32.728, end: 33.552 },
+  { word: "There", start: 34.249, end: 34.435 },
+  { word: "are", start: 34.47, end: 34.586 },
+  { word: "no", start: 34.644, end: 34.783 },
+  { word: "right", start: 34.864, end: 35.062 },
+  { word: "answers", start: 35.097, end: 35.422 },
+  { word: "here.", start: 35.48, end: 35.933 },
+  { word: "We\u2019re", start: 36.536, end: 36.757 },
+  { word: "looking", start: 36.792, end: 37.047 },
+  { word: "at", start: 37.094, end: 37.152 },
+  { word: "how", start: 37.21, end: 37.337 },
+  { word: "you", start: 37.488, end: 37.639 },
+  { word: "think,", start: 37.732, end: 38.255 },
+  { word: "not", start: 38.696, end: 38.905 },
+  { word: "what", start: 38.94, end: 39.067 },
+  { word: "you", start: 39.114, end: 39.183 },
+  { word: "know.", start: 39.241, end: 39.694 },
+  { word: "A", start: 40.646, end: 40.762 },
+  { word: "thoughtful", start: 40.855, end: 41.273 },
+  { word: "wrong", start: 41.331, end: 41.563 },
+  { word: "answer", start: 41.633, end: 41.97 },
+  { word: "beats", start: 42.144, end: 42.399 },
+  { word: "a", start: 42.434, end: 42.457 },
+  { word: "lucky", start: 42.539, end: 42.817 },
+  { word: "right", start: 42.887, end: 43.061 },
+  { word: "one", start: 43.119, end: 43.293 },
+  { word: "every", start: 43.351, end: 43.607 },
+  { word: "time.", start: 43.665, end: 44.176 },
+  { word: "These", start: 44.779, end: 45.081 },
+  { word: "first", start: 45.128, end: 45.371 },
+  { word: "two", start: 45.406, end: 45.627 },
+  { word: "are", start: 45.778, end: 45.94 },
+  { word: "for", start: 45.975, end: 46.08 },
+  { word: "practical", start: 46.149, end: 46.649 },
+  { word: "intelligence", start: 46.718, end: 47.531 },
+  { word: "\u2014", start: 47.554, end: 47.601 },
+  { word: "your", start: 48.042, end: 48.251 },
+  { word: "ability", start: 48.297, end: 48.681 },
+  { word: "to", start: 48.739, end: 48.808 },
+  { word: "tackle", start: 48.878, end: 49.238 },
+  { word: "big", start: 49.296, end: 49.482 },
+  { word: "problems!", start: 49.54, end: 50.306 },
+  { word: "Your", start: 51.119, end: 51.386 },
+  { word: "job", start: 51.467, end: 51.757 },
+  { word: "is", start: 51.838, end: 51.955 },
+  { word: "to", start: 52.013, end: 52.082 },
+  { word: "reason", start: 52.198, end: 52.512 },
+  { word: "through", start: 52.558, end: 52.767 },
+  { word: "them", start: 52.802, end: 52.953 },
+  { word: "like", start: 53.104, end: 53.301 },
+  { word: "you\u2019re", start: 53.359, end: 53.557 },
+  { word: "in", start: 53.592, end: 53.65 },
+  { word: "the", start: 53.696, end: 53.754 },
+  { word: "room.", start: 53.812, end: 54.253 },
+  { word: "Ask", start: 54.927, end: 55.205 },
+  { word: "questions,", start: 55.252, end: 56.076 },
+  { word: "challenge", start: 56.378, end: 56.819 },
+  { word: "assumptions,", start: 56.842, end: 57.667 },
+  { word: "think", start: 58.038, end: 58.282 },
+  { word: "out", start: 58.34, end: 58.468 },
+  { word: "loud.", start: 58.526, end: 59.048 },
+  { word: "Narrate", start: 59.722, end: 60.198 },
+  { word: "your", start: 60.232, end: 60.36 },
+  { word: "thinking", start: 60.418, end: 60.767 },
+  { word: "as", start: 60.964, end: 61.173 },
+  { word: "it", start: 61.231, end: 61.301 },
+  { word: "happens.", start: 61.347, end: 62.009 },
+  { word: "If", start: 62.671, end: 62.833 },
+  { word: "you\u2019re", start: 62.88, end: 63.054 },
+  { word: "unsure,", start: 63.1, end: 63.797 },
+  { word: "say", start: 64.168, end: 64.354 },
+  { word: "so.", start: 64.412, end: 64.784 },
+  { word: "If", start: 65.561, end: 65.701 },
+  { word: "you\u2019d", start: 65.736, end: 65.887 },
+  { word: "want", start: 65.921, end: 66.084 },
+  { word: "more", start: 66.142, end: 66.305 },
+  { word: "info,", start: 66.351, end: 66.955 },
+  { word: "tell", start: 67.268, end: 67.466 },
+  { word: "us", start: 67.524, end: 67.617 },
+  { word: "what", start: 67.709, end: 68.046 },
+  { word: "and", start: 68.116, end: 68.267 },
+  { word: "why.", start: 68.336, end: 68.824 },
+  { word: "The", start: 69.602, end: 69.741 },
+  { word: "more", start: 69.857, end: 70.078 },
+  { word: "you", start: 70.124, end: 70.229 },
+  { word: "externalize", start: 70.298, end: 70.844 },
+  { word: "your", start: 70.879, end: 70.972 },
+  { word: "process,", start: 71.018, end: 71.75 },
+  { word: "the", start: 71.959, end: 72.086 },
+  { word: "richer", start: 72.203, end: 72.493 },
+  { word: "your", start: 72.551, end: 72.667 },
+  { word: "profile.", start: 72.702, end: 73.282 },
+  { word: "Alright,", start: 73.979, end: 74.292 },
+  { word: "you\u2019re", start: 74.327, end: 74.513 },
+  { word: "ready.", start: 74.536, end: 74.966 },
+  { word: "Let\u2019s", start: 75.291, end: 75.5 },
+  { word: "go.", start: 75.535, end: 76.069 },
+];
+
 /**
- * Pre-exam briefing script (~62s).
+ * Pre-exam briefing script (~76s).
  * Played after setup, before vignette 1.
- *
- * Word timing is derived proportionally from caption boundaries.
- * Run `node scripts/generate-briefing-timestamps.mjs` to replace with
- * real ElevenLabs word-level alignment.
+ * Word timing from ElevenLabs character-level alignment.
  */
 export const PRE_EXAM_SCRIPT: OrbScript = {
   audioUrl: "/audio/briefing-pre-exam.mp3",
   captions: PRE_EXAM_CAPTIONS,
-  wordTimings: deriveWordTimings(PRE_EXAM_CAPTIONS),
+  wordTimings: PRE_EXAM_WORD_TIMINGS,
 };
 
-// ─── CI transition briefing ─────────────────────────────────────────
+// ─── CI transition briefing (~48s) ──────────────────────────────────
 
 const CI_TRANSITION_CAPTIONS: OrbCaption[] = [
   {
     startTime: 0,
-    endTime: 3.59,
+    endTime: 3.181,
     text: "Nice work on those first two. Take a breath.",
   },
   {
-    startTime: 3.91,
-    endTime: 24.46,
-    text: "Your next two scenarios are going to feel different! They\u2019re about creative intelligence \u2014 which is all about seeing opportunities in the world. Instead of problems to solve, you\u2019ll hear about real market situations. Your job isn\u2019t to fix anything \u2014 it\u2019s to spot opportunities. Think like an entrepreneur scanning for what\u2019s possible, not what\u2019s broken.",
+    startTime: 3.878,
+    endTime: 22.071,
+    text: "Before we jump in, let me tell you a quick story. Brian Chesky couldn\u2019t make rent. He noticed a design conference had every hotel in San Francisco booked solid. So he threw air mattresses on his living room floor and charged strangers to sleep there. That\u2019s how Airbnb started.",
   },
   {
-    startTime: 25.07,
-    endTime: 34.67,
-    text: "So brainstorm and say out loud whatever comes to mind! You should be trying to connect dots and finding ways to win the market. The wilder the idea, the better \u2014 as long as you can explain your reasoning.",
+    startTime: 22.767,
+    endTime: 38.743,
+    text: "That\u2019s the type of brainstorming we\u2019ll need from you in this next section! We\u2019ll drop you into real situations where entrepreneurs spotted opportunities others missed. Your job is to brainstorm \u2014 what would you build? What do you see that nobody else does?",
   },
   {
-    startTime: 35.97,
-    endTime: 40.82,
-    text: "Alright, two more to go. Let\u2019s see how you think when the canvas is blank. Are you ready?",
+    startTime: 39.347,
+    endTime: 47.834,
+    text: "Think out loud, connect dots, get wild with it \u2014 as long as you can back up your reasoning. Ready? Let\u2019s go.",
   },
 ];
 
+const CI_TRANSITION_WORD_TIMINGS: AudioWordTiming[] = [
+  { word: "Nice", start: 0, end: 0.325 },
+  { word: "work", start: 0.372, end: 0.569 },
+  { word: "on", start: 0.627, end: 0.697 },
+  { word: "those", start: 0.731, end: 0.894 },
+  { word: "first", start: 0.929, end: 1.138 },
+  { word: "two.", start: 1.161, end: 1.602 },
+  { word: "Take", start: 2.415, end: 2.612 },
+  { word: "a", start: 2.635, end: 2.659 },
+  { word: "breath.", start: 2.694, end: 3.181 },
+  { word: "Before", start: 3.878, end: 4.238 },
+  { word: "we", start: 4.272, end: 4.354 },
+  { word: "jump", start: 4.423, end: 4.632 },
+  { word: "in,", start: 4.714, end: 5.016 },
+  { word: "let", start: 5.166, end: 5.294 },
+  { word: "me", start: 5.329, end: 5.399 },
+  { word: "tell", start: 5.445, end: 5.596 },
+  { word: "you", start: 5.642, end: 5.712 },
+  { word: "a", start: 5.77, end: 5.793 },
+  { word: "quick", start: 5.84, end: 6.014 },
+  { word: "story.", start: 6.072, end: 6.629 },
+  { word: "Brian", start: 7.442, end: 7.802 },
+  { word: "Chesky", start: 7.86, end: 8.336 },
+  { word: "couldn\u2019t", start: 8.545, end: 8.858 },
+  { word: "make", start: 8.893, end: 9.056 },
+  { word: "rent.", start: 9.114, end: 9.578 },
+  { word: "He", start: 10.182, end: 10.298 },
+  { word: "noticed", start: 10.391, end: 10.681 },
+  { word: "a", start: 10.728, end: 10.751 },
+  { word: "design", start: 10.809, end: 11.111 },
+  { word: "conference", start: 11.169, end: 11.598 },
+  { word: "had", start: 11.645, end: 11.784 },
+  { word: "every", start: 11.877, end: 12.156 },
+  { word: "hotel", start: 12.214, end: 12.539 },
+  { word: "in", start: 12.597, end: 12.655 },
+  { word: "San", start: 12.713, end: 12.852 },
+  { word: "Francisco", start: 12.899, end: 13.421 },
+  { word: "booked", start: 13.63, end: 13.909 },
+  { word: "solid.", start: 13.967, end: 14.512 },
+  { word: "So", start: 14.954, end: 15.186 },
+  { word: "he", start: 15.395, end: 15.511 },
+  { word: "threw", start: 15.569, end: 15.766 },
+  { word: "air", start: 15.848, end: 15.999 },
+  { word: "mattresses", start: 16.045, end: 16.486 },
+  { word: "on", start: 16.544, end: 16.614 },
+  { word: "his", start: 16.649, end: 16.719 },
+  { word: "living", start: 16.765, end: 16.962 },
+  { word: "room", start: 16.997, end: 17.113 },
+  { word: "floor", start: 17.16, end: 17.438 },
+  { word: "and", start: 17.647, end: 17.845 },
+  { word: "charged", start: 17.926, end: 18.367 },
+  { word: "strangers", start: 18.449, end: 18.913 },
+  { word: "to", start: 18.971, end: 19.041 },
+  { word: "sleep", start: 19.099, end: 19.331 },
+  { word: "there.", start: 19.377, end: 19.702 },
+  { word: "That\u2019s", start: 20.399, end: 20.678 },
+  { word: "how", start: 20.712, end: 20.817 },
+  { word: "Airbnb", start: 20.898, end: 21.409 },
+  { word: "started.", start: 21.525, end: 22.071 },
+  { word: "That\u2019s", start: 22.767, end: 23.046 },
+  { word: "the", start: 23.081, end: 23.151 },
+  { word: "type", start: 23.185, end: 23.36 },
+  { word: "of", start: 23.383, end: 23.429 },
+  { word: "brainstorming", start: 23.464, end: 24.01 },
+  { word: "we\u2019ll", start: 24.056, end: 24.195 },
+  { word: "need", start: 24.242, end: 24.393 },
+  { word: "from", start: 24.428, end: 24.555 },
+  { word: "you", start: 24.613, end: 24.695 },
+  { word: "in", start: 24.788, end: 24.88 },
+  { word: "this", start: 24.997, end: 25.252 },
+  { word: "next", start: 25.368, end: 25.658 },
+  { word: "section!", start: 25.74, end: 26.39 },
+  { word: "We\u2019ll", start: 26.993, end: 27.202 },
+  { word: "drop", start: 27.249, end: 27.469 },
+  { word: "you", start: 27.516, end: 27.586 },
+  { word: "into", start: 27.644, end: 27.783 },
+  { word: "real", start: 27.876, end: 28.062 },
+  { word: "situations", start: 28.12, end: 28.781 },
+  { word: "where", start: 28.863, end: 29.072 },
+  { word: "entrepreneurs", start: 29.118, end: 29.803 },
+  { word: "spotted", start: 29.861, end: 30.233 },
+  { word: "opportunities", start: 30.291, end: 30.906 },
+  { word: "others", start: 30.988, end: 31.301 },
+  { word: "missed.", start: 31.417, end: 31.94 },
+  { word: "Your", start: 32.451, end: 32.671 },
+  { word: "job", start: 32.741, end: 32.95 },
+  { word: "is", start: 32.996, end: 33.054 },
+  { word: "to", start: 33.101, end: 33.147 },
+  { word: "brainstorm", start: 33.205, end: 33.774 },
+  { word: "\u2014", start: 33.925, end: 34.099 },
+  { word: "what", start: 34.796, end: 34.958 },
+  { word: "would", start: 34.981, end: 35.132 },
+  { word: "you", start: 35.167, end: 35.237 },
+  { word: "build?", start: 35.307, end: 35.771 },
+  { word: "What", start: 36.584, end: 36.758 },
+  { word: "do", start: 36.781, end: 36.827 },
+  { word: "you", start: 36.886, end: 36.967 },
+  { word: "see", start: 37.036, end: 37.222 },
+  { word: "that", start: 37.269, end: 37.396 },
+  { word: "nobody", start: 37.512, end: 37.896 },
+  { word: "else", start: 37.954, end: 38.151 },
+  { word: "does?", start: 38.197, end: 38.743 },
+  { word: "Think", start: 39.347, end: 39.579 },
+  { word: "out", start: 39.625, end: 39.742 },
+  { word: "loud,", start: 39.788, end: 40.252 },
+  { word: "connect", start: 40.427, end: 40.763 },
+  { word: "dots,", start: 40.798, end: 41.413 },
+  { word: "get", start: 41.622, end: 41.785 },
+  { word: "wild", start: 41.855, end: 42.145 },
+  { word: "with", start: 42.18, end: 42.319 },
+  { word: "it", start: 42.365, end: 42.493 },
+  { word: "\u2014", start: 42.702, end: 42.749 },
+  { word: "as", start: 43.132, end: 43.283 },
+  { word: "long", start: 43.399, end: 43.654 },
+  { word: "as", start: 43.701, end: 43.759 },
+  { word: "you", start: 43.805, end: 43.875 },
+  { word: "can", start: 43.921, end: 44.037 },
+  { word: "back", start: 44.107, end: 44.339 },
+  { word: "up", start: 44.409, end: 44.502 },
+  { word: "your", start: 44.56, end: 44.664 },
+  { word: "reasoning.", start: 44.722, end: 45.245 },
+  { word: "Ready?", start: 45.848, end: 46.324 },
+  { word: "Let\u2019s", start: 47.021, end: 47.242 },
+  { word: "go.", start: 47.288, end: 47.834 },
+];
+
 /**
- * CI transition briefing script (~41s).
+ * CI transition briefing script (~48s).
  * Played after vignette 2, before vignette 3.
+ * Word timing from ElevenLabs character-level alignment.
  */
 export const CI_TRANSITION_SCRIPT: OrbScript = {
   audioUrl: "/audio/briefing-ci-transition.mp3",
   captions: CI_TRANSITION_CAPTIONS,
-  wordTimings: deriveWordTimings(CI_TRANSITION_CAPTIONS),
+  wordTimings: CI_TRANSITION_WORD_TIMINGS,
 };

@@ -47,9 +47,9 @@ const SCRIPTS = [
     filename: "briefing-ci-transition.mp3",
     text: [
       "Nice work on those first two. Take a breath.",
-      "Your next two scenarios are going to feel different! They\u2019re about creative intelligence \u2014 which is all about seeing opportunities in the world. Instead of problems to solve, you\u2019ll hear about real market situations. Your job isn\u2019t to fix anything \u2014 it\u2019s to spot opportunities. Think like an entrepreneur scanning for what\u2019s possible, not what\u2019s broken.",
-      "So brainstorm and say out loud whatever comes to mind! You should be trying to connect dots and finding ways to win the market. The wilder the idea, the better \u2014 as long as you can explain your reasoning.",
-      "Alright, two more to go. Let\u2019s see how you think when the canvas is blank. Are you ready?",
+      "Before we jump in, let me tell you a quick story. Brian Chesky couldn\u2019t make rent. He noticed a design conference had every hotel in San Francisco booked solid. So he threw air mattresses on his living room floor and charged strangers to sleep there. That\u2019s how Airbnb started.",
+      "That\u2019s the type of brainstorming we\u2019ll need from you in this next section! We\u2019ll drop you into real situations where entrepreneurs spotted opportunities others missed. Your job is to brainstorm \u2014 what would you build? What do you see that nobody else does?",
+      "Think out loud, connect dots, get wild with it \u2014 as long as you can back up your reasoning. Ready? Let\u2019s go.",
     ].join(" "),
   },
 ];
