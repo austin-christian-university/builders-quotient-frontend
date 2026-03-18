@@ -59,6 +59,15 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
         existing
       );
       const nextStep = findNextIncomplete(completedSteps) ?? 1;
+
+      // If no steps completed and briefing not yet seen, route through briefing
+      if (
+        completedSteps.size === 0 &&
+        !existing.briefing_completed_at
+      ) {
+        redirect("/assess/briefing");
+      }
+
       redirect(`/assess/${nextStep}?resume=true`);
     }
 
@@ -170,5 +179,5 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
 
   // 5. Set session cookie and redirect
   await createSessionCookie(session.id);
-  redirect("/assess/1");
+  redirect("/assess/briefing");
 }
