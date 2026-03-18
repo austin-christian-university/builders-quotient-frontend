@@ -200,6 +200,12 @@ export function RadarChart({
     MAX_COMPENSATED,
     Math.max(labelFontSize, TARGET_ACTUAL_PX / rawScaleFactor)
   );
+  // Scale-compensated tooltip font size — matches sector label size on mobile
+  const TOOLTIP_BASE = 11;
+  const TOOLTIP_TARGET_PX = 12;
+  const tooltipFontSize = containerWidth > 0
+    ? Math.min(20, Math.max(TOOLTIP_BASE, TOOLTIP_TARGET_PX / rawScaleFactor))
+    : TOOLTIP_BASE;
   // ViewBox padding prevents label clipping on small containers
   const fontGrowth = compensatedFontSize - labelFontSize;
   const fontGrowthPad =
@@ -309,7 +315,7 @@ export function RadarChart({
       const bbox = tooltipTextRef.current.getBBox();
       setTooltipWidth(bbox.width);
     }
-  }, [tooltipContent?.label]);
+  }, [tooltipContent?.label, tooltipFontSize]);
 
   let tooltipX = cx;
   let tooltipY = cy;
@@ -320,7 +326,8 @@ export function RadarChart({
     const outward = polarToCartesian(cx, cy, maxRadius + 4, angle);
     tooltipX = outward.x;
     tooltipY = outward.y;
-    const halfPill = (tooltipWidth + 24) / 2; // 12px LR padding
+    const pillPadX = 12 * (tooltipFontSize / TOOLTIP_BASE);
+    const halfPill = (tooltipWidth + pillPadX * 2) / 2;
     tooltipX = Math.max(-vbPad + halfPill + 4, Math.min(size + vbPad - halfPill - 4, tooltipX));
     tooltipY = Math.max(-vbPad + 20, Math.min(size + vbPad - 20, tooltipY));
   }
@@ -611,8 +618,9 @@ export function RadarChart({
 
       {/* Floating tooltip */}
       {tooltipContent && activeIndex !== null && (() => {
-        const pillW = tooltipWidth + 24; // 12px padding each side
-        const pillH = 28;
+        const pillPadX = 12 * (tooltipFontSize / TOOLTIP_BASE);
+        const pillW = tooltipWidth + pillPadX * 2;
+        const pillH = tooltipFontSize + 17;
         return (
           <g style={{ pointerEvents: "none" }}>
             <rect
@@ -632,7 +640,7 @@ export function RadarChart({
               y={tooltipY}
               textAnchor="middle"
               dominantBaseline="middle"
-              fontSize={11}
+              fontSize={tooltipFontSize}
               fontWeight={600}
               fill="#f5f6fa"
               fontFamily="Inter, sans-serif"
