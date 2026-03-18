@@ -36,7 +36,7 @@ describe("orb scripts", () => {
     expect(PRE_EXAM_SCRIPT.captions).toHaveLength(6);
   });
 
-  it("CI_TRANSITION_SCRIPT has 5 caption segments", () => {
-    expect(CI_TRANSITION_SCRIPT.captions).toHaveLength(5);
+  it("CI_TRANSITION_SCRIPT has 4 caption segments", () => {
+    expect(CI_TRANSITION_SCRIPT.captions).toHaveLength(4);
   });
 });
