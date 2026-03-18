@@ -637,7 +637,9 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
         }
     }, [currentIndex, cards, isMobile, cachedBlob, getBlob, tryNativeShare]);
 
-    const isAdmissions = data.applicant.assessmentType === "admissions";
+    const showApply =
+        data.applicant.assessmentType === "admissions" ||
+        data.applicant.leadType === "prospective_student";
 
     // Track previous index so we know which card is exiting (and in which direction)
     const prevIndexRef = useRef(currentIndex);
@@ -776,7 +778,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 </button>
 
                 {/* Apply CTA — admissions only */}
-                {isAdmissions && (
+                {showApply && (
                     <>
                         <div className="flex items-center gap-3 w-full mt-2 mb-1" aria-hidden="true">
                             <div className="flex-1 h-px bg-white/5" />

@@ -18,6 +18,7 @@ import { PersonalityRadarSlide } from "./slides/PersonalityRadarSlide";
 import { PersonalityNarrativeSlide } from "./slides/PersonalityNarrativeSlide";
 import { DisclaimerSlide } from "./slides/DisclaimerSlide";
 import { ShareApplySlide } from "./slides/ShareApplySlide";
+import { PersonalityCTASlide } from "./slides/PersonalityCTASlide";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { useSwipeNavigation } from "@/lib/hooks/use-swipe-navigation";
 import * as analytics from "@/lib/analytics/events";
@@ -157,9 +158,10 @@ function NavArrow({ direction, onClick, isDesktop, prominent }: NavArrowProps) {
 
 type Props = {
   data: ResultsPageData;
+  token: string;
 };
 
-export function ResultsExperience({ data }: Props) {
+export function ResultsExperience({ data, token }: Props) {
   const isDesktop = useIsDesktop();
   const reducedMotion = usePrefersReducedMotion();
   const [splashComplete, setSplashComplete] = useState(false);
@@ -290,7 +292,16 @@ export function ResultsExperience({ data }: Props) {
     // 12. Disclaimer
     s.push(<DisclaimerSlide key="disclaimer" />);
 
-    // 13. Share / Apply CTA
+    // 13. Personality CTA (prospective students who haven't taken quiz yet)
+    const needsPersonality =
+      data.applicant.leadType === "prospective_student" &&
+      !data.applicant.personalityCompleted;
+
+    if (needsPersonality) {
+      s.push(<PersonalityCTASlide key="personality-cta" token={token} />);
+    }
+
+    // 14. Share / Apply CTA
     s.push(
       <ShareApplySlide
         key="share"
@@ -299,7 +310,7 @@ export function ResultsExperience({ data }: Props) {
     );
 
     return s;
-  }, [data, splashComplete]);
+  }, [data, token, splashComplete]);
 
   const isFirst = currentSection === 0;
   const isLast = currentSection === sections.length - 1;

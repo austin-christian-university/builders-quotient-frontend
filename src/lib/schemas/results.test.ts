@@ -357,6 +357,8 @@ describe("resultsPageDataSchema", () => {
   const baseApplicant = {
     displayName: "Jordan Lee",
     assessmentType: "public" as const,
+    leadType: null,
+    personalityCompleted: false,
   };
 
   const baseCategoryScore = {
@@ -416,7 +418,7 @@ describe("resultsPageDataSchema", () => {
   it("validates with a null displayName", () => {
     const result = resultsPageDataSchema.safeParse({
       ...minimalValidData,
-      applicant: { displayName: null, assessmentType: "admissions" },
+      applicant: { displayName: null, assessmentType: "admissions", leadType: null, personalityCompleted: false },
     });
     expect(result.success).toBe(true);
   });
@@ -459,7 +461,7 @@ describe("resultsPageDataSchema", () => {
   it("rejects invalid assessmentType", () => {
     const result = resultsPageDataSchema.safeParse({
       ...minimalValidData,
-      applicant: { displayName: "Jordan", assessmentType: "enterprise" },
+      applicant: { displayName: "Jordan", assessmentType: "enterprise", leadType: null, personalityCompleted: false },
     });
     expect(result.success).toBe(false);
   });

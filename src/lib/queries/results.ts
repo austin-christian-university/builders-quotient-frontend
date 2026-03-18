@@ -322,7 +322,7 @@ export async function getResultsByToken(
   // 2. Find their scored/completed session (prefer "scored" over "completed")
   const { data: scoredSession } = await supabase
     .from("assessment_sessions")
-    .select("id, assessment_type, archetype_name, archetype_tagline, archetype_description, archetype_based_on_category, archetype_variant")
+    .select("id, assessment_type, personality_completed_at, archetype_name, archetype_tagline, archetype_description, archetype_based_on_category, archetype_variant")
     .eq("applicant_id", applicant.id)
     .eq("status", "scored")
     .order("created_at", { ascending: false })
@@ -334,7 +334,7 @@ export async function getResultsByToken(
     (
       await supabase
         .from("assessment_sessions")
-        .select("id, assessment_type, archetype_name, archetype_tagline, archetype_description, archetype_based_on_category, archetype_variant")
+        .select("id, assessment_type, personality_completed_at, archetype_name, archetype_tagline, archetype_description, archetype_based_on_category, archetype_variant")
         .eq("applicant_id", applicant.id)
         .eq("status", "completed")
         .order("created_at", { ascending: false })
@@ -640,6 +640,8 @@ export async function getResultsByToken(
     applicant: {
       displayName: applicant.display_name ?? null,
       assessmentType: (session.assessment_type as "public" | "admissions") ?? "public",
+      leadType: (applicant.lead_type as "prospective_student" | "general_interest") ?? null,
+      personalityCompleted: !!session.personality_completed_at,
     },
     piCategories,
     ciCategories,

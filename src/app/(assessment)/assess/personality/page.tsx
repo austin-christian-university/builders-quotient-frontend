@@ -18,7 +18,7 @@ export default async function PersonalityPage() {
 
   // 2. Verify session exists and intelligence is completed
   const session = await getSessionById(sessionId);
-  if (!session || session.status !== "completed") {
+  if (!session || (session.status !== "completed" && session.status !== "scored")) {
     redirect("/assess/setup");
   }
 

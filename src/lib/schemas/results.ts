@@ -101,6 +101,8 @@ export const resultsPageDataSchema = z.object({
   applicant: z.object({
     displayName: z.string().nullable(),
     assessmentType: z.enum(["public", "admissions"]),
+    leadType: z.enum(["prospective_student", "general_interest"]).nullable(),
+    personalityCompleted: z.boolean(),
   }),
   piCategories: z.array(categoryScoreSchema),
   ciCategories: z.array(categoryScoreSchema),

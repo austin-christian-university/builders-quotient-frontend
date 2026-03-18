@@ -43,5 +43,5 @@ export default async function ResultsPage({ params }: Props) {
 
   if (!data) notFound();
 
-  return <ResultsExperience data={data} />;
+  return <ResultsExperience data={data} token={token} />;
 }
