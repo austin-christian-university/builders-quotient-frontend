@@ -10,6 +10,7 @@ import { recordVignetteServed } from "@/lib/actions/response";
 import { createServiceClient } from "@/lib/supabase/server";
 import { createSignedDownloadUrl } from "@/lib/supabase/storage";
 import { VignetteExperience } from "@/components/assessment/VignetteExperience";
+import { StepWithCiBriefing } from "./StepWithCiBriefing";
 
 export const dynamic = "force-dynamic";
 
@@ -97,7 +98,7 @@ export default async function StepPage({
     ? await createSignedDownloadUrl("vignette-audio", vignette.audio_storage_path)
     : null;
 
-  return (
+  const vignetteElement = (
     <VignetteExperience
       step={step}
       totalSteps={TOTAL_STEPS}
@@ -114,5 +115,11 @@ export default async function StepPage({
       estimatedNarrationSeconds={vignette.estimated_narration_seconds}
     />
   );
+
+  if (step === 3) {
+    return <StepWithCiBriefing>{vignetteElement}</StepWithCiBriefing>;
+  }
+
+  return vignetteElement;
 }
 
