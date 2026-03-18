@@ -55,32 +55,34 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                         <motion.div
                             initial={{
                                 clipPath: "inset(100% 0 0 0)",
-                                filter: "brightness(0) blur(4px)",
-                                scale: 0.95,
+                                filter: "brightness(0) blur(10px)",
+                                scale: 0.9,
                                 opacity: 0
                             }}
                             animate={{
-                                clipPath: "inset(0% 0 0 0)",
-                                filter: ["brightness(2) blur(2px)", "brightness(1) blur(0px)"],
+                                clipPath: "inset(-10% -10% -10% -10%)",
+                                filter: ["brightness(3) blur(5px)", "brightness(1) blur(0px)"],
                                 scale: 1,
                                 opacity: 1
                             }}
                             transition={{
-                                duration: 2,
+                                duration: 2.5,
                                 ease: [0.16, 1, 0.3, 1],
-                                filter: { duration: 1.5, delay: 0.5 },
-                                scale: { duration: 2, ease: "easeOut" },
-                                opacity: { duration: 0.2 }
+                                filter: { duration: 1.8, delay: 0.3 },
+                                scale: { duration: 2.5, ease: "easeOut" },
+                                opacity: { duration: 0.4 }
                             }}
-                            className="relative h-[200px] w-[200px] sm:h-[240px] sm:w-[240px]"
+                            className="relative flex items-center justify-center p-8 overflow-hidden rounded-full"
                         >
-                            <Image
-                                src="/White-Crest-sm.png"
-                                alt="Austin Christian University Crest"
-                                fill
-                                className="object-contain"
-                                priority
-                            />
+                            <div className="relative h-[200px] w-[200px] sm:h-[240px] sm:w-[240px]">
+                                <Image
+                                    src="/White-Crest-sm.png"
+                                    alt="Austin Christian University Crest"
+                                    fill
+                                    className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                                    priority
+                                />
+                            </div>
                         </motion.div>
                     )}
                 </motion.div>

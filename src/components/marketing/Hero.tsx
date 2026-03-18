@@ -47,17 +47,25 @@ function Hero() {
         ) : (
           <>
             <motion.div
-              animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.4, 0.3] }}
+              animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.5, 0.4] }}
               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] blur-3xl mix-blend-screen"
+              className="absolute left-[10%] top-[-10%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.12),transparent_60%)] blur-3xl mix-blend-screen"
             />
             <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.4, 0.3] }}
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] blur-3xl mix-blend-screen"
+              className="absolute bottom-[-10%] right-[10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.08),transparent_60%)] blur-3xl mix-blend-screen"
             />
           </>
         )}
+
+        {/* SVG Noise Texture for Premium Grain */}
+        <div
+          className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          }}
+        />
 
         {/* Dot grid texture */}
         <div
@@ -89,7 +97,7 @@ function Hero() {
 
         <motion.h1
           variants={itemVariants}
-          className="bg-gradient-to-br from-white via-neutral-200 to-neutral-500 bg-clip-text font-display text-[clamp(3.5rem,8vw,6.5rem)] font-bold leading-[0.95] tracking-[-0.03em] text-transparent drop-shadow-sm pb-2"
+          className="bg-gradient-to-br from-white via-neutral-100 to-neutral-500/80 bg-clip-text font-display text-[clamp(4rem,9vw,8rem)] font-bold leading-[0.9] tracking-[-0.04em] text-transparent drop-shadow-[0_0_40px_rgba(255,255,255,0.15)] pb-4 mt-2"
         >
           Builder&apos;s <br /> Quotient
         </motion.h1>

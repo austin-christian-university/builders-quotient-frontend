@@ -83,13 +83,18 @@ function Requirements() {
         <div className="mt-16 grid gap-6 sm:grid-cols-3">
           {requirements.map((req, i) => (
             <ScrollReveal key={req.title} delay={i * 0.1}>
-              <Card className="flex h-full flex-col items-center p-6 text-center">
-                <CardContent className="flex flex-1 flex-col items-center gap-4 p-0">
-                  <span className="text-primary">{req.icon}</span>
-                  <h3 className="font-display text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+              <Card className="group relative flex h-full flex-col items-center overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 text-center backdrop-blur-xl transition-all duration-500 hover:bg-white/[0.04] hover:-translate-y-2 hover:shadow-[0_20px_40px_-20px_rgba(255,255,255,0.15)] hover:border-white/20">
+                {/* Spotlight glow effect on hover */}
+                <div className="pointer-events-none absolute -inset-px rounded-3xl bg-gradient-to-b from-white/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                
+                <CardContent className="relative z-10 flex flex-1 flex-col items-center gap-5 p-0">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/[0.05] text-primary shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] transition-transform duration-500 group-hover:scale-110">
+                    {req.icon}
+                  </div>
+                  <h3 className="font-display text-[length:var(--text-fluid-xl)] font-semibold text-text-primary tracking-tight">
                     {req.title}
                   </h3>
-                  <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+                  <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/80">
                     {req.description}
                   </p>
                 </CardContent>

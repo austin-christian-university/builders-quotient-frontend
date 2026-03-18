@@ -13,15 +13,21 @@ function FooterCTA() {
 
       <div className="relative mx-auto max-w-2xl text-center">
         <ScrollReveal>
-          <h2 className="font-display text-[length:var(--text-fluid-3xl)] font-bold tracking-[-0.01em] text-text-primary">
+          <h2 className="font-display text-[length:var(--text-fluid-4xl)] font-bold tracking-tight text-text-primary bg-clip-text text-transparent bg-gradient-to-br from-white to-neutral-500 pb-1">
             Ready to find out how you&nbsp;think?
           </h2>
-          <p className="mx-auto mt-4 max-w-md text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+          <p className="mx-auto mt-6 max-w-xl text-[length:var(--text-fluid-lg)] leading-relaxed text-text-secondary/90 font-light">
             Take the Builders Quotient assessment and discover your
             entrepreneurial&nbsp;intelligence&nbsp;profile.
           </p>
-          <div className="mt-10">
-            <Button as={Link} href="/assess/overview" size="lg">
+          <div className="mt-12 group relative inline-flex items-center justify-center">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary/30 to-secondary/30 blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-glow-pulse" />
+            <Button 
+              as={Link} 
+              href="/assess/overview" 
+              size="lg"
+              className="relative rounded-full border border-white/10 bg-white/5 px-12 py-8 text-lg font-medium tracking-widest uppercase text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+            >
               Begin Assessment
             </Button>
           </div>
