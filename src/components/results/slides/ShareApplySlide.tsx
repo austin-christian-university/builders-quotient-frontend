@@ -9,7 +9,7 @@ import {
     PERSONALITY_DIMENSION_CATEGORIES,
 } from "@/lib/assessment/personality-dimensions";
 import { useShareCardCache } from "@/lib/hooks/use-share-card-cache";
-import { ACU_CREST_DATA_URL } from "@/lib/crest-data-url";
+import { ACU_WORDMARK_DATA_URL } from "@/lib/wordmark-data-url";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -102,7 +102,7 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
     const displayName = data.applicant.displayName || "You";
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] p-6 relative overflow-hidden" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+        <div className="flex flex-col h-full bg-[#0a0a0c] px-6 pt-3 pb-6 relative overflow-hidden" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
             {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 pointer-events-none"
@@ -110,8 +110,16 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
             />
 
             <div className="relative z-10 flex flex-col h-full">
+                {/* Header — ACU wordmark */}
+                <div className="flex justify-center mb-3">
+                    <div className="h-32 opacity-60">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={ACU_WORDMARK_DATA_URL} alt="Austin Christian University" className="h-full w-auto object-contain" />
+                    </div>
+                </div>
+
                 {/* Eyebrow */}
-                <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold mb-auto">
+                <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold text-center mb-auto">
                     {label}
                 </span>
 
@@ -152,11 +160,7 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
                 {/* Footer */}
                 <div className="mt-auto">
                     <div className="h-px w-full bg-gradient-to-r from-white/15 to-transparent mb-3" />
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="h-14 opacity-60">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={ACU_CREST_DATA_URL} alt="ACU" className="h-full w-auto object-contain" />
-                        </div>
+                    <div className="flex flex-col items-center gap-1.5">
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Match</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
@@ -177,7 +181,6 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
     if (radar.length === 0) return null;
 
     const accentColor = variant === "pi" ? "#4da3ff" : "#e9b949";
-    const subtitle = variant === "pi" ? "Practical Intelligence" : "Creative Intelligence";
 
     const categories = radar.map((c) => getShortLabel(c.category));
     const rawScores = radar.map((c) => c.studentScore);
@@ -185,7 +188,7 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
     const studentScores = rawScores.map((s) => (s / maxScore) * 100);
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] p-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+        <div className="flex flex-col h-full bg-[#0a0a0c] px-5 pt-3 pb-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
             {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
                 className="absolute -top-16 -right-16 w-56 h-56 pointer-events-none"
@@ -193,13 +196,18 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
             />
 
             <div className="relative z-10 flex flex-col h-full">
-                {/* Eyebrow + subtitle */}
-                <div className="mb-2">
-                    <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold">Builder DNA</span>
-                    <p className="text-[10px] font-semibold mt-1" style={{ color: `${accentColor}AA` }}>
-                        {subtitle}
-                    </p>
+                {/* Header — ACU wordmark */}
+                <div className="flex justify-center mb-1">
+                    <div className="h-28 opacity-60">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={ACU_WORDMARK_DATA_URL} alt="Austin Christian University" className="h-full w-auto object-contain" />
+                    </div>
                 </div>
+
+                {/* Eyebrow */}
+                <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold mb-2">
+                    {variant === "pi" ? "How You Solve" : "How You Create"}
+                </span>
 
                 {/* Radar */}
                 <div className="flex-1 flex items-center justify-center min-h-0">
@@ -216,11 +224,7 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
                 {/* Footer */}
                 <div className="mt-auto">
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent mb-3" />
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="h-14 opacity-60">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={ACU_CREST_DATA_URL} alt="ACU" className="h-full w-auto object-contain" />
-                        </div>
+                    <div className="flex flex-col items-center gap-1.5">
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Profile</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
@@ -277,7 +281,7 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
     });
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] p-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+        <div className="flex flex-col h-full bg-[#0a0a0c] px-5 pt-3 pb-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
             {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
                 className="absolute -top-16 -right-16 w-56 h-56 pointer-events-none"
@@ -285,6 +289,14 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
             />
 
             <div className="relative z-10 flex flex-col h-full">
+                {/* Header — ACU wordmark */}
+                <div className="flex justify-center mb-1">
+                    <div className="h-28 opacity-60">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={ACU_WORDMARK_DATA_URL} alt="Austin Christian University" className="h-full w-auto object-contain" />
+                    </div>
+                </div>
+
                 {/* Eyebrow + subtitle */}
                 <div className="mb-2">
                     <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold">Communication Style</span>
@@ -311,11 +323,7 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
                 {/* Footer */}
                 <div className="mt-auto">
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent mb-3" />
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="h-14 opacity-60">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={ACU_CREST_DATA_URL} alt="ACU" className="h-full w-auto object-contain" />
-                        </div>
+                    <div className="flex flex-col items-center gap-1.5">
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Style</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
@@ -327,31 +335,37 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
 
 function ArchetypeCard({ data, isExporting }: { data: ResultsPageData, isExporting: boolean }) {
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] p-6 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+        <div className="flex flex-col h-full bg-[#0a0a0c] px-6 pt-3 pb-6 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
             {/* subtle noise - conditionally hide if exporting to optimize capture or keep for vibe, html-to-image handles SVGs fine usually */}
             {!isExporting && (
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
             )}
 
-            <div className="relative z-10 flex flex-col h-full items-center justify-center pt-8">
-                <p className="uppercase tracking-[0.3em] text-[10px] text-white/50 font-medium mb-4 font-mono">Builder Profile</p>
+            <div className="relative z-10 flex flex-col h-full items-center">
+                {/* Header — ACU wordmark */}
+                <div className="flex justify-center mb-3">
+                    <div className="h-32 opacity-60">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={ACU_WORDMARK_DATA_URL} alt="Austin Christian University" className="h-full w-auto object-contain" />
+                    </div>
+                </div>
 
-                <h2 className="font-display text-4xl font-bold text-white leading-tight mb-3">
-                    {data.archetype.name}
-                </h2>
+                <div className="flex flex-col items-center justify-center flex-1">
+                    <p className="uppercase tracking-[0.3em] text-[10px] text-white/50 font-medium mb-4 font-mono">Builder Profile</p>
 
-                <p className="text-sm text-white/60 italic font-serif px-4">
-                    &ldquo;{data.archetype.tagline}&rdquo;
-                </p>
+                    <h2 className="font-display text-4xl font-bold text-white leading-tight mb-3">
+                        {data.archetype.name}
+                    </h2>
+
+                    <p className="text-sm text-white/60 italic font-serif px-4">
+                        &ldquo;{data.archetype.tagline}&rdquo;
+                    </p>
+                </div>
 
                 <div className="mt-auto w-full pt-6">
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4" />
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="h-14 opacity-60">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={ACU_CREST_DATA_URL} alt="ACU" className="h-full w-auto object-contain" />
-                        </div>
+                    <div className="flex flex-col items-center gap-1.5">
                         <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Archetype</p>
                         <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>

@@ -10,7 +10,7 @@ const isSafari =
 
 /**
  * Generates a PNG blob from a card element, with Safari double-call workaround.
- * Images use inline data URLs (ACU_CREST_DATA_URL), so no src-swapping needed.
+ * Images use inline data URLs (ACU_WORDMARK_DATA_URL), so no src-swapping needed.
  */
 async function generateBlob(
   el: HTMLElement,
