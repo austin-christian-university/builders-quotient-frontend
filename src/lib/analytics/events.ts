@@ -64,3 +64,11 @@ export function uploadFailed(
 ) {
   capture("upload_failed", { sessionId, step, phase });
 }
+
+export function briefingCompleted(sessionId: string, briefingType: "pre_exam" | "ci_transition") {
+  capture("briefing_completed", { sessionId, briefingType });
+}
+
+export function briefingSkipped(sessionId: string, briefingType: "pre_exam" | "ci_transition") {
+  capture("briefing_skipped", { sessionId, briefingType });
+}

@@ -117,7 +117,7 @@ export default async function StepPage({
   );
 
   if (step === 3) {
-    return <StepWithCiBriefing>{vignetteElement}</StepWithCiBriefing>;
+    return <StepWithCiBriefing sessionId={sessionId}>{vignetteElement}</StepWithCiBriefing>;
   }
 
   return vignetteElement;

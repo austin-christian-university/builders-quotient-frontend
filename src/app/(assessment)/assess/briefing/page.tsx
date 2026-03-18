@@ -26,5 +26,5 @@ export default async function BriefingPage() {
     redirect("/assess/1");
   }
 
-  return <BriefingClient />;
+  return <BriefingClient sessionId={sessionId} />;
 }

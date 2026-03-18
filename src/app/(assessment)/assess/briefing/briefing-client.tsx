@@ -1,22 +1,27 @@
 "use client";
 
-import { useTransition } from "react";
+import { useRef, useTransition } from "react";
 import { OrbGuide } from "@/components/assessment/OrbGuide";
 import { PRE_EXAM_SCRIPT } from "@/lib/assessment/orb-scripts";
 import { completeBriefing } from "@/lib/actions/briefing";
+import * as analytics from "@/lib/analytics/events";
 
-export function BriefingClient() {
+export function BriefingClient({ sessionId }: { sessionId: string }) {
   const [isPending, startTransition] = useTransition();
+  const skippedRef = useRef(false);
 
   const handleContinue = () => {
+    if (!skippedRef.current) {
+      analytics.briefingCompleted(sessionId, "pre_exam");
+    }
     startTransition(async () => {
       await completeBriefing();
     });
   };
 
   const handleSkip = () => {
-    // Analytics differentiation happens here if needed.
-    // Skip just enables Continue — the user still clicks Continue to navigate.
+    skippedRef.current = true;
+    analytics.briefingSkipped(sessionId, "pre_exam");
   };
 
   return (
