@@ -96,10 +96,10 @@ function StudentVariant() {
           BQ Complete
         </p>
         <h1 className="mt-4 font-display text-[length:var(--text-fluid-3xl)] font-semibold tracking-tight text-text-primary">
-          You&rsquo;re Almost There
+          Hooray!&ensp;&#127881;
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
-          What you&rsquo;ve just completed is the first two steps of your application to ACU &mdash; you&rsquo;re basically almost done. Why not go ahead and knock out the last&nbsp;couple&nbsp;steps?
+          We&rsquo;ll process your Builders Quotient results as soon as we can. We normally get them back within 24&nbsp;hours.
         </p>
       </motion.div>
 
@@ -117,12 +117,12 @@ function StudentVariant() {
           </div>
 
           <h2 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-tight text-text-primary">
-            Finish Your Application
+            By the Way&hellip;
           </h2>
 
           <div className="mx-auto mt-5 max-w-xl space-y-4">
             <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary/90">
-              Your intelligence and personality assessments are done. The hardest part is behind you. Complete your application to ACU and take the next step toward building something&nbsp;extraordinary.
+              What you just completed was actually the first two steps of an application to ACU. The hardest part is already behind you &mdash; want to keep going and finish&nbsp;it&nbsp;out?
             </p>
           </div>
 
