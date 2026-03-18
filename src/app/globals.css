@@ -24,6 +24,8 @@
   --animate-fade-in: fade-in 0.6s var(--ease-out-expo) both;
   --animate-fade-up: fade-up 0.8s var(--ease-out-expo) both;
   --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
+  --animate-orb-breathe: orb-breathe 4s ease-in-out infinite;
+  --animate-orb-speak: orb-speak 2s ease-in-out infinite;
 }
 
 @theme inline {
@@ -70,6 +72,16 @@
     opacity: 1;
     filter: blur(0px);
   }
+}
+
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.1); }
+}
+
+@keyframes orb-speak {
+  0%, 100% { transform: scale(1); filter: brightness(1.05); }
+  50% { transform: scale(1.06); filter: brightness(1.2); }
 }
 
 :root {
