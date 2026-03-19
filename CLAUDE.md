@@ -87,34 +87,18 @@ All data persists to the shared Supabase instance (tables: `applicants`, `assess
 - **triarchic-databank** (`../triarchic-databank/`): Python backend pipeline that scrapes, transcribes, and extracts PI/CI data from entrepreneur interviews. Populates the Supabase database with vignettes, scoring distributions, and entrepreneur profiles. Reference its `src/models/` for schema definitions and `docs/` for methodology.
 - **the-arena** (`../the-arena/`): Earlier assessment prototype with a working personality quiz (Likert-based, 121 items, 9 facets). Reference `app/assessment/` for flow patterns and `lib/assessment/` for scoring logic.
 
-## Design Direction
+## Design System
 
-The visual identity blends ACU's institutional palette with a modern dark-mode tech aesthetic. Think ACU's DNA (navy, bronze, warmth) rendered through an Apple-like lens (dark glassmorphism, clean typography, generous whitespace, glow-based interactions). This is a departmental product from ACU's more tech-forward programs, so it should feel like premium software, not a university form.
+**Always read `DESIGN.md` before making any visual or UI decisions.** All font choices, colors, spacing, border radius, shadows, motion, and aesthetic direction are defined there. Do not deviate without explicit user approval. In QA mode, flag any code that doesn't match DESIGN.md.
 
-### Color System
-- **Background**: Near-black with subtle blue tint (`#0a0a0c` base, `#111113` elevated surfaces)
-- **Primary accent**: Electric blue (`#4da3ff`) for CTAs, links, focus states, and interactive glows
-- **Secondary accent**: Warm gold/bronze (`#e9b949`) for highlights, progress indicators, and achievement moments
-- **Navy**: ACU navy (`#1F303E`) for contextual depth and brand connection
-- **Text**: Near-white (`#f5f6fa`) primary, cool grey (`#9aa0ac`) for muted/secondary
-- **Borders**: Barely visible (`#1f1f23`), glass-style `border-white/10`
-
-### Typography
-- **Display/headings**: Inter Tight (semibold/bold, tight tracking `tracking-[-0.01em]`)
-- **Body**: Inter (regular/medium)
-- **Labels/eyebrows**: Uppercase, wide tracking (`tracking-[0.3em]`), small size
-- **Scale**: Fluid `clamp()`-based sizing for responsive typography
-
-### Design Patterns
-- **Glassmorphism**: `backdrop-blur-xl` + semi-transparent dark fills + subtle borders
-- **Glow interactions**: Hover states reveal radial color blooms, not hard color fills
-- **Pill buttons**: `rounded-full` with accent glow shadows
-- **Cards**: `rounded-2xl`, glass surface, deep soft shadows
-- **Motion**: Physics-aware easing `[0.16, 1, 0.3, 1]`, staggered entry animations, always honor `prefers-reduced-motion`
-- **Layered backgrounds**: Base color + subtle radial gradients + optional dot grid/noise for texture
-
-### Relationship to ACU Brand
-The navy and bronze from ACU's palette appear as supporting colors rather than primaries. The overall warmth and quality standard carries over, but expressed through a dark, tech-forward lens. The result should feel like it belongs in the ACU ecosystem while clearly signaling "this department builds cutting-edge tools."
+Quick reference (see DESIGN.md for full details):
+- **Aesthetic:** Dark glassmorphism / luxury-tech. Premium software, not a university form.
+- **Colors:** Primary `#4da3ff` (blue), Secondary `#e9b949` (gold), backgrounds `#0a0a0c`→`#111113`→`#161618`
+- **Typography:** Inter Tight (display), Inter (body), Geist Mono (code). Fluid `clamp()` scale.
+- **Spacing:** 4px base unit, comfortable density. Scale: 2xs(2)→xs(4)→sm(8)→md(16)→lg(24)→xl(32)→2xl(48)→3xl(64)→4xl(96)
+- **Radius:** none(0)→sm(6)→md(8)→lg(12)→xl(16)→full(9999). Buttons are `full`, cards are `xl`.
+- **Motion:** Expo-out easing `cubic-bezier(0.16, 1, 0.3, 1)`. Always honor `prefers-reduced-motion`.
+- **Semantic colors:** Success `#34d399`, Warning `#fbbf24`, Error `#f87171`, Info `#60a5fa`
 
 ## Commit & Pull Request Guidelines
 
