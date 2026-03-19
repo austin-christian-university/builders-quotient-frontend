@@ -457,6 +457,7 @@ export function WarmupExperience() {
                   <ConsentGate
                     onAccept={handleConsentAccept}
                     onDecline={handleConsentDecline}
+                    hideBiometric
                     eyebrow="One Last Step"
                     heading="Review &amp; Consent"
                     buttonText="Start the Assessment"

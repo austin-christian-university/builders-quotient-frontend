@@ -140,9 +140,18 @@ export function SetupClient() {
     setShowMobileWarning(false);
   }
 
+  const [biometricConsent, setBiometricConsent] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
+  const biometricRef = useRef<HTMLInputElement | null>(null);
+
   const isReady = cameraStatus === "granted" && micStatus === "granted";
 
   function handleStart() {
+    if (!biometricConsent) {
+      setBiometricError("Please accept to continue");
+      biometricRef.current?.focus();
+      return;
+    }
     router.push("/assess/warmup");
   }
 
@@ -193,6 +202,32 @@ export function SetupClient() {
           {probeResult && (probeResult.tier === "slow" || probeResult.tier === "very-slow") && (
             <ConnectionWarning tier={probeResult.tier} />
           )}
+
+          {/* Biometric consent */}
+          <div className="rounded-xl border border-accent-gold/20 bg-accent-gold/5 px-4 py-3">
+            <label className="flex items-start gap-3 text-[length:var(--text-fluid-sm)]">
+              <input
+                ref={biometricRef}
+                type="checkbox"
+                checked={biometricConsent}
+                onChange={(e) => {
+                  setBiometricConsent(e.target.checked);
+                  if (e.target.checked) setBiometricError(null);
+                }}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-accent-gold"
+              />
+              <span className="text-text-secondary">
+                I consent to the collection and processing of biometric
+                identifiers (voiceprint, facial geometry) for assessment
+                scoring and identity verification
+              </span>
+            </label>
+            {biometricError && (
+              <p className="mt-1.5 pl-7 text-[length:var(--text-fluid-xs)] text-red-400">
+                {biometricError}
+              </p>
+            )}
+          </div>
 
           {/* Requirements */}
           <ul className="space-y-2 text-[length:var(--text-fluid-sm)] text-text-secondary">
