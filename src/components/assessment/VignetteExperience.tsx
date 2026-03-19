@@ -350,10 +350,20 @@ export function VignetteExperience({
       return () => clearTimeout(timer);
     }
 
-    // Check if revealed count has reached end of phase_2_prompt section
+    // Check if revealed count has reached end of phase_2_prompt section.
+    // Wait for the last word to finish speaking before pausing.
     if (audio.revealedCount >= phase2PromptBoundary.endIdx + 1) {
-      audio.pause();
-      setBuffer2SubStage("thinking");
+      const remaining = Math.max(0, (phase2PromptBoundary.audioEnd - audio.currentTimeRef.current) * 1000);
+      if (remaining <= 0) {
+        audio.pause();
+        setBuffer2SubStage("thinking");
+      } else {
+        const timer = setTimeout(() => {
+          audio.pause();
+          setBuffer2SubStage("thinking");
+        }, remaining);
+        return () => clearTimeout(timer);
+      }
     }
   }, [state.phase, buffer2SubStage, audio, phase2PromptBoundary]);
 
@@ -514,10 +524,20 @@ export function VignetteExperience({
       return () => clearTimeout(timer);
     }
 
-    // Check if revealed count has reached end of phase_3_prompt section
+    // Check if revealed count has reached end of phase_3_prompt section.
+    // Wait for the last word to finish speaking before pausing.
     if (audio.revealedCount >= phase3PromptBoundary.endIdx + 1) {
-      audio.pause();
-      setBuffer3SubStage("thinking");
+      const remaining = Math.max(0, (phase3PromptBoundary.audioEnd - audio.currentTimeRef.current) * 1000);
+      if (remaining <= 0) {
+        audio.pause();
+        setBuffer3SubStage("thinking");
+      } else {
+        const timer = setTimeout(() => {
+          audio.pause();
+          setBuffer3SubStage("thinking");
+        }, remaining);
+        return () => clearTimeout(timer);
+      }
     }
   }, [state.phase, buffer3SubStage, audio, phase3PromptBoundary]);
 
