@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { warmupReducer, type WarmupState, type WarmupAction } from "../warmup-reducer";
+import { warmupReducer, type WarmupState } from "../warmup-reducer";
 
 function createState(overrides: Partial<WarmupState> = {}): WarmupState {
   return { phase: "intro_orb", ...overrides };
@@ -57,6 +57,11 @@ describe("warmupReducer", () => {
   it("supports DEV_SET_PHASE for dev toolbar", () => {
     const state = warmupReducer(createState(), { type: "DEV_SET_PHASE", phase: "buffer_2" });
     expect(state.phase).toBe("buffer_2");
+  });
+
+  it("transitions from uploading back to consent on UPLOAD_RETRY", () => {
+    const state = warmupReducer(createState({ phase: "uploading" }), { type: "UPLOAD_RETRY" });
+    expect(state.phase).toBe("consent");
   });
 
   it("returns current state for invalid transitions", () => {

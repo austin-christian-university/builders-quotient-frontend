@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -686,7 +687,7 @@ export function WarmupExperience() {
                         onAccept={handleConsentAccept}
                         onDecline={handleConsentDecline}
                         eyebrow="One Last Step"
-                        heading="Review &amp; Consent"
+                        heading="Review & Consent"
                         buttonText="Start the Assessment"
                         embedded
                       />
@@ -824,12 +825,12 @@ function StreamErrorAlert({
         >
           Retry
         </button>
-        <a
+        <Link
           href="/assess/setup"
           className="underline underline-offset-2 hover:text-text-primary"
         >
           Return to Equipment Check
-        </a>
+        </Link>
       </div>
     </div>
   );
