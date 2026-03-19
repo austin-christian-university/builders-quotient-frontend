@@ -18,7 +18,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Session not found" }, { status: 401 });
   }
 
-  let body: { vignetteType: string; step: number; responsePhase?: number };
+  let body: {
+    vignetteType?: string;
+    step?: number;
+    responsePhase?: number;
+    warmupIndex?: number;
+  };
   try {
     body = await request.json();
   } catch {
@@ -26,21 +31,34 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { vignetteType, step, responsePhase = 1 } = body;
-  if (
-    !vignetteType ||
-    !["practical", "creative"].includes(vignetteType) ||
-    typeof step !== "number" ||
-    step < 1 ||
-    step > 4 ||
-    ![1, 2, 3].includes(responsePhase)
-  ) {
-    console.error(`[BQ Upload API] Invalid params — vignetteType: ${vignetteType}, step: ${step}, responsePhase: ${responsePhase}`);
-    return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
-  }
+  let storagePath: string;
 
-  const storagePath = `${sessionId}/${vignetteType}_${step}_phase${responsePhase}.webm`;
-  console.log(`[BQ Upload API] Creating signed URL for: ${storagePath}`);
+  if (body.warmupIndex !== undefined) {
+    // Warmup upload path
+    const { warmupIndex } = body;
+    if (typeof warmupIndex !== "number" || ![1, 2, 3].includes(warmupIndex)) {
+      console.error(`[BQ Upload API] Invalid warmupIndex: ${warmupIndex}`);
+      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
+    }
+    storagePath = `${sessionId}/warmup_${warmupIndex}.webm`;
+    console.log(`[BQ Upload API] Creating signed URL for warmup: ${storagePath}`);
+  } else {
+    // Vignette upload path (existing)
+    const { vignetteType, step, responsePhase = 1 } = body;
+    if (
+      !vignetteType ||
+      !["practical", "creative"].includes(vignetteType) ||
+      typeof step !== "number" ||
+      step < 1 ||
+      step > 4 ||
+      ![1, 2, 3].includes(responsePhase)
+    ) {
+      console.error(`[BQ Upload API] Invalid params — vignetteType: ${vignetteType}, step: ${step}, responsePhase: ${responsePhase}`);
+      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
+    }
+    storagePath = `${sessionId}/${vignetteType}_${step}_phase${responsePhase}.webm`;
+    console.log(`[BQ Upload API] Creating signed URL for: ${storagePath}`);
+  }
 
   try {
     const { signedUrl, token } = await createSignedUploadUrl(storagePath);

@@ -1,15 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MobileWarningDialog } from "@/components/assessment/MobileWarningDialog";
-import { ConsentGate } from "@/components/assessment/ConsentGate";
 import { isMobileDevice } from "@/lib/assessment/detect-mobile";
-import { createAssessmentSession } from "@/lib/actions/session";
 import { useConnectionProbe, type SpeedTier } from "@/lib/assessment/use-connection-probe";
-import type { ConsentData } from "@/lib/schemas/consent";
 import dynamic from "next/dynamic";
 
 const DevSkipButton =
@@ -30,27 +27,17 @@ function resolveDeviceError(err: unknown): DeviceStatus {
   return name === "NotAllowedError" ? "denied" : "error";
 }
 
-type SetupStep = "consent" | "equipment";
-
 export function SetupClient() {
-  const [step, setStep] = useState<SetupStep>("consent");
-  const [consentData, setConsentData] = useState<ConsentData | null>(null);
+  const router = useRouter();
 
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraStatus, setCameraStatus] = useState<DeviceStatus>("pending");
   const [micStatus, setMicStatus] = useState<DeviceStatus>("pending");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   // null = check hasn't run yet, true/false = result of mobile detection
   const [showMobileWarning, setShowMobileWarning] = useState<boolean | null>(
     null
   );
   const { result: probeResult, runProbe } = useConnectionProbe();
-
-  const handleConsentAccepted = useCallback((consent: ConsentData) => {
-    setConsentData(consent);
-    setStep("equipment");
-  }, []);
 
   // Callback ref: attaches stream to <video> when it mounts into the DOM
   const videoCallbackRef = useCallback(
@@ -66,14 +53,12 @@ export function SetupClient() {
 
   // Detect mobile devices after mount to avoid hydration mismatch
   useEffect(() => {
-    if (step !== "equipment") return;
     const dismissed = sessionStorage.getItem("bq:mobile-warning-dismissed");
     setShowMobileWarning(!dismissed && isMobileDevice());
-  }, [step]);
+  }, []);
 
   // Request camera/mic only after mobile check completes and warning is dismissed
   useEffect(() => {
-    if (step !== "equipment") return;
     // Wait for mobile check to finish; stay gated while warning is showing
     if (showMobileWarning !== false) return;
 
@@ -117,7 +102,7 @@ export function SetupClient() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showMobileWarning, step]);
+  }, [showMobileWarning]);
 
   async function retryPermissions() {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -157,32 +142,10 @@ export function SetupClient() {
 
   const isReady = cameraStatus === "granted" && micStatus === "granted";
 
-  async function handleStart() {
-    if (!consentData) return;
-    setIsSubmitting(true);
-    setSubmitError(null);
-    try {
-      await createAssessmentSession(consentData);
-    } catch (err: unknown) {
-      // redirect() from Next.js throws a special internal error that must
-      // be re-thrown so the router can handle the navigation.
-      if (isRedirectError(err)) throw err;
-      // Any other error is a real failure; show message and reset button.
-      setSubmitError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again."
-      );
-      setIsSubmitting(false);
-    }
+  function handleStart() {
+    router.push("/assess/warmup");
   }
 
-  // Step 1: Consent gate
-  if (step === "consent") {
-    return <ConsentGate onAccept={handleConsentAccepted} />;
-  }
-
-  // Step 2: Equipment check
   return (
     <div className="flex min-h-dvh items-center justify-center px-4 py-12">
       <MobileWarningDialog
@@ -275,32 +238,15 @@ export function SetupClient() {
             </p>
           )}
 
-          {/* Submission error */}
-          {submitError && (
-            <div
-              role="alert"
-              className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
-            >
-              {submitError}
-            </div>
-          )}
-
           {/* Start button */}
           <Button
             type="button"
             size="lg"
             className="w-full"
-            disabled={!isReady || isSubmitting}
+            disabled={!isReady}
             onClick={handleStart}
           >
-            {isSubmitting ? (
-              <>
-                <Spinner />
-                I&rsquo;m Ready
-              </>
-            ) : (
-              "I\u2019m Ready"
-            )}
+            I&rsquo;m Ready
           </Button>
 
           {DevSkipButton && (
@@ -367,27 +313,3 @@ function ConnectionWarning({ tier }: { tier: SpeedTier }) {
   );
 }
 
-function Spinner() {
-  return (
-    <svg
-      className="h-4 w-4 animate-spin"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
-    </svg>
-  );
-}
