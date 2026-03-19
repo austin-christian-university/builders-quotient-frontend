@@ -337,7 +337,8 @@ export function WarmupExperience() {
           <div className="h-14 shrink-0" />
 
           {/* Main content */}
-          <div className="flex flex-1 flex-col items-center justify-center px-4 pb-[env(safe-area-inset-bottom)]">
+          <div className="flex-1 overflow-y-auto px-4 pb-[env(safe-area-inset-bottom)]">
+            <div className="flex min-h-full flex-col items-center justify-center py-8">
             <AnimatePresence mode="wait">
               {/* Phase B: Recording */}
               {phase === "recording" && currentPrompt && (
@@ -533,7 +534,6 @@ export function WarmupExperience() {
                   <ConsentGate
                     onAccept={handleConsentAccept}
                     onDecline={handleConsentDecline}
-                    hideBiometric
                     eyebrow="One Last Step"
                     heading="Review &amp; Consent"
                     buttonText="Start the Assessment"
@@ -622,6 +622,7 @@ export function WarmupExperience() {
                 </motion.div>
               )}
             </AnimatePresence>
+            </div>
           </div>
         </div>
       )}
