@@ -35,13 +35,21 @@ function hashIp(ip: string): string {
     .slice(0, 16);
 }
 
+/** Result of createSession — used to determine the next navigation step. */
+export type CreateSessionResult =
+  | { status: "created"; sessionId: string }
+  | { status: "resumed"; redirectPath: string }
+  | { status: "cooldown"; redirectPath: string };
+
 /**
- * Creates an anonymous applicant + assessment session, stores consent records,
- * sets the session cookie, and redirects to the first assessment step.
+ * Validates consent, resumes an existing session or creates a new one.
+ * Does NOT redirect — returns the result so the caller can decide what to do.
  *
- * Called when the user clicks "I'm Ready" on the setup page.
+ * Exported for use by both the setup page and the warmup flow.
  */
-export async function createAssessmentSession(consentRaw: ConsentData) {
+export async function createSession(
+  consentRaw: ConsentData
+): Promise<CreateSessionResult> {
   // Validate consent data
   const consent = consentDataSchema.parse(consentRaw);
 
@@ -60,15 +68,15 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
       );
       const nextStep = findNextIncomplete(completedSteps) ?? 1;
 
-      // If no steps completed and briefing not yet seen, route through briefing
-      if (
-        completedSteps.size === 0 &&
-        !existing.briefing_completed_at
-      ) {
-        redirect("/assess/briefing");
+      // If no steps completed, go to step 1 (warmup intro orb replaces briefing)
+      if (completedSteps.size === 0) {
+        return { status: "resumed", redirectPath: "/assess/1" };
       }
 
-      redirect(`/assess/${nextStep}?resume=true`);
+      return {
+        status: "resumed",
+        redirectPath: `/assess/${nextStep}?resume=true`,
+      };
     }
 
     if (existing?.status === "completed" && existing.completed_at) {
@@ -90,13 +98,15 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
             applicant.lead_type === "prospective_student"
               ? "student"
               : "general";
-          redirect(
-            `/assess/thank-you?path=${path}&cooldown=true&until=${encodeURIComponent(until)}`
-          );
+          return {
+            status: "cooldown",
+            redirectPath: `/assess/thank-you?path=${path}&cooldown=true&until=${encodeURIComponent(until)}`,
+          };
         } else {
-          redirect(
-            `/assess/complete?cooldown=true&until=${encodeURIComponent(until)}`
-          );
+          return {
+            status: "cooldown",
+            redirectPath: `/assess/complete?cooldown=true&until=${encodeURIComponent(until)}`,
+          };
         }
       } else {
         // Cooldown expired — clear stale cookie so a new session is created below
@@ -145,6 +155,8 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
       assessment_type: "public",
       practical_vignette_ids: piVignetteIds,
       creative_vignette_ids: ciVignetteIds,
+      // Warmup intro orb replaces the old briefing — mark as completed at creation
+      briefing_completed_at: new Date().toISOString(),
     })
     .select("id")
     .single();
@@ -177,7 +189,28 @@ export async function createAssessmentSession(consentRaw: ConsentData) {
     // Don't block session creation — consent was given, record failure for alerting
   }
 
-  // 5. Set session cookie and redirect
+  // 5. Set session cookie
   await createSessionCookie(session.id);
-  redirect("/assess/briefing");
+
+  return { status: "created", sessionId: session.id };
+}
+
+/**
+ * Creates an anonymous applicant + assessment session, stores consent records,
+ * sets the session cookie, and redirects to the first assessment step.
+ *
+ * Called when the user clicks "I'm Ready" on the setup page.
+ */
+export async function createAssessmentSession(consentRaw: ConsentData) {
+  const result = await createSession(consentRaw);
+
+  switch (result.status) {
+    case "created":
+      redirect("/assess/1");
+      break; // redirect() throws — this is unreachable but satisfies exhaustiveness
+    case "resumed":
+    case "cooldown":
+      redirect(result.redirectPath);
+      break;
+  }
 }

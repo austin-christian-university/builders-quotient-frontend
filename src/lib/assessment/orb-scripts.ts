@@ -574,3 +574,58 @@ export const CI_TRANSITION_SCRIPT: OrbScript = {
   captions: CI_TRANSITION_CAPTIONS,
   wordTimings: CI_TRANSITION_WORD_TIMINGS,
 };
+
+// ─── Warmup intro (~28s) ────────────────────────────────────────────
+
+const WARMUP_INTRO_CAPTIONS: OrbCaption[] = [
+  {
+    startTime: 0,
+    endTime: 12,
+    text: "Welcome to the Builder\u2019s Quotient! Before we dive into the real questions, I want to help you get comfortable with the camera. We\u2019re going to do a quick warmup \u2014 just three casual questions to get you warmed up.",
+  },
+  {
+    startTime: 13,
+    endTime: 22,
+    text: "There are absolutely no wrong answers here. These aren\u2019t scored or graded \u2014 they\u2019re just for you to get a feel for how this works. Talk naturally, like you\u2019re chatting with a friend.",
+  },
+  {
+    startTime: 23,
+    endTime: 28,
+    text: "You\u2019ll see each question, get a few seconds to think, and then record your answer. Simple as that. Ready?",
+  },
+];
+
+/**
+ * Warmup intro script (~28s).
+ * Played before the warmup questions to ease the student into recording.
+ * Word timings will be added after ElevenLabs recording.
+ */
+export const WARMUP_INTRO_SCRIPT: OrbScript = {
+  audioUrl: "/audio/warmup-intro.mp3",
+  captions: WARMUP_INTRO_CAPTIONS,
+};
+
+// ─── Post-warmup transition (~14s) ──────────────────────────────────
+
+const POST_WARMUP_CAPTIONS: OrbCaption[] = [
+  {
+    startTime: 0,
+    endTime: 8,
+    text: "Nice work! See, nothing to it. You\u2019re a natural on camera. Now, before we start the real assessment, I need you to review a few quick details.",
+  },
+  {
+    startTime: 9,
+    endTime: 14,
+    text: "Take a moment to read through the information below and check the boxes when you\u2019re ready.",
+  },
+];
+
+/**
+ * Post-warmup transition script (~14s).
+ * Played after warmup questions, before the consent/details screen.
+ * Word timings will be added after ElevenLabs recording.
+ */
+export const POST_WARMUP_SCRIPT: OrbScript = {
+  audioUrl: "/audio/warmup-transition.mp3",
+  captions: POST_WARMUP_CAPTIONS,
+};

@@ -1,15 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MobileWarningDialog } from "@/components/assessment/MobileWarningDialog";
-import { ConsentGate } from "@/components/assessment/ConsentGate";
 import { isMobileDevice } from "@/lib/assessment/detect-mobile";
-import { createAssessmentSession } from "@/lib/actions/session";
 import { useConnectionProbe, type SpeedTier } from "@/lib/assessment/use-connection-probe";
-import type { ConsentData } from "@/lib/schemas/consent";
 import dynamic from "next/dynamic";
 
 const DevSkipButton =
@@ -30,27 +27,19 @@ function resolveDeviceError(err: unknown): DeviceStatus {
   return name === "NotAllowedError" ? "denied" : "error";
 }
 
-type SetupStep = "consent" | "equipment";
-
 export function SetupClient() {
-  const [step, setStep] = useState<SetupStep>("consent");
-  const [consentData, setConsentData] = useState<ConsentData | null>(null);
+  const router = useRouter();
 
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraStatus, setCameraStatus] = useState<DeviceStatus>("pending");
   const [micStatus, setMicStatus] = useState<DeviceStatus>("pending");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [biometricConsent, setBiometricConsent] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
   // null = check hasn't run yet, true/false = result of mobile detection
   const [showMobileWarning, setShowMobileWarning] = useState<boolean | null>(
     null
   );
   const { result: probeResult, runProbe } = useConnectionProbe();
-
-  const handleConsentAccepted = useCallback((consent: ConsentData) => {
-    setConsentData(consent);
-    setStep("equipment");
-  }, []);
 
   // Callback ref: attaches stream to <video> when it mounts into the DOM
   const videoCallbackRef = useCallback(
@@ -66,14 +55,12 @@ export function SetupClient() {
 
   // Detect mobile devices after mount to avoid hydration mismatch
   useEffect(() => {
-    if (step !== "equipment") return;
     const dismissed = sessionStorage.getItem("bq:mobile-warning-dismissed");
     setShowMobileWarning(!dismissed && isMobileDevice());
-  }, [step]);
+  }, []);
 
   // Request camera/mic only after mobile check completes and warning is dismissed
   useEffect(() => {
-    if (step !== "equipment") return;
     // Wait for mobile check to finish; stay gated while warning is showing
     if (showMobileWarning !== false) return;
 
@@ -117,7 +104,7 @@ export function SetupClient() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showMobileWarning, step]);
+  }, [showMobileWarning]);
 
   async function retryPermissions() {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -157,32 +144,15 @@ export function SetupClient() {
 
   const isReady = cameraStatus === "granted" && micStatus === "granted";
 
-  async function handleStart() {
-    if (!consentData) return;
-    setIsSubmitting(true);
-    setSubmitError(null);
-    try {
-      await createAssessmentSession(consentData);
-    } catch (err: unknown) {
-      // redirect() from Next.js throws a special internal error that must
-      // be re-thrown so the router can handle the navigation.
-      if (isRedirectError(err)) throw err;
-      // Any other error is a real failure; show message and reset button.
-      setSubmitError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again."
-      );
-      setIsSubmitting(false);
+  function handleStart() {
+    if (!biometricConsent) {
+      setBiometricError("Please accept to continue");
+      document.getElementById("biometric-consent")?.focus();
+      return;
     }
+    router.push("/assess/warmup");
   }
 
-  // Step 1: Consent gate
-  if (step === "consent") {
-    return <ConsentGate onAccept={handleConsentAccepted} />;
-  }
-
-  // Step 2: Equipment check
   return (
     <div className="flex min-h-dvh items-center justify-center px-4 py-12">
       <MobileWarningDialog
@@ -231,6 +201,50 @@ export function SetupClient() {
             <ConnectionWarning tier={probeResult.tier} />
           )}
 
+          {/* Biometric consent */}
+          <div className="rounded-xl border border-accent-gold/20 bg-accent-gold/5 px-4 py-4">
+            <label
+              htmlFor="biometric-consent"
+              className="flex cursor-pointer items-start gap-3"
+            >
+              <input
+                id="biometric-consent"
+                type="checkbox"
+                checked={biometricConsent}
+                onChange={(e) => {
+                  setBiometricConsent(e.target.checked);
+                  setBiometricError(null);
+                }}
+                className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded border border-text-secondary/40 bg-transparent transition-colors checked:border-primary checked:bg-primary focus-visible:outline-none"
+                style={{
+                  backgroundImage: biometricConsent
+                    ? `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='%230a0a0c' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E")`
+                    : "none",
+                  backgroundSize: "100% 100%",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+              <span className="text-[length:var(--text-fluid-sm)] text-text-secondary leading-snug">
+                I consent to video and audio recording, including biometric data collection, during this assessment.{" "}
+                <a
+                  href="/biometric-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Learn more
+                </a>
+              </span>
+            </label>
+            {biometricError && (
+              <p role="alert" className="mt-2 text-[length:var(--text-fluid-sm)] text-red-300">
+                {biometricError}
+              </p>
+            )}
+          </div>
+
           {/* Requirements */}
           <ul className="space-y-2 text-[length:var(--text-fluid-sm)] text-text-secondary">
             <li className="flex items-start gap-2">
@@ -275,32 +289,15 @@ export function SetupClient() {
             </p>
           )}
 
-          {/* Submission error */}
-          {submitError && (
-            <div
-              role="alert"
-              className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
-            >
-              {submitError}
-            </div>
-          )}
-
           {/* Start button */}
           <Button
             type="button"
             size="lg"
             className="w-full"
-            disabled={!isReady || isSubmitting}
+            disabled={!isReady}
             onClick={handleStart}
           >
-            {isSubmitting ? (
-              <>
-                <Spinner />
-                I&rsquo;m Ready
-              </>
-            ) : (
-              "I\u2019m Ready"
-            )}
+            I&rsquo;m Ready
           </Button>
 
           {DevSkipButton && (
@@ -367,27 +364,3 @@ function ConnectionWarning({ tier }: { tier: SpeedTier }) {
   );
 }
 
-function Spinner() {
-  return (
-    <svg
-      className="h-4 w-4 animate-spin"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
-    </svg>
-  );
-}
