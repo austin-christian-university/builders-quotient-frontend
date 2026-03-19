@@ -29,6 +29,7 @@ export type WarmupAction =
   | { type: "CONSENT_ACCEPTED" }
   | { type: "CONSENT_DECLINED" }
   | { type: "UPLOAD_COMPLETE" }
+  | { type: "UPLOAD_RETRY" }
   | { type: "PRE_EXAM_COMPLETE" }
   | { type: "DEV_SET_PHASE"; phase: WarmupPhase };
 
@@ -51,7 +52,7 @@ const TRANSITIONS: Partial<Record<WarmupPhase, Partial<Record<WarmupAction["type
     CONSENT_ACCEPTED: "uploading",
     CONSENT_DECLINED: "declined",
   },
-  uploading: { UPLOAD_COMPLETE: "pre_exam_orb" },
+  uploading: { UPLOAD_COMPLETE: "pre_exam_orb", UPLOAD_RETRY: "consent" },
   pre_exam_orb: { PRE_EXAM_COMPLETE: "done" },
 };
 
