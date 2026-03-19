@@ -561,6 +561,19 @@ export function WarmupExperience() {
         <WarmupDevToolbar
           phase={phase}
           promptIndex={promptIndex}
+          totalPrompts={WARMUP_PROMPTS.length}
+          onSkipQuestion={() => {
+            if (promptIndex < WARMUP_PROMPTS.length - 1) {
+              startRecordingPhase(promptIndex + 1);
+            } else {
+              setPhase("transition_orb");
+              setAnnouncement("Transitioning to assessment consent.");
+            }
+          }}
+          onSkipToPreExamOrb={() => {
+            setPhase("pre_exam_orb");
+            setAnnouncement("Final reminders before we begin.");
+          }}
           onSkipToConsent={() => {
             setPhase("consent");
             setAnnouncement("Review and consent.");

@@ -26,6 +26,9 @@ const PHASE_LABELS: Record<WarmupPhase, string> = {
 type WarmupDevToolbarProps = {
   phase: WarmupPhase;
   promptIndex: number;
+  totalPrompts: number;
+  onSkipQuestion: () => void;
+  onSkipToPreExamOrb: () => void;
   onSkipToConsent: () => void;
   onSkipToExam: () => void;
 };
@@ -33,6 +36,9 @@ type WarmupDevToolbarProps = {
 export function WarmupDevToolbar({
   phase,
   promptIndex,
+  totalPrompts,
+  onSkipQuestion,
+  onSkipToPreExamOrb,
   onSkipToConsent,
   onSkipToExam,
 }: WarmupDevToolbarProps) {
@@ -94,6 +100,22 @@ export function WarmupDevToolbar({
 
       {/* Skip actions */}
       <div className="flex flex-col gap-1">
+        <button
+          type="button"
+          onClick={onSkipQuestion}
+          disabled={phase !== "recording"}
+          className="rounded bg-green-900/50 px-2 py-1.5 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30"
+        >
+          Skip Question ({promptIndex + 1}/{totalPrompts})
+        </button>
+        <button
+          type="button"
+          onClick={onSkipToPreExamOrb}
+          disabled={phase === "pre_exam_orb" || phase === "done"}
+          className="rounded bg-green-900/50 px-2 py-1.5 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30"
+        >
+          Skip to Pre-Exam Orb
+        </button>
         <button
           type="button"
           onClick={onSkipToConsent}
