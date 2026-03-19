@@ -36,6 +36,13 @@ export function useVideoRecorder(stream: MediaStream | null) {
       return;
     }
 
+    // Clear any orphaned timer from a previous start() to prevent stale
+    // duration values from poisoning auto-stop checks.
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
     chunksRef.current = [];
     setBlob(null);
     setDuration(0);

@@ -29,7 +29,7 @@ const PRE_EXAM_CAPTIONS: OrbCaption[] = [
   {
     startTime: 29,
     endTime: 38,
-    text: "These first two scenarios are about practical intelligence \u2014 your ability to tackle big, messy, real-world problems. Reason through them like you\u2019re in the room. When you\u2019re ready to get started, click begin.",
+    text: "These first two scenarios are about practical intelligence \u2014 which is your ability to tackle big, messy, real-world problems. When you\u2019re ready to get started, click continue.",
   },
 ];
 
