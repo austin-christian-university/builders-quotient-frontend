@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
@@ -711,6 +711,18 @@ export function VignetteExperience({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
+  const examVisiblePrompts = useMemo(() => {
+    const set = new Set<1 | 2 | 3>();
+    const p = state.phase;
+    // Prompt 1 visible from narrating onward
+    if (p !== "ready" && p !== "countdown") set.add(1);
+    // Prompt 2 visible from buffer_2 onward
+    if (p === "buffer_2" || p === "recording_2" || p === "buffer_3" || p === "recording_3") set.add(2);
+    // Prompt 3 visible from buffer_3 onward
+    if (p === "buffer_3" || p === "recording_3") set.add(3);
+    return set as ReadonlySet<1 | 2 | 3>;
+  }, [state.phase]);
+
   const handleBegin = useCallback(() => {
     const el = audio.audioRef.current;
     if (el) {
@@ -839,12 +851,15 @@ export function VignetteExperience({
                       phase2Prompt={phase2Prompt}
                       phase3Prompt={phase3Prompt}
                       estimatedNarrationSeconds={estimatedNarrationSeconds}
+                      isNarrating={state.phase === "narrating"}
+                      showAllNarrative={state.phase !== "narrating"}
+                      visiblePrompts={examVisiblePrompts}
+                      isPhase1Revealing={state.phase === "narrating"}
+                      isPhase2Revealing={state.phase === "buffer_2" && buffer2SubStage === "prompting"}
+                      isPhase3Revealing={state.phase === "buffer_3" && buffer3SubStage === "prompting"}
+                      onComplete={handleNarrationComplete}
                       audio={audio}
                       audioTiming={audioTiming}
-                      phase={state.phase}
-                      onComplete={handleNarrationComplete}
-                      buffer2SubStage={buffer2SubStage}
-                      buffer3SubStage={buffer3SubStage}
                     />
 
                     {/* Components below the text/prompt */}
