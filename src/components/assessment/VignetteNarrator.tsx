@@ -170,8 +170,22 @@ export function VignetteNarrator({
     // If we have section boundaries, fire when revealed count reaches end of phase_1_prompt
     if (phase1PromptBound) {
       if (audio.revealedCount >= phase1PromptEndIdx && !hasCompletedRef.current) {
-        hasCompletedRef.current = true;
-        onComplete();
+        // Wait for the last word to finish speaking before completing.
+        // revealedCount fires when the last word's start time is reached,
+        // but the word is still being spoken until audioEnd.
+        const remaining = Math.max(0, (phase1PromptBound.audioEnd - audio.currentTimeRef.current) * 1000);
+        if (remaining <= 0) {
+          hasCompletedRef.current = true;
+          onComplete();
+        } else {
+          const timer = setTimeout(() => {
+            if (!hasCompletedRef.current) {
+              hasCompletedRef.current = true;
+              onComplete();
+            }
+          }, remaining);
+          return () => clearTimeout(timer);
+        }
       }
       return;
     }
