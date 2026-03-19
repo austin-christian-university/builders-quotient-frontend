@@ -169,7 +169,17 @@ Session Init (Server Action)
   • Create assessment_session (status='assigned')
   • Capture UTM params, IP hash, fingerprint
   • Set encrypted HttpOnly session cookie (2hr TTL)
-  • Redirect to /assess/1
+  • Redirect to /assess/warmup
+        │
+        ▼
+Warmup (/assess/warmup)
+  • AI orb introduction narration
+  • 3 practice questions (think time → video recording for each)
+  • Warmup recordings uploaded but not scored
+  • Transition orb narration
+  • Consent & Disclosure (terms, video recording, biometric data)
+  • Pre-exam orb narration introducing the real assessment
+  • On continue → /assess/briefing
         │
         ▼
 Vignette 1: PI-1 (/assess/1)
@@ -492,6 +502,8 @@ src/
 │   │   ├── assess/
 │   │   │   ├── setup/
 │   │   │   │   └── page.tsx      # Camera check + permissions
+│   │   │   ├── warmup/
+│   │   │   │   └── page.tsx      # 3 practice questions (think/record phases)
 │   │   │   ├── [step]/
 │   │   │   │   └── page.tsx      # Vignette narration + video recording (1-4)
 │   │   │   ├── complete/
@@ -515,6 +527,9 @@ src/
 │   ├── layout/                   # Header, footer, nav
 │   ├── assessment/
 │   │   ├── CameraCheck.tsx       # Camera permission + preview
+│   │   ├── WarmupExperience.tsx  # Warmup flow state machine (orb → practice Qs → consent)
+│   │   ├── WarmupJourneyMap.tsx  # Visual progress indicator for warmup phases
+│   │   ├── WarmupDevToolbar.tsx  # Dev-only toolbar for skipping warmup phases
 │   │   ├── VignetteNarrator.tsx  # AI narration + synced text reveal
 │   │   ├── VideoRecorder.tsx     # MediaRecorder wrapper + timer + upload
 │   │   ├── ProgressBar.tsx       # Step indicator (1 of 4)

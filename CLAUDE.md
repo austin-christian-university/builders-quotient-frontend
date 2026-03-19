@@ -12,9 +12,12 @@ This is a standalone Next.js 16 app using the App Router with `src/app/`. Shared
 src/
 ├── app/                    # Routes (App Router)
 │   ├── (marketing)/        # Public landing / lead-gen pages
-│   ├── (assessment)/       # Assessment flow (intelligence → personality)
+│   ├── (assessment)/       # Assessment flow (warmup → intelligence → personality)
 │   │   ├── layout.tsx      # Assessment session provider
 │   │   ├── start/          # Intake form
+│   │   ├── assess/
+│   │   │   ├── setup/      # Camera check + consent
+│   │   │   └── warmup/     # 3 practice questions (think/record phases)
 │   │   ├── intelligence/   # PI + CI vignette sections
 │   │   └── personality/    # 9-dimension like/dislike quiz
 │   └── api/                # Route handlers
@@ -66,7 +69,7 @@ Environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON
 
 ## Assessment Domain Context
 
-The assessment flow goes: intake → practical intelligence → creative intelligence → personality quiz. **Practical Intelligence (PI)** uses vignettes extracted from real entrepreneur interviews; students respond via video, scored against a **200-move binary vector across 12 categories** (Situation Diagnosis, Information Gathering, Constraint Analysis, Option Generation, Tradeoff Evaluation, Risk Assessment, Decision Architecture, Action Planning, People & Stakeholders, Communication Strategy, Emotional & Values Reasoning, Meta-Cognition). Scoring uses frequency-weighted proportional CDF against the entrepreneur corpus, with a 70% consensus threshold for move inclusion. **Creative Intelligence (CI)** uses episode-based vignettes; scored against a parallel **200-move vector across 12 categories** (Pattern Recognition & Observation, Information Seeking & Market Research, Reframing & Category Innovation, Cross-Domain Connection, Opportunity Articulation, Customer & Market Insight, Timing & Context Assessment, Validation & Testing Strategy, Risk & Feasibility Evaluation, Vision Communication, Creative Confidence & Persistence, Meta-Creative Thinking). **Personality** measures 9 entrepreneur dimensions (Ambition, Risk Tolerance, Innovativeness, Autonomy, Self-Efficacy, Stress Tolerance, Internal Locus of Control, Grit, plus Attention Checks) via a like/dislike interaction pattern.
+The assessment flow goes: intake → warmup (3 practice questions with think/record phases) → consent & disclosure → practical intelligence → creative intelligence → personality quiz. **Practical Intelligence (PI)** uses vignettes extracted from real entrepreneur interviews; students respond via video, scored against a **200-move binary vector across 12 categories** (Situation Diagnosis, Information Gathering, Constraint Analysis, Option Generation, Tradeoff Evaluation, Risk Assessment, Decision Architecture, Action Planning, People & Stakeholders, Communication Strategy, Emotional & Values Reasoning, Meta-Cognition). Scoring uses frequency-weighted proportional CDF against the entrepreneur corpus, with a 70% consensus threshold for move inclusion. **Creative Intelligence (CI)** uses episode-based vignettes; scored against a parallel **200-move vector across 12 categories** (Pattern Recognition & Observation, Information Seeking & Market Research, Reframing & Category Innovation, Cross-Domain Connection, Opportunity Articulation, Customer & Market Insight, Timing & Context Assessment, Validation & Testing Strategy, Risk & Feasibility Evaluation, Vision Communication, Creative Confidence & Persistence, Meta-Creative Thinking). **Personality** measures 9 entrepreneur dimensions (Ambition, Risk Tolerance, Innovativeness, Autonomy, Self-Efficacy, Stress Tolerance, Internal Locus of Control, Grit, plus Attention Checks) via a like/dislike interaction pattern.
 
 ### Intelligence scoring data model (PI/CI)
 
