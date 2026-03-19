@@ -6,8 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { VignetteNarrator } from "./VignetteNarrator";
-import { ProcessingBuffer } from "./ProcessingBuffer";
-import { VideoRecorder } from "./VideoRecorder";
+import { CountdownRing } from "./CountdownRing";
 import { CameraPip } from "./CameraPip";
 import { useMediaStreamContext } from "@/lib/assessment/media-stream-context";
 import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
@@ -850,22 +849,22 @@ export function VignetteExperience({
 
                     {/* Components below the text/prompt */}
                     <div className="flex w-full flex-col items-center space-y-4">
-                      {/* buffer_1: ProcessingBuffer */}
+                      {/* buffer_1: think countdown */}
                       {state.phase === "buffer_1" && (
-                        <div className="w-full">
-                          <ProcessingBuffer
-                            secondsRemaining={buffer1Remaining}
-                            totalSeconds={BUFFER_1_SECONDS}
-                          />
-                        </div>
+                        <CountdownRing
+                          secondsRemaining={buffer1Remaining}
+                          totalSeconds={BUFFER_1_SECONDS}
+                          mode="think"
+                        />
                       )}
 
                       {/* recording_1: countdown ring */}
                       {state.phase === "recording_1" && (
-                        <VideoRecorder
+                        <CountdownRing
                           secondsRemaining={recording1Remaining}
                           totalSeconds={RECORDING_1_SECONDS}
-                          phaseLabel="Phase 1"
+                          mode="recording"
+                          label="Phase 1"
                           onStopEarly={handleStopRecording1Early}
                         />
                       )}
@@ -895,9 +894,10 @@ export function VignetteExperience({
                             </motion.div>
                           )}
                           {buffer2SubStage === "thinking" && (
-                            <ProcessingBuffer
+                            <CountdownRing
                               secondsRemaining={buffer2ThinkingRemaining}
                               totalSeconds={BUFFER_2_THINKING_SECONDS}
+                              mode="think"
                             />
                           )}
                         </div>
@@ -905,10 +905,11 @@ export function VignetteExperience({
 
                       {/* recording_2: countdown ring */}
                       {state.phase === "recording_2" && (
-                        <VideoRecorder
+                        <CountdownRing
                           secondsRemaining={recording2Remaining}
                           totalSeconds={RECORDING_2_SECONDS}
-                          phaseLabel="Phase 2"
+                          mode="recording"
+                          label="Phase 2"
                           onStopEarly={handleStopRecording2Early}
                         />
                       )}
@@ -938,9 +939,10 @@ export function VignetteExperience({
                             </motion.div>
                           )}
                           {buffer3SubStage === "thinking" && (
-                            <ProcessingBuffer
+                            <CountdownRing
                               secondsRemaining={buffer3ThinkingRemaining}
                               totalSeconds={BUFFER_3_THINKING_SECONDS}
+                              mode="think"
                             />
                           )}
                         </div>
@@ -948,10 +950,11 @@ export function VignetteExperience({
 
                       {/* recording_3: countdown ring */}
                       {state.phase === "recording_3" && (
-                        <VideoRecorder
+                        <CountdownRing
                           secondsRemaining={recording3Remaining}
                           totalSeconds={RECORDING_3_SECONDS}
-                          phaseLabel="Phase 3"
+                          mode="recording"
+                          label="Phase 3"
                           onStopEarly={handleStopRecording3Early}
                         />
                       )}
