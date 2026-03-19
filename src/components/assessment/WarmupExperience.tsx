@@ -18,6 +18,7 @@ import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
 import {
   WARMUP_INTRO_SCRIPT,
   POST_WARMUP_SCRIPT,
+  PRE_EXAM_SCRIPT,
 } from "@/lib/assessment/orb-scripts";
 import { createSession } from "@/lib/actions/session";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ type WarmupPhase =
   | "transition_orb"
   | "consent"
   | "uploading"
+  | "pre_exam_orb"
   | "done"
   | "declined";
 
@@ -243,8 +245,9 @@ export function WarmupExperience() {
 
         await Promise.allSettled(uploadPromises);
 
-        // Navigate to first assessment step
-        router.push("/assess/1");
+        // Show pre-exam orb before navigating to vignette 1
+        setPhase("pre_exam_orb");
+        setAnnouncement("Final reminders before we begin.");
       } catch (err) {
         setUploadError(
           err instanceof Error
@@ -275,7 +278,7 @@ export function WarmupExperience() {
     ? Math.max(0, currentPrompt.recordTime - recorder.duration)
     : 0;
 
-  const isOrbPhase = phase === "intro_orb" || phase === "transition_orb";
+  const isOrbPhase = phase === "intro_orb" || phase === "transition_orb" || phase === "pre_exam_orb";
 
   // ─── Render ───────────────────────────────────────────────────────
 
@@ -312,6 +315,15 @@ export function WarmupExperience() {
             setPhase("consent");
             setAnnouncement("Review and consent.");
           }}
+        />
+      )}
+
+      {/* Phase G: Pre-exam Orb (after consent + upload, before vignette 1) */}
+      {phase === "pre_exam_orb" && (
+        <OrbGuide
+          script={PRE_EXAM_SCRIPT}
+          onContinue={() => router.push("/assess/1")}
+          onSkip={() => router.push("/assess/1")}
         />
       )}
 
