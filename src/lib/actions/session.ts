@@ -1,7 +1,6 @@
 "use server";
 
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 import {
   createSessionCookie,
@@ -193,24 +192,4 @@ export async function createSession(
   await createSessionCookie(session.id);
 
   return { status: "created", sessionId: session.id };
-}
-
-/**
- * Creates an anonymous applicant + assessment session, stores consent records,
- * sets the session cookie, and redirects to the first assessment step.
- *
- * Called when the user clicks "I'm Ready" on the setup page.
- */
-export async function createAssessmentSession(consentRaw: ConsentData) {
-  const result = await createSession(consentRaw);
-
-  switch (result.status) {
-    case "created":
-      redirect("/assess/1");
-      break; // redirect() throws — this is unreachable but satisfies exhaustiveness
-    case "resumed":
-    case "cooldown":
-      redirect(result.redirectPath);
-      break;
-  }
 }

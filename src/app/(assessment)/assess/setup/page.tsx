@@ -52,7 +52,7 @@ export default async function SetupPage() {
         }
       }
       // else: cooldown expired — fall through to render setup.
-      // The stale cookie will be cleared by createAssessmentSession server action.
+      // The stale cookie will be cleared by createSession when consent is submitted.
     }
   }
 

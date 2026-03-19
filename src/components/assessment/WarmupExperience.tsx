@@ -275,7 +275,6 @@ export function WarmupExperience() {
             ? err.message
             : "Something went wrong setting up your assessment. Please try again."
         );
-        setPhase("consent");
       }
     },
     [router]
