@@ -74,8 +74,8 @@
 |-------|------|-----|
 | none | 0px | Data tables, code blocks |
 | sm | 6px | Badges, tags, small pills |
-| md | 8px | Inputs, small containers |
-| lg | 12px | Medium containers, alerts |
+| md | 8px | Small containers |
+| lg | 12px | Inputs, medium containers, alerts (`rounded-xl`) |
 | xl | 16px | Primary cards, modals (`rounded-2xl`) |
 | full | 9999px | Buttons, avatars, orbs (`rounded-full`) |
 
