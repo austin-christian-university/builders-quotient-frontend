@@ -1,0 +1,20 @@
+export const WARMUP_VIGNETTE_TEXT = `Every great company started with someone noticing something others missed. A frustration that everyone else accepted. A gap that nobody thought to fill. The founders who built the companies you use every day weren't born with some special gene for business — they just paid attention differently. They asked "why does it have to be this way?" when everyone else asked "where do I sign up?" Today, you're going to practice thinking like they do. You'll hear a short scenario, then answer three questions about it. There are no wrong answers — we're just interested in how you think.`;
+
+export const WARMUP_PROMPTS = [
+  "What's something you've built or created that you're proud of?",
+  "If you could start any business tomorrow, what would it be?",
+  "What's one thing about you that most people wouldn't guess?",
+] as const;
+
+/** Prompt that appears at the end of the vignette narration (matches exam pattern).
+ *  Derived from WARMUP_PROMPTS[0] to avoid drift. */
+export const WARMUP_VIGNETTE_PROMPT = WARMUP_PROMPTS[0];
+
+/** Estimated narration duration in seconds (for timer fallback mode) */
+export const WARMUP_NARRATION_SECONDS = 35;
+
+/** Buffer (think) duration in seconds */
+export const WARMUP_BUFFER_SECONDS = 10;
+
+/** Recording duration in seconds */
+export const WARMUP_RECORDING_SECONDS = 30;
