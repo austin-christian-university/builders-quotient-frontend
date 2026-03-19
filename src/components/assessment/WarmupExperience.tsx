@@ -134,10 +134,16 @@ export function WarmupExperience() {
   }, [recorder.status]);
 
   // ─── Think countdown timer ────────────────────────────────────────
+  // Side effects (recorder.start, setRecordingSubPhase) are kept OUT of the
+  // state updater to avoid React strict-mode double-invocation which creates
+  // orphaned timers that poison duration tracking for subsequent recordings.
+
+  const thinkExpiredRef = useRef(false);
 
   useEffect(() => {
     if (phase !== "recording" || recordingSubPhase !== "thinking") return;
 
+    thinkExpiredRef.current = false;
     const prompt = WARMUP_PROMPTS[promptIndex];
     setThinkSecondsLeft(prompt.thinkTime);
 
@@ -146,9 +152,7 @@ export function WarmupExperience() {
         if (prev <= 1) {
           if (thinkTimerRef.current) clearInterval(thinkTimerRef.current);
           thinkTimerRef.current = null;
-          setRecordingSubPhase("recording");
-          recorder.start();
-          setAnnouncement("Recording. Speak whenever you\u2019re ready.");
+          thinkExpiredRef.current = true;
           return 0;
         }
         return prev - 1;
@@ -161,9 +165,23 @@ export function WarmupExperience() {
         thinkTimerRef.current = null;
       }
     };
-    // recorder.start is stable (useCallback), promptIndex drives re-runs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, recordingSubPhase, promptIndex]);
+
+  // Start recording when think time expires (driven by thinkSecondsLeft reaching 0)
+  useEffect(() => {
+    if (
+      phase !== "recording" ||
+      recordingSubPhase !== "thinking" ||
+      thinkSecondsLeft !== 0 ||
+      !thinkExpiredRef.current
+    )
+      return;
+
+    thinkExpiredRef.current = false;
+    setRecordingSubPhase("recording");
+    recorder.start();
+    setAnnouncement("Recording. Speak whenever you\u2019re ready.");
+  }, [phase, recordingSubPhase, thinkSecondsLeft, recorder]);
 
   // ─── Auto-stop at record time limit ───────────────────────────────
 
