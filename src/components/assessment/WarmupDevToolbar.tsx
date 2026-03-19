@@ -1,20 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-
-type WarmupPhase =
-  | "intro_orb"
-  | "recording"
-  | "transition_orb"
-  | "consent"
-  | "uploading"
-  | "pre_exam_orb"
-  | "done"
-  | "declined";
+import type { WarmupPhase } from "@/lib/assessment/warmup-reducer";
 
 const PHASE_LABELS: Record<WarmupPhase, string> = {
   intro_orb: "Intro Orb",
-  recording: "Recording",
+  countdown: "Countdown",
+  narrating: "Narrating",
+  buffer_1: "Buffer 1 (Think)",
+  recording_1: "Recording 1",
+  buffer_2: "Buffer 2 (Think)",
+  recording_2: "Recording 2",
+  buffer_3: "Buffer 3 (Think)",
+  recording_3: "Recording 3",
   transition_orb: "Transition Orb",
   consent: "Consent",
   uploading: "Uploading",
@@ -23,23 +21,33 @@ const PHASE_LABELS: Record<WarmupPhase, string> = {
   declined: "Declined",
 };
 
+const RECORDING_PHASES: ReadonlySet<WarmupPhase> = new Set([
+  "buffer_1",
+  "recording_1",
+  "buffer_2",
+  "recording_2",
+  "buffer_3",
+  "recording_3",
+]);
+
+const LATE_PHASES: ReadonlySet<WarmupPhase> = new Set([
+  "transition_orb",
+  "consent",
+  "uploading",
+  "pre_exam_orb",
+  "done",
+  "declined",
+]);
+
 type WarmupDevToolbarProps = {
   phase: WarmupPhase;
-  promptIndex: number;
-  totalPrompts: number;
-  onSkipQuestion: () => void;
-  onSkipToPreExamOrb: () => void;
-  onSkipToConsent: () => void;
+  onDevSetPhase: (phase: WarmupPhase) => void;
   onSkipToExam: () => void;
 };
 
 export function WarmupDevToolbar({
   phase,
-  promptIndex,
-  totalPrompts,
-  onSkipQuestion,
-  onSkipToPreExamOrb,
-  onSkipToConsent,
+  onDevSetPhase,
   onSkipToExam,
 }: WarmupDevToolbarProps) {
   const [visible, setVisible] = useState(true);
@@ -65,10 +73,12 @@ export function WarmupDevToolbar({
         className="fixed bottom-4 left-4 z-[70] rounded-full border border-green-500/40 bg-green-950/80 px-3 py-1.5 font-mono text-xs text-green-400 backdrop-blur-sm"
       >
         DEV: {PHASE_LABELS[phase]}
-        {phase === "recording" ? ` (Q${promptIndex + 1})` : ""}
       </button>
     );
   }
+
+  const isInRecording = RECORDING_PHASES.has(phase);
+  const isLate = LATE_PHASES.has(phase);
 
   return (
     <div className="fixed bottom-4 left-4 z-[70] w-64 rounded-xl border border-green-500/30 bg-green-950/90 p-3 font-mono text-xs shadow-lg shadow-green-900/20 backdrop-blur-md">
@@ -93,7 +103,6 @@ export function WarmupDevToolbar({
           <span className="inline-block h-2 w-2 rounded-full bg-green-400" />
           <span className="font-semibold text-green-300">
             {PHASE_LABELS[phase]}
-            {phase === "recording" ? ` (Q${promptIndex + 1}/3)` : ""}
           </span>
         </div>
       </div>
@@ -102,27 +111,53 @@ export function WarmupDevToolbar({
       <div className="flex flex-col gap-1">
         <button
           type="button"
-          onClick={onSkipQuestion}
-          disabled={phase !== "recording"}
+          onClick={() => onDevSetPhase("narrating")}
+          disabled={phase !== "intro_orb" && phase !== "countdown"}
           className="rounded bg-green-900/50 px-2 py-1.5 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30"
         >
-          Skip Question ({promptIndex + 1}/{totalPrompts})
+          Skip to Narration
         </button>
         <button
           type="button"
-          onClick={onSkipToPreExamOrb}
-          disabled={phase === "pre_exam_orb" || phase === "done"}
+          onClick={() => onDevSetPhase("buffer_1")}
+          disabled={phase === "buffer_1" || isLate}
           className="rounded bg-green-900/50 px-2 py-1.5 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30"
         >
-          Skip to Pre-Exam Orb
+          Skip to Buffer 1
         </button>
         <button
           type="button"
-          onClick={onSkipToConsent}
+          onClick={() => {
+            if (phase === "buffer_1" || phase === "recording_1") {
+              onDevSetPhase("buffer_2");
+            } else if (phase === "buffer_2" || phase === "recording_2") {
+              onDevSetPhase("buffer_3");
+            } else if (phase === "buffer_3" || phase === "recording_3") {
+              onDevSetPhase("transition_orb");
+            } else {
+              onDevSetPhase("buffer_2");
+            }
+          }}
+          disabled={!isInRecording}
+          className="rounded bg-green-900/50 px-2 py-1.5 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30"
+        >
+          Skip to Next Phase
+        </button>
+        <button
+          type="button"
+          onClick={() => onDevSetPhase("consent")}
           disabled={phase === "consent" || phase === "uploading" || phase === "done"}
           className="rounded bg-green-900/50 px-2 py-1.5 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30"
         >
           Skip to Consent
+        </button>
+        <button
+          type="button"
+          onClick={() => onDevSetPhase("pre_exam_orb")}
+          disabled={phase === "pre_exam_orb" || phase === "done"}
+          className="rounded bg-green-900/50 px-2 py-1.5 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30"
+        >
+          Skip to Pre-Exam Orb
         </button>
         <button
           type="button"

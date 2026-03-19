@@ -782,50 +782,13 @@ export function WarmupExperience() {
       {/* Camera PiP during orb phases */}
       {isOrbPhase && <CameraPip stream={stream} />}
 
-      {/* Dev toolbar — maps new granular phases to old toolbar's phase type.
-          Task 7 will update WarmupDevToolbar to use the new WarmupPhase type. */}
+      {/* Dev toolbar */}
       {WarmupDevToolbar && (
         <WarmupDevToolbar
-          phase={mapPhaseForDevToolbar(state.phase)}
-          promptIndex={
-            recordingPhaseIndex !== null
-              ? recordingPhaseIndex
-              : state.phase === "buffer_1"
-                ? 0
-                : state.phase === "buffer_2"
-                  ? 1
-                  : state.phase === "buffer_3"
-                    ? 2
-                    : 0
+          phase={state.phase}
+          onDevSetPhase={(phase) =>
+            dispatch({ type: "DEV_SET_PHASE", phase })
           }
-          totalPrompts={3}
-          onSkipQuestion={() => {
-            // Jump to the next major phase
-            if (
-              state.phase === "buffer_1" ||
-              state.phase === "recording_1"
-            ) {
-              dispatch({ type: "DEV_SET_PHASE", phase: "buffer_2" });
-            } else if (
-              state.phase === "buffer_2" ||
-              state.phase === "recording_2"
-            ) {
-              dispatch({ type: "DEV_SET_PHASE", phase: "buffer_3" });
-            } else if (
-              state.phase === "buffer_3" ||
-              state.phase === "recording_3"
-            ) {
-              dispatch({ type: "DEV_SET_PHASE", phase: "transition_orb" });
-            } else {
-              dispatch({ type: "DEV_SET_PHASE", phase: "transition_orb" });
-            }
-          }}
-          onSkipToPreExamOrb={() => {
-            dispatch({ type: "DEV_SET_PHASE", phase: "pre_exam_orb" });
-          }}
-          onSkipToConsent={() => {
-            dispatch({ type: "DEV_SET_PHASE", phase: "consent" });
-          }}
           onSkipToExam={() => router.push("/assess/1")}
         />
       )}
@@ -834,42 +797,6 @@ export function WarmupExperience() {
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────
-
-/**
- * Maps new granular warmup phases to the old WarmupDevToolbar's expected
- * phase type. Temporary bridge until Task 7 updates the toolbar.
- */
-type OldToolbarPhase =
-  | "intro_orb"
-  | "recording"
-  | "transition_orb"
-  | "consent"
-  | "uploading"
-  | "pre_exam_orb"
-  | "done"
-  | "declined";
-
-function mapPhaseForDevToolbar(phase: WarmupPhase): OldToolbarPhase {
-  switch (phase) {
-    case "countdown":
-    case "narrating":
-    case "buffer_1":
-    case "recording_1":
-    case "buffer_2":
-    case "recording_2":
-    case "buffer_3":
-    case "recording_3":
-      return "recording";
-    case "intro_orb":
-    case "transition_orb":
-    case "consent":
-    case "uploading":
-    case "pre_exam_orb":
-    case "done":
-    case "declined":
-      return phase;
-  }
-}
 
 // ─── Sub-components ─────────────────────────────────────────────────
 
