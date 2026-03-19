@@ -94,7 +94,6 @@ export function WarmupExperience() {
 
   const blobsRef = useRef<(Blob | null)[]>([null, null, null]);
   const thinkTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const cameraRef = useRef<HTMLVideoElement | null>(null);
 
   const currentPrompt =
     phase === "recording" ? WARMUP_PROMPTS[promptIndex] : null;
@@ -104,6 +103,17 @@ export function WarmupExperience() {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
+  // Callback ref: sets srcObject when video element mounts or stream changes.
+  // useCallback ensures it only changes when stream changes (no flash on re-render).
+  const cameraCallbackRef = useCallback(
+    (el: HTMLVideoElement | null) => {
+      if (el && stream) {
+        el.srcObject = stream;
+      }
+    },
+    [stream]
+  );
+
   // ─── Stream acquisition on mount ─────────────────────────────────
 
   useEffect(() => {
@@ -111,14 +121,6 @@ export function WarmupExperience() {
       acquireStream();
     }
   }, [streamStatus, acquireStream]);
-
-  // ─── Sync camera ref with stream (avoids flash on re-render) ──────
-
-  useEffect(() => {
-    if (cameraRef.current && stream) {
-      cameraRef.current.srcObject = stream;
-    }
-  }, [stream]);
 
   // ─── beforeunload during recording ────────────────────────────────
 
@@ -368,7 +370,7 @@ export function WarmupExperience() {
                     <div className="aspect-video">
                       {stream ? (
                         <video
-                          ref={cameraRef}
+                          ref={cameraCallbackRef}
                           autoPlay
                           playsInline
                           muted
@@ -457,7 +459,6 @@ export function WarmupExperience() {
                   <ConsentGate
                     onAccept={handleConsentAccept}
                     onDecline={handleConsentDecline}
-                    hideBiometric
                     eyebrow="One Last Step"
                     heading="Review &amp; Consent"
                     buttonText="Start the Assessment"
