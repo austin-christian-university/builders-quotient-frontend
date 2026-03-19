@@ -25,6 +25,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { ConsentData } from "@/lib/schemas/consent";
 import { cn } from "@/lib/utils";
+import dynamic from "next/dynamic";
+
+const WarmupDevToolbar =
+  process.env.NODE_ENV === "development"
+    ? dynamic(() => import("./WarmupDevToolbar").then((m) => ({ default: m.WarmupDevToolbar })), {
+        ssr: false,
+      })
+    : null;
 
 // ─── Constants ──────────────────────────────────────────────────────
 
@@ -55,7 +63,6 @@ const CIRCUMFERENCE = 2 * Math.PI * 54;
 type WarmupPhase =
   | "intro_orb"
   | "recording"
-  | "playback"
   | "transition_orb"
   | "consent"
   | "uploading"
@@ -86,9 +93,8 @@ export function WarmupExperience() {
   const [announcement, setAnnouncement] = useState("");
 
   const blobsRef = useRef<(Blob | null)[]>([null, null, null]);
-  const playbackUrlRef = useRef<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const thinkTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cameraRef = useRef<HTMLVideoElement | null>(null);
 
   const currentPrompt =
     phase === "recording" ? WARMUP_PROMPTS[promptIndex] : null;
@@ -105,6 +111,14 @@ export function WarmupExperience() {
       acquireStream();
     }
   }, [streamStatus, acquireStream]);
+
+  // ─── Sync camera ref with stream (avoids flash on re-render) ──────
+
+  useEffect(() => {
+    if (cameraRef.current && stream) {
+      cameraRef.current.srcObject = stream;
+    }
+  }, [stream]);
 
   // ─── beforeunload during recording ────────────────────────────────
 
@@ -155,25 +169,15 @@ export function WarmupExperience() {
     if (
       phase !== "recording" ||
       recordingSubPhase !== "recording" ||
+      recorder.status !== "recording" ||
       !currentPrompt
     )
       return;
     if (recorder.duration >= currentPrompt.recordTime) {
       handleStopRecording();
     }
-    // handleStopRecording is stable via useCallback
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recorder.duration, phase, recordingSubPhase, currentPrompt]);
-
-  // ─── Cleanup playback URL on unmount ──────────────────────────────
-
-  useEffect(() => {
-    return () => {
-      if (playbackUrlRef.current) {
-        URL.revokeObjectURL(playbackUrlRef.current);
-      }
-    };
-  }, []);
+  }, [recorder.duration, recorder.status, phase, recordingSubPhase, currentPrompt]);
 
   // ─── Phase handlers ───────────────────────────────────────────────
 
@@ -197,12 +201,9 @@ export function WarmupExperience() {
     if (promptIndex < 2) {
       startRecordingPhase(promptIndex + 1);
     } else {
-      // Last recording done — go to playback
-      if (blob) {
-        playbackUrlRef.current = URL.createObjectURL(blob);
-      }
-      setPhase("playback");
-      setAnnouncement("Playing back your recording.");
+      // Last recording done — skip straight to transition orb
+      setPhase("transition_orb");
+      setAnnouncement("Transitioning to assessment consent.");
     }
   }, [promptIndex, recorder, startRecordingPhase]);
 
@@ -262,10 +263,6 @@ export function WarmupExperience() {
 
   const handleConsentDecline = useCallback(() => {
     blobsRef.current = [null, null, null];
-    if (playbackUrlRef.current) {
-      URL.revokeObjectURL(playbackUrlRef.current);
-      playbackUrlRef.current = null;
-    }
     setPhase("declined");
     setAnnouncement(
       "Assessment declined. Your recordings have been discarded."
@@ -338,7 +335,8 @@ export function WarmupExperience() {
 
           {/* Main content */}
           <div className="flex-1 overflow-y-auto px-4 pb-[env(safe-area-inset-bottom)]">
-            <div className="flex min-h-full flex-col items-center justify-center py-8">
+            <div className="flex min-h-full flex-col items-center py-8">
+            <div className="my-auto flex w-full flex-col items-center">
             <AnimatePresence mode="wait">
               {/* Phase B: Recording */}
               {phase === "recording" && currentPrompt && (
@@ -370,9 +368,7 @@ export function WarmupExperience() {
                     <div className="aspect-video">
                       {stream ? (
                         <video
-                          ref={(el) => {
-                            if (el && stream) el.srcObject = stream;
-                          }}
+                          ref={cameraRef}
                           autoPlay
                           playsInline
                           muted
@@ -445,79 +441,6 @@ export function WarmupExperience() {
                       onRetry={acquireStream}
                     />
                   )}
-                </motion.div>
-              )}
-
-              {/* Phase C: Video Playback */}
-              {phase === "playback" && (
-                <motion.div
-                  key="playback"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: EXPO_OUT }}
-                  className="flex flex-col items-center gap-6"
-                >
-                  <div
-                    className={cn(
-                      "w-full max-w-lg overflow-hidden rounded-2xl border border-border-glass",
-                      prefersReducedMotion
-                        ? "border-accent-gold/30"
-                        : "shadow-[0_8px_32px_rgb(0_0_0/0.3),0_0_32px_rgba(233,185,73,0.2)]"
-                    )}
-                    style={
-                      prefersReducedMotion
-                        ? undefined
-                        : {
-                            animation: "glow-pulse 3s ease-in-out 1",
-                          }
-                    }
-                  >
-                    <video
-                      ref={videoRef}
-                      src={playbackUrlRef.current || undefined}
-                      autoPlay
-                      playsInline
-                      className="aspect-video w-full object-cover [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]"
-                      onClick={() => {
-                        if (videoRef.current?.paused) {
-                          videoRef.current.play();
-                        } else {
-                          videoRef.current?.pause();
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.5,
-                      ease: EXPO_OUT,
-                      delay: 0.3,
-                    }}
-                    className="font-display text-[length:var(--text-fluid-lg)] font-semibold text-text-primary"
-                  >
-                    Looking good! You&rsquo;ve got the flow.
-                  </motion.p>
-
-                  <motion.button
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.5,
-                      ease: EXPO_OUT,
-                      delay: 0.6,
-                    }}
-                    onClick={() => {
-                      setPhase("transition_orb");
-                      setAnnouncement("Transitioning to assessment consent.");
-                    }}
-                    className="rounded-full border border-white/10 bg-white/5 px-8 py-4 text-[length:var(--text-fluid-base)] font-medium uppercase tracking-widest text-text-primary backdrop-blur-md transition-all hover:scale-105 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base active:scale-95"
-                  >
-                    Continue
-                  </motion.button>
                 </motion.div>
               )}
 
@@ -623,12 +546,26 @@ export function WarmupExperience() {
               )}
             </AnimatePresence>
             </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* Camera PiP during orb phases */}
       {isOrbPhase && <CameraPip stream={stream} />}
+
+      {/* Dev toolbar — skip warmup phases */}
+      {WarmupDevToolbar && (
+        <WarmupDevToolbar
+          phase={phase}
+          promptIndex={promptIndex}
+          onSkipToConsent={() => {
+            setPhase("consent");
+            setAnnouncement("Review and consent.");
+          }}
+          onSkipToExam={() => router.push("/assess/1")}
+        />
+      )}
     </>
   );
 }
