@@ -61,7 +61,7 @@ type CountdownRingProps = {
 
 **Audio:** TTS audio file + word-level timing JSON, matching the format used by real vignettes (`audioTiming` array). Initially can be generated via the same TTS pipeline or hardcoded with manual timing. Stored as a static asset (not Supabase Storage).
 
-**Narration:** Uses the existing `VignetteNarrator` component with audio mode for word-by-word reveal.
+**Narration:** Uses the existing `VignetteNarrator` component with audio mode for word-by-word reveal. `VignetteNarrator` currently imports the exam's `Phase` type and uses it for prompt visibility logic. To share it with the warmup, generalize it to accept a `visiblePrompts: Set<1 | 2 | 3>` prop (or similar) instead of deriving visibility from the phase name directly. The warmup and exam orchestrators each compute which prompts are visible based on their own phase, then pass that to the narrator. This avoids coupling the narrator to either reducer's phase type.
 
 ### 3. Warmup State Machine
 
@@ -77,14 +77,15 @@ countdown          # 3-2-1 animated digits + tone (reuse CountdownDigit)
 narrating          # Warmup vignette: audio + teleprompter word reveal
   |                # Prompt 1 revealed at end of narration section
 buffer_1 (10s)     # CountdownRing think mode. Camera PiP visible.
-  |
+  |                # No sub-stages — prompts appear instantly (simpler than exam).
 recording_1 (30s)  # CountdownRing recording mode. "I'm Done" after 5s.
   |
-buffer_2 (10s)     # Prompt 2 revealed. CountdownRing think mode.
-  |
+buffer_2 (10s)     # Prompt 2 appears instantly at start. CountdownRing think mode.
+  |                # No transition/prompting/thinking sub-stages (exam has these
+  |                # for word-by-word prompt reveal; warmup uses instant reveal).
 recording_2 (30s)  # CountdownRing recording mode.
   |
-buffer_3 (10s)     # Prompt 3 revealed. CountdownRing think mode.
+buffer_3 (10s)     # Prompt 3 appears instantly at start. CountdownRing think mode.
   |
 recording_3 (30s)  # CountdownRing recording mode.
   |
@@ -123,14 +124,20 @@ done / declined
 - Buffer/think phases: blue ring (was gold/secondary)
 - Recording phases: red ring with "RECORDING" + MM:SS inside (was red ring with "Recording - Phase X" badge above ring)
 
+**Additional exam text changes:**
+- Buffer/think phases: secondary text below ring changes from "Recording begins in N seconds" to just the countdown seconds inside the ring with "Think..." label (matching warmup)
+- Recording phases: "Recording - Phase X" badge above ring is removed; phase label moves into CountdownRing's `label` prop (shown as "RECORDING - Phase X" inside the ring below MM:SS)
+
 **NOT changing:**
 - `vignette-reducer.ts` state machine
-- `VignetteNarrator` component
 - Prompt reveal logic
 - Upload flow and Supabase interactions
 - Session management
 - All timing constants
-- 3-2-1 countdown (`CountdownDigit`)
+
+**Requires generalization (not a rewrite):**
+- `VignetteNarrator` — decouple from exam `Phase` type, accept `visiblePrompts` prop instead
+- `CountdownDigit` — extract from inline function in VignetteExperience.tsx to shared component
 
 ### 5. `WarmupExperience.tsx` Rewrite
 
@@ -150,13 +157,16 @@ The component becomes a thin orchestrator dispatching actions to the reducer and
 | File | Action | Description |
 |------|--------|-------------|
 | `src/components/assessment/CountdownRing.tsx` | Create | Unified timer ring component |
+| `src/components/assessment/CountdownDigit.tsx` | Create | Extract from VignetteExperience.tsx inline function to shared component |
 | `src/lib/assessment/warmup-content.ts` | Create | Hardcoded warmup vignette text, prompts, audio timing |
 | `src/lib/assessment/warmup-reducer.ts` | Create | Warmup state machine (mirrors vignette-reducer pattern) |
 | `src/components/assessment/WarmupExperience.tsx` | Rewrite | Use new reducer + shared components |
-| `src/components/assessment/VignetteExperience.tsx` | Modify | Swap ProcessingBuffer/VideoRecorder for CountdownRing |
+| `src/components/assessment/WarmupDevToolbar.tsx` | Modify | Update for new phase model (new phases like countdown, narrating, buffer_1, etc.) |
+| `src/components/assessment/VignetteExperience.tsx` | Modify | Swap ProcessingBuffer/VideoRecorder for CountdownRing; use extracted CountdownDigit |
+| `src/components/assessment/VignetteNarrator.tsx` | Modify | Generalize: accept `visiblePrompts` prop instead of importing exam Phase type |
 | `src/components/assessment/ProcessingBuffer.tsx` | Delete | Replaced by CountdownRing |
 | `src/components/assessment/VideoRecorder.tsx` | Delete | Replaced by CountdownRing |
-| `public/audio/warmup-vignette.*` | Create | TTS audio file for warmup narration |
+| `public/audio/warmup-vignette.*` | Create | TTS audio file for warmup narration (deferred — timer fallback first) |
 
 ## Audio Asset Strategy
 
@@ -166,6 +176,17 @@ The warmup vignette needs a TTS audio file and word-level timing data. Options f
 3. **Manual recording:** Record and manually create timing data.
 
 **Recommendation:** Start with timer fallback mode (option 1) to unblock development. Generate the real TTS audio as a follow-up task.
+
+## Edge Cases & Error Handling
+
+- **Audio load failure during warmup narration:** VignetteNarrator already handles this via `useAudioNarrator` hook — falls back to timer mode silently. Warmup uses the same hook and fallback behavior. No special handling needed.
+- **Camera/mic stream loss during warmup recording:** Preserve the current `StreamErrorAlert` behavior (retry + "Return to Equipment Check" link). The rewritten warmup should keep this pattern from the existing implementation.
+- **`beforeunload` warning:** Preserve the existing guard during recording phases to prevent accidental navigation.
+- **AudioContext for countdown tone:** The 3-2-1 countdown uses Web Audio API (`playCountdownTone` from `countdown-tone.ts`). WarmupExperience must create an `AudioContext` ref, same as VignetteExperience does.
+
+## Duration Changes (Intentional)
+
+The current warmup uses variable durations per prompt (10s/30s, 15s/45s, 10s/30s). The new design standardizes all three to 10s buffer + 30s record. This is intentional — the warmup is a quick rehearsal of the flow, not a full-length practice.
 
 ## Testing
 
