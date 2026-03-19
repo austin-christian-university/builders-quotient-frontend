@@ -325,7 +325,7 @@ export function EmailCapture() {
                   value="true"
                   checked={smsConsent}
                   onChange={(e) => setSmsConsent(e.target.checked)}
-                  className="peer absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+                  className="absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
                 />
               </span>
               <span className="text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
@@ -347,7 +347,7 @@ export function EmailCapture() {
                   value="true"
                   checked={emailConsent}
                   onChange={(e) => setEmailConsent(e.target.checked)}
-                  className="peer absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+                  className="absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-md border border-border-glass bg-bg-elevated/60 bg-center bg-no-repeat transition-colors checked:border-primary/60 checked:bg-primary/20 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg+viewBox%3D%220+0+16+16%22+fill%3D%22none%22+xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath+d%3D%22M12+5L6.5+11+4+8.5%22+stroke%3D%22%234da3ff%22+stroke-width%3D%222%22+stroke-linecap%3D%22round%22+stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
                 />
               </span>
               <span className="text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
