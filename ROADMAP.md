@@ -62,13 +62,13 @@ Each vignette is presented as an **AI-narrated experience**:
 
 1. **Camera check** (before first vignette only): Permission prompt, preview of self, confirmation that camera/mic work. Hard block if camera is denied — video is mandatory.
 2. **Narration phase** (~90–120s depending on vignette length): A pre-generated TTS voice reads the scenario aloud. Text appears on screen synchronized with the narration (teleprompter-style progressive reveal). The vignette cannot be skipped or replayed.
-3. **Processing buffer** (30 seconds): Full vignette text remains visible. Countdown timer shows "Recording begins in 30s." User collects their thoughts.
-4. **Recording phase** (3 minutes): Camera records automatically. Timer visible. User delivers their response. They can stop early but cannot restart. Vignette text remains visible during recording.
+3. **Think phase** (30 seconds): Full vignette text remains visible. A `CountdownRing` (think mode) counts down "Recording begins in 30s." User collects their thoughts.
+4. **Recording phase** (3 minutes): Camera records automatically. A `CountdownRing` (recording mode) shows elapsed time with a red recording indicator. User delivers their response. They can stop early but cannot restart. Vignette text remains visible during recording.
 5. **Upload + transition**: Video uploads (progress indicator). On success, advance to next vignette. No going back.
 
 ### 3.2 Pre-Generated TTS Audio
 
-Vignette audio is pre-generated (OpenAI TTS or ElevenLabs) and stored alongside the vignette in Supabase Storage. This ensures:
+Vignette audio is pre-generated via ElevenLabs TTS and stored alongside the vignette in Supabase Storage (warmup audio stored as static files in `public/audio/`). This ensures:
 - Consistent, premium voice quality
 - No client-side TTS variability
 - Audio can be cached/preloaded for the next vignette during the current one
@@ -174,12 +174,13 @@ Session Init (Server Action)
         ▼
 Warmup (/assess/warmup)
   • AI orb introduction narration
-  • 3 practice questions (think time → video recording for each)
+  • AI-narrated warmup vignette (ElevenLabs TTS, teleprompter text reveal)
+  • 3 practice questions (think countdown → video recording for each)
   • Warmup recordings uploaded but not scored
   • Transition orb narration
-  • Consent & Disclosure (terms, video recording, biometric data)
+  • Consent & Disclosure (embedded, terms + video recording + biometric data)
   • Pre-exam orb narration introducing the real assessment
-  • On continue → /assess/briefing
+  • On continue → /assess/1
         │
         ▼
 Vignette 1: PI-1 (/assess/1)
@@ -531,7 +532,8 @@ src/
 │   │   ├── WarmupJourneyMap.tsx  # Visual progress indicator for warmup phases
 │   │   ├── WarmupDevToolbar.tsx  # Dev-only toolbar for skipping warmup phases
 │   │   ├── VignetteNarrator.tsx  # AI narration + synced text reveal
-│   │   ├── VideoRecorder.tsx     # MediaRecorder wrapper + timer + upload
+│   │   ├── CountdownRing.tsx     # Unified countdown ring (think mode + recording mode)
+│   │   ├── CountdownDigit.tsx    # Animated digit display for countdown timers
 │   │   ├── ProgressBar.tsx       # Step indicator (1 of 4)
 │   │   └── EmailCapture.tsx      # Post-assessment email form
 │   ├── results/
@@ -556,6 +558,10 @@ src/
     │   ├── applicant.ts          # Email capture validation
     │   └── response.ts           # Response timing validation
     ├── assessment/
+    │   ├── warmup-reducer.ts     # 15-phase state machine for warmup flow
+    │   ├── warmup-content.ts     # Warmup vignette text, prompts, and timing constants
+    │   ├── warmup-audio-timing.ts # Word-level timing for warmup TTS narration
+    │   ├── vignette-reducer.ts   # State machine for exam vignette flow
     │   ├── vignette-assignment.ts # Select vignettes excluding burned ones
     │   ├── rate-limiter.ts       # IP-based rate limiting via Supabase
     │   ├── fingerprint.ts        # Browser fingerprint generation
@@ -586,7 +592,8 @@ src/
 - Camera check/permission flow
 - Vignette assignment logic with exposure tracking
 - VignetteNarrator component (audio playback + synced text reveal)
-- VideoRecorder component (MediaRecorder, timer, upload)
+- CountdownRing component (unified think/recording countdown, shared warmup+exam)
+- Warmup flow with exam-parity state machine (15-phase warmupReducer)
 - Presigned upload URL generation
 - Server Actions for response submission + timing validation
 - Step-by-step flow with progress indicator
@@ -668,7 +675,7 @@ ASSESSMENT_ACTIVE=true
 ## 15. Open Decisions
 
 - [ ] **Applicant auth method**: Invite token links vs. Supabase Auth (deferred to Product B)
-- [ ] **TTS provider**: OpenAI TTS vs. ElevenLabs (evaluate voice quality + cost + word-level timing support)
+- [x] **TTS provider**: ElevenLabs selected — superior word-level timing support for teleprompter sync, premium voice quality
 - [ ] **Analytics platform**: Vercel Analytics (simple) vs. PostHog (richer funnels, self-hostable)
 - [ ] **Video storage at scale**: Supabase Storage vs. S3/R2 (monitor costs post-launch)
 - [ ] **Personality quiz interaction**: Traditional Likert (1–5 scale) vs. like/dislike swipe pattern from the-arena
