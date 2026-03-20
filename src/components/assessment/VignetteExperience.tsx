@@ -879,7 +879,6 @@ export function VignetteExperience({
                           secondsRemaining={recording1Remaining}
                           totalSeconds={RECORDING_1_SECONDS}
                           mode="recording"
-                          label="Phase 1"
                           onStopEarly={handleStopRecording1Early}
                         />
                       )}
@@ -924,7 +923,6 @@ export function VignetteExperience({
                           secondsRemaining={recording2Remaining}
                           totalSeconds={RECORDING_2_SECONDS}
                           mode="recording"
-                          label="Phase 2"
                           onStopEarly={handleStopRecording2Early}
                         />
                       )}
@@ -969,7 +967,6 @@ export function VignetteExperience({
                           secondsRemaining={recording3Remaining}
                           totalSeconds={RECORDING_3_SECONDS}
                           mode="recording"
-                          label="Phase 3"
                           onStopEarly={handleStopRecording3Early}
                         />
                       )}

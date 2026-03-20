@@ -32,10 +32,12 @@ import {
   WARMUP_VIGNETTE_TEXT,
   WARMUP_VIGNETTE_PROMPT,
   WARMUP_PROMPTS,
+  WARMUP_AUDIO_URL,
   WARMUP_NARRATION_SECONDS,
   WARMUP_BUFFER_SECONDS,
   WARMUP_RECORDING_SECONDS,
 } from "@/lib/assessment/warmup-content";
+import { WARMUP_AUDIO_TIMING } from "@/lib/assessment/warmup-audio-timing";
 import {
   warmupReducer,
   INITIAL_WARMUP_STATE,
@@ -81,10 +83,12 @@ export function WarmupExperience() {
     }
   }, [streamStatus, acquireStream]);
 
-  // ─── Audio narrator (timer fallback, no URL) ─────────────────────
-  const audio = useAudioNarrator(null, null);
+  // ─── Audio narrator ──────────────────────────────────────────────
+  const audio = useAudioNarrator(WARMUP_AUDIO_URL, WARMUP_AUDIO_TIMING);
 
   // ─── Refs ─────────────────────────────────────────────────────────
+  const audioPlayRef = useRef(audio.play);
+  audioPlayRef.current = audio.play;
   const audioCtxRef = useRef<AudioContext | null>(null);
   const blob1Ref = useRef<Blob | null>(null);
   const blob2Ref = useRef<Blob | null>(null);
@@ -180,6 +184,7 @@ export function WarmupExperience() {
     const t1 = setTimeout(() => setCountdownNumber(2), 1000);
     const t2 = setTimeout(() => setCountdownNumber(1), 2000);
     const t3 = setTimeout(() => {
+      audioPlayRef.current();
       dispatch({ type: "COUNTDOWN_COMPLETE" });
     }, 3000);
 
@@ -199,30 +204,49 @@ export function WarmupExperience() {
 
   // ─── Narration complete ───────────────────────────────────────────
   const handleNarrationComplete = useCallback(() => {
+    audio.pause(); // Stop audio at end of phase_1_prompt
     dispatch({ type: "NARRATION_COMPLETE" });
     setAnnouncement(
       `Question 1 of 3: ${WARMUP_PROMPTS[0]}. Think time: ${WARMUP_BUFFER_SECONDS} seconds.`
     );
-  }, []);
+  }, [audio]);
+
+  // ─── Prompt 1 reveal duration (timer fallback: words / 1.6 wps) ──
+  const prompt1RevealMs = useMemo(() => {
+    if (audio.hasAudio) return 0; // Audio mode: prompt is already spoken
+    const wordCount = WARMUP_PROMPTS[0].split(/\s+/).filter(Boolean).length;
+    return Math.ceil((wordCount / 1.6) * 1000);
+  }, [audio.hasAudio]);
 
   // ─── Buffer countdowns ────────────────────────────────────────────
   useEffect(() => {
     if (state.phase !== "buffer_1") return;
 
-    setBufferRemaining(WARMUP_BUFFER_SECONDS);
-    const interval = setInterval(() => {
-      setBufferRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          dispatch({ type: "BUFFER_1_COMPLETE" });
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // In timer fallback mode, delay countdown start until prompt 1 reveal finishes.
+    // In audio mode prompt1RevealMs is 0 (prompt was spoken during narration).
+    const delayTimer = setTimeout(() => {
+      setBufferRemaining(WARMUP_BUFFER_SECONDS);
+      const interval = setInterval(() => {
+        setBufferRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            dispatch({ type: "BUFFER_1_COMPLETE" });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-    return () => clearInterval(interval);
-  }, [state.phase]);
+      // Store interval for cleanup
+      cleanupRef.current = () => clearInterval(interval);
+    }, prompt1RevealMs);
+
+    const cleanupRef = { current: () => {} };
+    return () => {
+      clearTimeout(delayTimer);
+      cleanupRef.current();
+    };
+  }, [state.phase, prompt1RevealMs]);
 
   useEffect(() => {
     if (state.phase !== "buffer_2") return;
@@ -395,16 +419,8 @@ export function WarmupExperience() {
     };
   }, [state.phase, recordingRemaining, recorder.status, recorder.clip]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Early stop handlers ──────────────────────────────────────────
-  const handleStopRecording1Early = useCallback(() => {
-    setRecordingRemaining(0);
-  }, []);
-
-  const handleStopRecording2Early = useCallback(() => {
-    setRecordingRemaining(0);
-  }, []);
-
-  const handleStopRecording3Early = useCallback(() => {
+  // ─── Early stop handler (shared across all recording phases) ──────
+  const handleStopRecordingEarly = useCallback(() => {
     setRecordingRemaining(0);
   }, []);
 
@@ -478,12 +494,6 @@ export function WarmupExperience() {
     );
   }, []);
 
-  // ─── Current prompt label for recording phases ────────────────────
-  const currentPromptLabel =
-    recordingPhaseIndex !== null
-      ? `Question ${recordingPhaseIndex + 1}`
-      : undefined;
-
   // ─── Render ───────────────────────────────────────────────────────
 
   return (
@@ -541,10 +551,8 @@ export function WarmupExperience() {
           <div className="h-14 shrink-0" />
 
           {/* Main content */}
-          <div className="flex-1 overflow-y-auto px-4 pb-[env(safe-area-inset-bottom)]">
-            <div className="flex min-h-full flex-col items-center py-8">
-              <div className="my-auto flex w-full flex-col items-center">
-                <AnimatePresence mode="wait">
+          <div className="flex flex-1 flex-col overflow-y-auto px-4 pb-[env(safe-area-inset-bottom)]">
+            <AnimatePresence mode="wait">
                   {/* Countdown: 3-2-1 */}
                   {state.phase === "countdown" && (
                     <motion.div
@@ -553,7 +561,7 @@ export function WarmupExperience() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}
-                      className="flex flex-col items-center justify-center"
+                      className="flex flex-1 flex-col items-center justify-center"
                     >
                       <div
                         tabIndex={-1}
@@ -577,7 +585,7 @@ export function WarmupExperience() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="mx-auto flex w-full max-w-4xl flex-col items-center pt-4"
+                      className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center pt-4"
                     >
                       <div className="w-full space-y-6">
                         <VignetteNarrator
@@ -594,6 +602,7 @@ export function WarmupExperience() {
                           isPhase3Revealing={false}
                           onComplete={handleNarrationComplete}
                           audio={audio}
+                          audioTiming={WARMUP_AUDIO_TIMING}
                         />
 
                         {/* Components below the teleprompter */}
@@ -613,8 +622,8 @@ export function WarmupExperience() {
                               secondsRemaining={recordingRemaining}
                               totalSeconds={WARMUP_RECORDING_SECONDS}
                               mode="recording"
-                              label={currentPromptLabel}
-                              onStopEarly={handleStopRecording1Early}
+
+                              onStopEarly={handleStopRecordingEarly}
                             />
                           )}
 
@@ -633,8 +642,8 @@ export function WarmupExperience() {
                               secondsRemaining={recordingRemaining}
                               totalSeconds={WARMUP_RECORDING_SECONDS}
                               mode="recording"
-                              label={currentPromptLabel}
-                              onStopEarly={handleStopRecording2Early}
+
+                              onStopEarly={handleStopRecordingEarly}
                             />
                           )}
 
@@ -653,8 +662,8 @@ export function WarmupExperience() {
                               secondsRemaining={recordingRemaining}
                               totalSeconds={WARMUP_RECORDING_SECONDS}
                               mode="recording"
-                              label={currentPromptLabel}
-                              onStopEarly={handleStopRecording3Early}
+
+                              onStopEarly={handleStopRecordingEarly}
                             />
                           )}
 
@@ -681,7 +690,7 @@ export function WarmupExperience() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex w-full justify-center"
+                      className="flex flex-1 w-full items-center justify-center"
                     >
                       <ConsentGate
                         onAccept={handleConsentAccept}
@@ -702,7 +711,7 @@ export function WarmupExperience() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex flex-col items-center gap-8"
+                      className="flex flex-1 flex-col items-center justify-center gap-8"
                     >
                       <div
                         className="h-[200px] w-[200px] rounded-full"
@@ -748,7 +757,7 @@ export function WarmupExperience() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex w-full justify-center"
+                      className="flex flex-1 w-full items-center justify-center"
                     >
                       <Card className="w-full max-w-md">
                         <CardHeader>
@@ -773,9 +782,7 @@ export function WarmupExperience() {
                       </Card>
                     </motion.div>
                   )}
-                </AnimatePresence>
-              </div>
-            </div>
+            </AnimatePresence>
           </div>
         </div>
       )}

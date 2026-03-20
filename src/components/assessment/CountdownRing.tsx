@@ -46,15 +46,15 @@ export function CountdownRing({
     : "drop-shadow(0 0 6px rgba(239, 68, 68, 0.6))";
 
   return (
-    <div className="flex w-full flex-col items-center gap-4" aria-live="polite">
+    <div className={cn("flex w-full flex-col items-center gap-4", isThink ? "py-20" : "py-16")} aria-live="polite">
       {/* Countdown ring */}
       <div
         className={cn(
           "relative flex items-center justify-center",
           !prefersReducedMotion && "transition-all duration-500",
           isThink && isDramatic && !prefersReducedMotion
-            ? "h-40 w-40"
-            : "h-32 w-32"
+            ? "h-48 w-48"
+            : "h-40 w-40"
         )}
       >
         {/* Background pulse during dramatic threshold (think mode only) */}
