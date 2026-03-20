@@ -60,7 +60,7 @@ export function ConsentGate({
         <p className="text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-text-secondary">
           {eyebrow}
         </p>
-        <h1 className="mt-2 font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-[-0.01em]">
+        <h1 className="mt-2 font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-[-0.01em] text-balance">
           {heading}
         </h1>
       </CardHeader>
