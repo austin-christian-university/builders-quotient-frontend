@@ -16,7 +16,6 @@ import {
   type WordTiming,
 } from "@/lib/assessment/narration-timer";
 import type { AudioNarratorResult } from "@/lib/assessment/use-audio-narrator";
-import type { Phase } from "@/lib/assessment/vignette-reducer";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
@@ -34,13 +33,22 @@ type VignetteNarratorProps = {
   phase2Prompt: string | null;
   phase3Prompt: string | null;
   estimatedNarrationSeconds: number | null;
-  phase: Phase;
+  /** Whether narration is currently active (word reveal in progress) */
+  isNarrating: boolean;
+  /** Whether to show all narrative text (past narration phase) */
+  showAllNarrative: boolean;
+  /** Which prompts are currently visible */
+  visiblePrompts: ReadonlySet<1 | 2 | 3>;
+  /** Whether phase 1 prompt is currently being revealed word-by-word */
+  isPhase1Revealing: boolean;
+  /** Whether phase 2 prompt is currently being revealed word-by-word */
+  isPhase2Revealing: boolean;
+  /** Whether phase 3 prompt is currently being revealed word-by-word */
+  isPhase3Revealing: boolean;
   onComplete: () => void;
   /** Audio narrator state, managed by the parent (VignetteExperience). */
   audio: AudioNarratorResult;
   audioTiming?: AudioWordTiming[] | null;
-  buffer2SubStage?: "transition" | "prompting" | "thinking";
-  buffer3SubStage?: "transition" | "prompting" | "thinking";
 };
 
 export function VignetteNarrator({
@@ -49,12 +57,15 @@ export function VignetteNarrator({
   phase2Prompt,
   phase3Prompt,
   estimatedNarrationSeconds,
-  phase,
+  isNarrating,
+  showAllNarrative,
+  visiblePrompts,
+  isPhase1Revealing,
+  isPhase2Revealing,
+  isPhase3Revealing,
   onComplete,
   audio,
   audioTiming = null,
-  buffer2SubStage,
-  buffer3SubStage,
 }: VignetteNarratorProps) {
   const hasCompletedRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +74,7 @@ export function VignetteNarrator({
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const useAudioMode = audio.hasAudio;
-  const isActive = phase === "narrating";
+  const isActive = isNarrating;
 
   // Compute section boundaries from audioTiming
   const sectionBounds = useMemo(
@@ -127,23 +138,11 @@ export function VignetteNarrator({
   // Derived counts for each section
   const totalWords = useAudioMode ? (audioTiming?.length ?? 0) : words.length;
 
-  // Show all words when past narrating phase
-  const showAllNarrative = phase !== "narrating";
-
-  // Prompt visibility rules
-  // Phase 1 prompt appears during narrating (word-by-word as audio reaches it) and stays visible after
-  const isPhase1Revealing = phase === "narrating";
-  const showPhase1Prompt =
-    isPhase1Revealing ||
-    phase === "buffer_1" || phase === "recording_1" ||
-    phase === "buffer_2" || phase === "recording_2" ||
-    phase === "buffer_3" || phase === "recording_3";
-  const showPhase2Prompt =
-    phase === "buffer_2" || phase === "recording_2" ||
-    phase === "buffer_3" || phase === "recording_3";
-  const isPhase2Revealing = phase === "buffer_2" && buffer2SubStage === "prompting";
-  const showPhase3Prompt = phase === "buffer_3" || phase === "recording_3";
-  const isPhase3Revealing = phase === "buffer_3" && buffer3SubStage === "prompting";
+  // Prompt visibility rules come from props
+  const showPhase1Prompt = visiblePrompts.has(1);
+  const showPhase2Prompt = visiblePrompts.has(2);
+  const showPhase3Prompt = visiblePrompts.has(3);
+  // isPhase1Revealing, isPhase2Revealing, isPhase3Revealing come directly from props
 
   // Timer-mode prompt revealing: word-by-word in progress
   const isPrompt1TimerRevealing = !useAudioMode && !prefersReducedMotion

@@ -1,81 +1,74 @@
 "use client";
 
+import Link from "next/link";
 import {
-  useState,
-  useRef,
   useCallback,
   useEffect,
   useMemo,
+  useReducer,
+  useRef,
+  useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { OrbGuide } from "@/components/assessment/OrbGuide";
 import { ConsentGate } from "@/components/assessment/ConsentGate";
 import { WarmupJourneyMap } from "@/components/assessment/WarmupJourneyMap";
+import { VignetteNarrator } from "@/components/assessment/VignetteNarrator";
+import { CountdownRing } from "@/components/assessment/CountdownRing";
+import { CountdownDigit } from "@/components/assessment/CountdownDigit";
 import { CameraPip } from "@/components/assessment/CameraPip";
 import { useMediaStreamContext } from "@/lib/assessment/media-stream-context";
 import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
+import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
+import { playCountdownTone } from "@/lib/assessment/countdown-tone";
 import {
   WARMUP_INTRO_SCRIPT,
   POST_WARMUP_SCRIPT,
   PRE_EXAM_SCRIPT,
 } from "@/lib/assessment/orb-scripts";
+import {
+  WARMUP_VIGNETTE_TEXT,
+  WARMUP_VIGNETTE_PROMPT,
+  WARMUP_PROMPTS,
+  WARMUP_AUDIO_URL,
+  WARMUP_NARRATION_SECONDS,
+  WARMUP_BUFFER_SECONDS,
+  WARMUP_RECORDING_SECONDS,
+} from "@/lib/assessment/warmup-content";
+import { WARMUP_AUDIO_TIMING } from "@/lib/assessment/warmup-audio-timing";
+import {
+  warmupReducer,
+  INITIAL_WARMUP_STATE,
+  type WarmupPhase,
+} from "@/lib/assessment/warmup-reducer";
 import { createSession } from "@/lib/actions/session";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { ConsentData } from "@/lib/schemas/consent";
-import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
 const WarmupDevToolbar =
   process.env.NODE_ENV === "development"
-    ? dynamic(() => import("./WarmupDevToolbar").then((m) => ({ default: m.WarmupDevToolbar })), {
-        ssr: false,
-      })
+    ? dynamic(
+        () =>
+          import("./WarmupDevToolbar").then((m) => ({
+            default: m.WarmupDevToolbar,
+          })),
+        { ssr: false }
+      )
     : null;
-
-// ─── Constants ──────────────────────────────────────────────────────
-
-const WARMUP_PROMPTS = [
-  {
-    text: "What\u2019s something you\u2019ve built or created that you\u2019re proud of?",
-    thinkTime: 10,
-    recordTime: 30,
-  },
-  {
-    text: "If you could start any business tomorrow, what would it be?",
-    thinkTime: 15,
-    recordTime: 45,
-  },
-  {
-    text: "What\u2019s one thing about you that most people wouldn\u2019t guess?",
-    thinkTime: 10,
-    recordTime: 30,
-  },
-];
-
-const EXPO_OUT = [0.16, 1, 0.3, 1] as const;
-
-const CIRCUMFERENCE = 2 * Math.PI * 54;
-
-// ─── Types ──────────────────────────────────────────────────────────
-
-type WarmupPhase =
-  | "intro_orb"
-  | "recording"
-  | "transition_orb"
-  | "consent"
-  | "uploading"
-  | "pre_exam_orb"
-  | "done"
-  | "declined";
-
-type RecordingSubPhase = "thinking" | "recording";
 
 // ─── Component ──────────────────────────────────────────────────────
 
 export function WarmupExperience() {
   const router = useRouter();
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  const [state, dispatch] = useReducer(warmupReducer, INITIAL_WARMUP_STATE);
+
+  // ─── Media stream ─────────────────────────────────────────────────
   const {
     stream,
     status: streamStatus,
@@ -84,46 +77,73 @@ export function WarmupExperience() {
   } = useMediaStreamContext();
   const recorder = useVideoRecorder(stream);
 
-  const [phase, setPhase] = useState<WarmupPhase>("intro_orb");
-  const [promptIndex, setPromptIndex] = useState(0);
-  const [recordingSubPhase, setRecordingSubPhase] =
-    useState<RecordingSubPhase>("thinking");
-  const [thinkSecondsLeft, setThinkSecondsLeft] = useState(0);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [announcement, setAnnouncement] = useState("");
-
-  const blobsRef = useRef<(Blob | null)[]>([null, null, null]);
-  const thinkTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const currentPrompt =
-    phase === "recording" ? WARMUP_PROMPTS[promptIndex] : null;
-
-  const prefersReducedMotion = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  }, []);
-
-  // Callback ref: sets srcObject when video element mounts or stream changes.
-  // useCallback ensures it only changes when stream changes (no flash on re-render).
-  const cameraCallbackRef = useCallback(
-    (el: HTMLVideoElement | null) => {
-      if (el && stream) {
-        el.srcObject = stream;
-      }
-    },
-    [stream]
-  );
-
-  // ─── Stream acquisition on mount ─────────────────────────────────
-
   useEffect(() => {
     if (streamStatus === "idle") {
       acquireStream();
     }
   }, [streamStatus, acquireStream]);
 
-  // ─── beforeunload during recording ────────────────────────────────
+  // ─── Audio narrator ──────────────────────────────────────────────
+  const audio = useAudioNarrator(WARMUP_AUDIO_URL, WARMUP_AUDIO_TIMING);
 
+  // ─── Refs ─────────────────────────────────────────────────────────
+  const audioPlayRef = useRef(audio.play);
+  audioPlayRef.current = audio.play;
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const blob1Ref = useRef<Blob | null>(null);
+  const blob2Ref = useRef<Blob | null>(null);
+  const blob3Ref = useRef<Blob | null>(null);
+  const playedTonesRef = useRef(new Set<number>());
+
+  // ─── Timer state ──────────────────────────────────────────────────
+  const [countdownNumber, setCountdownNumber] = useState(3);
+  const [bufferRemaining, setBufferRemaining] = useState(WARMUP_BUFFER_SECONDS);
+  const [recordingRemaining, setRecordingRemaining] = useState(WARMUP_RECORDING_SECONDS);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState("");
+
+  // ─── Computed: visible prompts ────────────────────────────────────
+  const warmupVisiblePrompts = useMemo(() => {
+    const set = new Set<1 | 2 | 3>();
+    const p = state.phase;
+    if (
+      [
+        "narrating",
+        "buffer_1",
+        "recording_1",
+        "buffer_2",
+        "recording_2",
+        "buffer_3",
+        "recording_3",
+      ].includes(p)
+    ) {
+      set.add(1);
+    }
+    if (["buffer_2", "recording_2", "buffer_3", "recording_3"].includes(p)) {
+      set.add(2);
+    }
+    if (["buffer_3", "recording_3"].includes(p)) {
+      set.add(3);
+    }
+    return set as ReadonlySet<1 | 2 | 3>;
+  }, [state.phase]);
+
+  // ─── Derived state ────────────────────────────────────────────────
+  const isOrbPhase =
+    state.phase === "intro_orb" ||
+    state.phase === "transition_orb" ||
+    state.phase === "pre_exam_orb";
+
+  const showNarrator =
+    state.phase === "narrating" ||
+    state.phase === "buffer_1" ||
+    state.phase === "recording_1" ||
+    state.phase === "buffer_2" ||
+    state.phase === "recording_2" ||
+    state.phase === "buffer_3" ||
+    state.phase === "recording_3";
+
+  // ─── beforeunload during recording ────────────────────────────────
   useEffect(() => {
     if (recorder.status !== "recording") return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -133,103 +153,277 @@ export function WarmupExperience() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [recorder.status]);
 
-  // ─── Think countdown timer ────────────────────────────────────────
-  // Side effects (recorder.start, setRecordingSubPhase) are kept OUT of the
-  // state updater to avoid React strict-mode double-invocation which creates
-  // orphaned timers that poison duration tracking for subsequent recordings.
+  // ─── BEGIN handler (intro_orb -> countdown) ───────────────────────
+  const handleBegin = useCallback(() => {
+    try {
+      audioCtxRef.current = new AudioContext();
+    } catch {
+      // AudioContext may not be available in all environments
+    }
+    dispatch({ type: "BEGIN" });
+    setAnnouncement("Get ready. Countdown starting.");
+  }, []);
 
-  const thinkExpiredRef = useRef(false);
+  // ─── 3-2-1 Countdown ─────────────────────────────────────────────
+  useEffect(() => {
+    if (state.phase !== "countdown") return;
+
+    playedTonesRef.current.clear();
+    setCountdownNumber(3);
+
+    const t1 = setTimeout(() => setCountdownNumber(2), 1000);
+    const t2 = setTimeout(() => setCountdownNumber(1), 2000);
+    const t3 = setTimeout(() => {
+      audioPlayRef.current();
+      dispatch({ type: "COUNTDOWN_COMPLETE" });
+    }, 3000);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [state.phase]);
+
+  const handleCountdownTone = useCallback((n: number) => {
+    if (playedTonesRef.current.has(n)) return;
+    playedTonesRef.current.add(n);
+    const ctx = audioCtxRef.current;
+    if (ctx) playCountdownTone(ctx, 440);
+  }, []);
+
+  // ─── Narration complete ───────────────────────────────────────────
+  const handleNarrationComplete = useCallback(() => {
+    audio.pause(); // Stop audio at end of phase_1_prompt
+    dispatch({ type: "NARRATION_COMPLETE" });
+    setAnnouncement(
+      `Question 1 of 3: ${WARMUP_PROMPTS[0]}. Think time: ${WARMUP_BUFFER_SECONDS} seconds.`
+    );
+  }, [audio]);
+
+  // ─── Prompt 1 reveal duration (timer fallback: words / 1.6 wps) ──
+  const prompt1RevealMs = useMemo(() => {
+    if (audio.hasAudio) return 0; // Audio mode: prompt is already spoken
+    const wordCount = WARMUP_PROMPTS[0].split(/\s+/).filter(Boolean).length;
+    return Math.ceil((wordCount / 1.6) * 1000);
+  }, [audio.hasAudio]);
+
+  // ─── Buffer countdowns ────────────────────────────────────────────
+  useEffect(() => {
+    if (state.phase !== "buffer_1") return;
+
+    // In timer fallback mode, delay countdown start until prompt 1 reveal finishes.
+    // In audio mode prompt1RevealMs is 0 (prompt was spoken during narration).
+    const delayTimer = setTimeout(() => {
+      setBufferRemaining(WARMUP_BUFFER_SECONDS);
+      const interval = setInterval(() => {
+        setBufferRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            dispatch({ type: "BUFFER_1_COMPLETE" });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      // Store interval for cleanup
+      cleanupRef.current = () => clearInterval(interval);
+    }, prompt1RevealMs);
+
+    const cleanupRef = { current: () => {} };
+    return () => {
+      clearTimeout(delayTimer);
+      cleanupRef.current();
+    };
+  }, [state.phase, prompt1RevealMs]);
 
   useEffect(() => {
-    if (phase !== "recording" || recordingSubPhase !== "thinking") return;
+    if (state.phase !== "buffer_2") return;
 
-    thinkExpiredRef.current = false;
-    const prompt = WARMUP_PROMPTS[promptIndex];
-    setThinkSecondsLeft(prompt.thinkTime);
-
-    thinkTimerRef.current = setInterval(() => {
-      setThinkSecondsLeft((prev) => {
+    setBufferRemaining(WARMUP_BUFFER_SECONDS);
+    setAnnouncement(
+      `Question 2 of 3: ${WARMUP_PROMPTS[1]}. Think time: ${WARMUP_BUFFER_SECONDS} seconds.`
+    );
+    const interval = setInterval(() => {
+      setBufferRemaining((prev) => {
         if (prev <= 1) {
-          if (thinkTimerRef.current) clearInterval(thinkTimerRef.current);
-          thinkTimerRef.current = null;
-          thinkExpiredRef.current = true;
+          clearInterval(interval);
+          dispatch({ type: "BUFFER_2_COMPLETE" });
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
+    return () => clearInterval(interval);
+  }, [state.phase]);
+
+  useEffect(() => {
+    if (state.phase !== "buffer_3") return;
+
+    setBufferRemaining(WARMUP_BUFFER_SECONDS);
+    setAnnouncement(
+      `Question 3 of 3: ${WARMUP_PROMPTS[2]}. Think time: ${WARMUP_BUFFER_SECONDS} seconds.`
+    );
+    const interval = setInterval(() => {
+      setBufferRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          dispatch({ type: "BUFFER_3_COMPLETE" });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.phase]);
+
+  // ─── Recording phases: auto-start recorder ────────────────────────
+  useEffect(() => {
+    if (state.phase !== "recording_1") return;
+    if (recorder.status === "idle") {
+      recorder.start();
+      setAnnouncement("Recording. Speak whenever you\u2019re ready.");
+    }
+  }, [state.phase, recorder.status, recorder.start]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (state.phase !== "recording_2") return;
+    if (recorder.status === "idle") {
+      recorder.start();
+      setAnnouncement("Recording. Speak whenever you\u2019re ready.");
+    }
+  }, [state.phase, recorder.status, recorder.start]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (state.phase !== "recording_3") return;
+    if (recorder.status === "idle") {
+      recorder.start();
+      setAnnouncement("Recording. Speak whenever you\u2019re ready.");
+    }
+  }, [state.phase, recorder.status, recorder.start]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Recording countdowns ─────────────────────────────────────────
+  useEffect(() => {
+    if (state.phase !== "recording_1") return;
+
+    setRecordingRemaining(WARMUP_RECORDING_SECONDS);
+    const interval = setInterval(() => {
+      setRecordingRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.phase]);
+
+  useEffect(() => {
+    if (state.phase !== "recording_2") return;
+
+    setRecordingRemaining(WARMUP_RECORDING_SECONDS);
+    const interval = setInterval(() => {
+      setRecordingRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.phase]);
+
+  useEffect(() => {
+    if (state.phase !== "recording_3") return;
+
+    setRecordingRemaining(WARMUP_RECORDING_SECONDS);
+    const interval = setInterval(() => {
+      setRecordingRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.phase]);
+
+  // ─── Auto-clip at recording expiry ────────────────────────────────
+  useEffect(() => {
+    if (state.phase !== "recording_1" || recordingRemaining > 0) return;
+    if (recorder.status !== "recording") return;
+
+    let cancelled = false;
+    async function clipPhase() {
+      const blob = await recorder.clip();
+      if (cancelled) return;
+      blob1Ref.current = blob;
+      dispatch({ type: "RECORDING_1_COMPLETE" });
+    }
+    clipPhase();
     return () => {
-      if (thinkTimerRef.current) {
-        clearInterval(thinkTimerRef.current);
-        thinkTimerRef.current = null;
-      }
+      cancelled = true;
     };
-  }, [phase, recordingSubPhase, promptIndex]);
-
-  // Start recording when think time expires (driven by thinkSecondsLeft reaching 0)
-  useEffect(() => {
-    if (
-      phase !== "recording" ||
-      recordingSubPhase !== "thinking" ||
-      thinkSecondsLeft !== 0 ||
-      !thinkExpiredRef.current
-    )
-      return;
-
-    thinkExpiredRef.current = false;
-    setRecordingSubPhase("recording");
-    recorder.start();
-    setAnnouncement("Recording. Speak whenever you\u2019re ready.");
-  }, [phase, recordingSubPhase, thinkSecondsLeft, recorder]);
-
-  // ─── Auto-stop at record time limit ───────────────────────────────
+  }, [state.phase, recordingRemaining, recorder.status, recorder.clip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (
-      phase !== "recording" ||
-      recordingSubPhase !== "recording" ||
-      recorder.status !== "recording" ||
-      !currentPrompt
-    )
-      return;
-    if (recorder.duration >= currentPrompt.recordTime) {
-      handleStopRecording();
+    if (state.phase !== "recording_2" || recordingRemaining > 0) return;
+    if (recorder.status !== "recording") return;
+
+    let cancelled = false;
+    async function clipPhase() {
+      const blob = await recorder.clip();
+      if (cancelled) return;
+      blob2Ref.current = blob;
+      dispatch({ type: "RECORDING_2_COMPLETE" });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recorder.duration, recorder.status, phase, recordingSubPhase, currentPrompt]);
+    clipPhase();
+    return () => {
+      cancelled = true;
+    };
+  }, [state.phase, recordingRemaining, recorder.status, recorder.clip]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Phase handlers ───────────────────────────────────────────────
+  useEffect(() => {
+    if (state.phase !== "recording_3" || recordingRemaining > 0) return;
+    if (recorder.status !== "recording") return;
 
-  const startRecordingPhase = useCallback(
-    (index: number) => {
-      setPromptIndex(index);
-      setPhase("recording");
-      setRecordingSubPhase("thinking");
-      const prompt = WARMUP_PROMPTS[index];
-      setAnnouncement(
-        `Warmup question ${index + 1} of 3: ${prompt.text} Think time: ${prompt.thinkTime} seconds.`
-      );
-    },
-    []
-  );
-
-  const handleStopRecording = useCallback(async () => {
-    const blob = await recorder.clip();
-    blobsRef.current[promptIndex] = blob;
-
-    if (promptIndex < 2) {
-      startRecordingPhase(promptIndex + 1);
-    } else {
-      // Last recording done — skip straight to transition orb
-      setPhase("transition_orb");
-      setAnnouncement("Transitioning to assessment consent.");
+    let cancelled = false;
+    async function clipPhase() {
+      const blob = await recorder.clip();
+      if (cancelled) return;
+      blob3Ref.current = blob;
+      dispatch({ type: "RECORDING_3_COMPLETE" });
     }
-  }, [promptIndex, recorder, startRecordingPhase]);
+    clipPhase();
+    return () => {
+      cancelled = true;
+    };
+  }, [state.phase, recordingRemaining, recorder.status, recorder.clip]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ─── Early stop handler (shared across all recording phases) ──────
+  const handleStopRecordingEarly = useCallback(() => {
+    setRecordingRemaining(0);
+  }, []);
+
+  // ─── Transition orb -> consent ────────────────────────────────────
+  const handleTransitionComplete = useCallback(() => {
+    dispatch({ type: "TRANSITION_COMPLETE" });
+    setAnnouncement("Review and consent.");
+  }, []);
+
+  // ─── Consent handlers ─────────────────────────────────────────────
   const handleConsentAccept = useCallback(
     async (consent: ConsentData) => {
-      setPhase("uploading");
+      dispatch({ type: "CONSENT_ACCEPTED" });
       setUploadError(null);
       setAnnouncement("Setting up your assessment");
 
@@ -242,7 +436,8 @@ export function WarmupExperience() {
         }
 
         // Upload warmup blobs (best-effort — never block the student)
-        const uploadPromises = blobsRef.current.map(async (blob, i) => {
+        const blobs = [blob1Ref.current, blob2Ref.current, blob3Ref.current];
+        const uploadPromises = blobs.map(async (blob, i) => {
           if (!blob) return;
           try {
             const presignRes = await fetch("/api/upload", {
@@ -266,8 +461,7 @@ export function WarmupExperience() {
 
         await Promise.allSettled(uploadPromises);
 
-        // Show pre-exam orb before navigating to vignette 1
-        setPhase("pre_exam_orb");
+        dispatch({ type: "UPLOAD_COMPLETE" });
         setAnnouncement("Final reminders before we begin.");
       } catch (err) {
         setUploadError(
@@ -281,20 +475,14 @@ export function WarmupExperience() {
   );
 
   const handleConsentDecline = useCallback(() => {
-    blobsRef.current = [null, null, null];
-    setPhase("declined");
+    blob1Ref.current = null;
+    blob2Ref.current = null;
+    blob3Ref.current = null;
+    dispatch({ type: "CONSENT_DECLINED" });
     setAnnouncement(
       "Assessment declined. Your recordings have been discarded."
     );
   }, []);
-
-  // ─── Computed ─────────────────────────────────────────────────────
-
-  const recordingSecondsRemaining = currentPrompt
-    ? Math.max(0, currentPrompt.recordTime - recorder.duration)
-    : 0;
-
-  const isOrbPhase = phase === "intro_orb" || phase === "transition_orb" || phase === "pre_exam_orb";
 
   // ─── Render ───────────────────────────────────────────────────────
 
@@ -310,41 +498,41 @@ export function WarmupExperience() {
         {announcement}
       </div>
 
-      {/* Phase A: Intro Orb */}
-      {phase === "intro_orb" && (
+      {/* Phase: Intro Orb */}
+      {state.phase === "intro_orb" && (
         <OrbGuide
           script={WARMUP_INTRO_SCRIPT}
-          onContinue={() => startRecordingPhase(0)}
-          onSkip={() => startRecordingPhase(0)}
+          onContinue={handleBegin}
+          onSkip={handleBegin}
         />
       )}
 
-      {/* Phase D: Transition Orb */}
-      {phase === "transition_orb" && (
+      {/* Phase: Transition Orb */}
+      {state.phase === "transition_orb" && (
         <OrbGuide
           script={POST_WARMUP_SCRIPT}
-          onContinue={() => {
-            setPhase("consent");
-            setAnnouncement("Review and consent.");
-          }}
-          onSkip={() => {
-            setPhase("consent");
-            setAnnouncement("Review and consent.");
-          }}
+          onContinue={handleTransitionComplete}
+          onSkip={handleTransitionComplete}
         />
       )}
 
-      {/* Phase G: Pre-exam Orb (after consent + upload, before vignette 1) */}
-      {phase === "pre_exam_orb" && (
+      {/* Phase: Pre-exam Orb (after consent + upload, before vignette 1) */}
+      {state.phase === "pre_exam_orb" && (
         <OrbGuide
           script={PRE_EXAM_SCRIPT}
-          onContinue={() => router.push("/assess/1")}
-          onSkip={() => router.push("/assess/1")}
+          onContinue={() => {
+            dispatch({ type: "PRE_EXAM_COMPLETE" });
+            router.push("/assess/1");
+          }}
+          onSkip={() => {
+            dispatch({ type: "PRE_EXAM_COMPLETE" });
+            router.push("/assess/1");
+          }}
         />
       )}
 
-      {/* Phases B, C, E, uploading, declined — custom full-screen layout */}
-      {!isOrbPhase && (
+      {/* Non-orb phases: full-screen layout */}
+      {!isOrbPhase && state.phase !== "done" && (
         <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-bg-base">
           {/* Ambient background decoration */}
           <BackgroundDecoration reduced={prefersReducedMotion} />
@@ -353,219 +541,238 @@ export function WarmupExperience() {
           <div className="h-14 shrink-0" />
 
           {/* Main content */}
-          <div className="flex-1 overflow-y-auto px-4 pb-[env(safe-area-inset-bottom)]">
-            <div className="flex min-h-full flex-col items-center py-8">
-            <div className="my-auto flex w-full flex-col items-center">
+          <div className="flex flex-1 flex-col overflow-y-auto px-4 pb-[env(safe-area-inset-bottom)]">
             <AnimatePresence mode="wait">
-              {/* Phase B: Recording */}
-              {phase === "recording" && currentPrompt && (
-                <motion.div
-                  key={`recording-${promptIndex}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: EXPO_OUT }}
-                  className="flex w-full max-w-2xl flex-col items-center gap-6"
-                >
-                  {/* Prompt */}
-                  <div className="text-center">
-                    <p className="text-[length:var(--text-fluid-xs)] uppercase tracking-[0.3em] text-text-secondary">
-                      Question {promptIndex + 1} of 3
-                    </p>
-                    <motion.p
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, ease: EXPO_OUT }}
-                      className="mx-auto mt-3 max-w-xl font-display text-[length:var(--text-fluid-xl)] font-semibold tracking-[-0.01em] text-text-primary md:text-[length:var(--text-fluid-xl)]"
+                  {/* Countdown: 3-2-1 */}
+                  {state.phase === "countdown" && (
+                    <motion.div
+                      key="countdown"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex flex-1 flex-col items-center justify-center"
                     >
-                      {currentPrompt.text}
-                    </motion.p>
-                  </div>
-
-                  {/* Camera preview */}
-                  <div className="relative w-full max-w-lg overflow-hidden rounded-xl border border-border-glass bg-bg-base">
-                    <div className="aspect-video">
-                      {stream ? (
-                        <video
-                          ref={cameraCallbackRef}
-                          autoPlay
-                          playsInline
-                          muted
-                          aria-label="Camera preview"
-                          className="h-full w-full object-cover [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]"
+                      <div
+                        tabIndex={-1}
+                        aria-label={`Countdown: ${countdownNumber}`}
+                        aria-live="assertive"
+                      >
+                        <CountdownDigit
+                          number={countdownNumber}
+                          onEnterComplete={handleCountdownTone}
+                          prefersReducedMotion={prefersReducedMotion}
                         />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-text-secondary">
-                          {streamStatus === "acquiring" &&
-                            "Connecting camera\u2026"}
-                          {streamStatus === "error" && "Camera not available"}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Recording indicator */}
-                    {recordingSubPhase === "recording" &&
-                      recorder.status === "recording" && (
-                        <div className="absolute right-3 top-3">
-                          <div className="flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
-                            <span className="relative flex h-2 w-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-                            </span>
-                            <span className="text-xs font-medium tabular-nums text-red-500">
-                              REC
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                  </div>
-
-                  {/* Countdown / Controls */}
-                  <div className="flex flex-col items-center gap-4">
-                    {recordingSubPhase === "thinking" && (
-                      <ThinkCountdown
-                        secondsLeft={thinkSecondsLeft}
-                        totalSeconds={currentPrompt.thinkTime}
-                        reduced={prefersReducedMotion}
-                      />
-                    )}
-
-                    {recordingSubPhase === "recording" && (
-                      <div className="flex flex-col items-center gap-4">
-                        <RecordCountdown
-                          secondsRemaining={recordingSecondsRemaining}
-                          totalSeconds={currentPrompt.recordTime}
-                          reduced={prefersReducedMotion}
-                        />
-
-                        {recorder.duration >= 5 && (
-                          <motion.button
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, ease: EXPO_OUT }}
-                            onClick={handleStopRecording}
-                            className="rounded-full border border-white/15 bg-white/5 px-6 py-2.5 text-[length:var(--text-fluid-sm)] font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
-                          >
-                            I&rsquo;m Done
-                          </motion.button>
-                        )}
                       </div>
-                    )}
-                  </div>
-
-                  {/* Stream error */}
-                  {streamStatus === "error" && (
-                    <StreamErrorAlert
-                      error={streamError}
-                      onRetry={acquireStream}
-                    />
+                    </motion.div>
                   )}
-                </motion.div>
-              )}
 
-              {/* Phase E: Consent */}
-              {phase === "consent" && (
-                <motion.div
-                  key="consent"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: EXPO_OUT }}
-                  className="flex w-full justify-center"
-                >
-                  <ConsentGate
-                    onAccept={handleConsentAccept}
-                    onDecline={handleConsentDecline}
-                    eyebrow="One Last Step"
-                    heading="Review &amp; Consent"
-                    buttonText="Start the Assessment"
-                    embedded
-                  />
-                </motion.div>
-              )}
-
-              {/* Uploading state */}
-              {phase === "uploading" && (
-                <motion.div
-                  key="uploading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: EXPO_OUT }}
-                  className="flex flex-col items-center gap-8"
-                >
-                  <div
-                    className="h-[200px] w-[200px] rounded-full"
-                    style={{
-                      background:
-                        "radial-gradient(circle at 35% 35%, rgba(233,185,73,0.3), rgba(77,163,255,0.15), transparent 70%)",
-                      animation: prefersReducedMotion
-                        ? "none"
-                        : "orb-breathe 4s ease-in-out infinite",
-                      boxShadow: "0 0 60px rgba(233,185,73,0.2)",
-                    }}
-                  />
-                  <p className="font-display text-[length:var(--text-fluid-lg)] font-medium text-text-primary">
-                    Setting up your assessment&hellip;
-                  </p>
-
-                  {uploadError && (
-                    <div
-                      role="alert"
-                      className="w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
+                  {/* Active phases: narrating + buffer + recording */}
+                  {showNarrator && (
+                    <motion.div
+                      key="active-phases"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center pt-4"
                     >
-                      <p>{uploadError}</p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPhase("consent");
-                          setUploadError(null);
-                        }}
-                        className="mt-2 underline underline-offset-2 hover:text-text-primary"
-                      >
-                        Try again
-                      </button>
-                    </div>
-                  )}
-                </motion.div>
-              )}
+                      <div className="w-full space-y-6">
+                        <VignetteNarrator
+                          vignetteText={WARMUP_VIGNETTE_TEXT}
+                          vignettePrompt={WARMUP_VIGNETTE_PROMPT}
+                          phase2Prompt={WARMUP_PROMPTS[1]}
+                          phase3Prompt={WARMUP_PROMPTS[2]}
+                          estimatedNarrationSeconds={WARMUP_NARRATION_SECONDS}
+                          isNarrating={state.phase === "narrating"}
+                          showAllNarrative={state.phase !== "narrating"}
+                          visiblePrompts={warmupVisiblePrompts}
+                          isPhase1Revealing={state.phase === "narrating"}
+                          isPhase2Revealing={false}
+                          isPhase3Revealing={false}
+                          onComplete={handleNarrationComplete}
+                          audio={audio}
+                          audioTiming={WARMUP_AUDIO_TIMING}
+                        />
 
-              {/* Declined state */}
-              {phase === "declined" && (
-                <motion.div
-                  key="declined"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: EXPO_OUT }}
-                  className="flex w-full justify-center"
-                >
-                  <Card className="w-full max-w-md">
-                    <CardHeader>
-                      <h1 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-[-0.01em]">
-                        No problem at all.
-                      </h1>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <p className="text-[length:var(--text-fluid-base)] text-text-secondary">
-                        Your practice recordings have been discarded &mdash;
-                        nothing was saved. If you change your mind, you can
-                        always come back and start fresh.
+                        {/* Components below the teleprompter */}
+                        <div className="flex w-full flex-col items-center space-y-4">
+                          {/* buffer_1 */}
+                          {state.phase === "buffer_1" && (
+                            <CountdownRing
+                              secondsRemaining={bufferRemaining}
+                              totalSeconds={WARMUP_BUFFER_SECONDS}
+                              mode="think"
+                            />
+                          )}
+
+                          {/* recording_1 */}
+                          {state.phase === "recording_1" && (
+                            <CountdownRing
+                              secondsRemaining={recordingRemaining}
+                              totalSeconds={WARMUP_RECORDING_SECONDS}
+                              mode="recording"
+
+                              onStopEarly={handleStopRecordingEarly}
+                            />
+                          )}
+
+                          {/* buffer_2 */}
+                          {state.phase === "buffer_2" && (
+                            <CountdownRing
+                              secondsRemaining={bufferRemaining}
+                              totalSeconds={WARMUP_BUFFER_SECONDS}
+                              mode="think"
+                            />
+                          )}
+
+                          {/* recording_2 */}
+                          {state.phase === "recording_2" && (
+                            <CountdownRing
+                              secondsRemaining={recordingRemaining}
+                              totalSeconds={WARMUP_RECORDING_SECONDS}
+                              mode="recording"
+
+                              onStopEarly={handleStopRecordingEarly}
+                            />
+                          )}
+
+                          {/* buffer_3 */}
+                          {state.phase === "buffer_3" && (
+                            <CountdownRing
+                              secondsRemaining={bufferRemaining}
+                              totalSeconds={WARMUP_BUFFER_SECONDS}
+                              mode="think"
+                            />
+                          )}
+
+                          {/* recording_3 */}
+                          {state.phase === "recording_3" && (
+                            <CountdownRing
+                              secondsRemaining={recordingRemaining}
+                              totalSeconds={WARMUP_RECORDING_SECONDS}
+                              mode="recording"
+
+                              onStopEarly={handleStopRecordingEarly}
+                            />
+                          )}
+
+                          {/* Camera PiP during active phases */}
+                          <CameraPip stream={stream} />
+                        </div>
+                      </div>
+
+                      {/* Stream error */}
+                      {streamStatus === "error" && (
+                        <StreamErrorAlert
+                          error={streamError}
+                          onRetry={acquireStream}
+                        />
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Consent */}
+                  {state.phase === "consent" && (
+                    <motion.div
+                      key="consent"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex flex-1 w-full items-center justify-center"
+                    >
+                      <ConsentGate
+                        onAccept={handleConsentAccept}
+                        onDecline={handleConsentDecline}
+                        eyebrow="One Last Step"
+                        heading="Review & Consent"
+                        buttonText="Start the Assessment"
+                        embedded
+                      />
+                    </motion.div>
+                  )}
+
+                  {/* Uploading */}
+                  {state.phase === "uploading" && (
+                    <motion.div
+                      key="uploading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex flex-1 flex-col items-center justify-center gap-8"
+                    >
+                      <div
+                        className="h-[200px] w-[200px] rounded-full"
+                        style={{
+                          background:
+                            "radial-gradient(circle at 35% 35%, rgba(233,185,73,0.3), rgba(77,163,255,0.15), transparent 70%)",
+                          animation: prefersReducedMotion
+                            ? "none"
+                            : "orb-breathe 4s ease-in-out infinite",
+                          boxShadow: "0 0 60px rgba(233,185,73,0.2)",
+                        }}
+                      />
+                      <p className="font-display text-[length:var(--text-fluid-lg)] font-medium text-text-primary">
+                        Setting up your assessment&hellip;
                       </p>
-                      <Button
-                        size="lg"
-                        className="w-full"
-                        onClick={() => router.push("/")}
-                      >
-                        Return Home
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
+
+                      {uploadError && (
+                        <div
+                          role="alert"
+                          className="w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
+                        >
+                          <p>{uploadError}</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              dispatch({ type: "UPLOAD_RETRY" });
+                              setUploadError(null);
+                            }}
+                            className="mt-2 underline underline-offset-2 hover:text-text-primary"
+                          >
+                            Try again
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Declined */}
+                  {state.phase === "declined" && (
+                    <motion.div
+                      key="declined"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex flex-1 w-full items-center justify-center"
+                    >
+                      <Card className="w-full max-w-md">
+                        <CardHeader>
+                          <h1 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-[-0.01em]">
+                            No problem at all.
+                          </h1>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          <p className="text-[length:var(--text-fluid-base)] text-text-secondary">
+                            Your practice recordings have been discarded &mdash;
+                            nothing was saved. If you change your mind, you can
+                            always come back and start fresh.
+                          </p>
+                          <Button
+                            size="lg"
+                            className="w-full"
+                            onClick={() => router.push("/")}
+                          >
+                            Return Home
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
             </AnimatePresence>
-            </div>
-            </div>
           </div>
         </div>
       )}
@@ -573,28 +780,13 @@ export function WarmupExperience() {
       {/* Camera PiP during orb phases */}
       {isOrbPhase && <CameraPip stream={stream} />}
 
-      {/* Dev toolbar — skip warmup phases */}
+      {/* Dev toolbar */}
       {WarmupDevToolbar && (
         <WarmupDevToolbar
-          phase={phase}
-          promptIndex={promptIndex}
-          totalPrompts={WARMUP_PROMPTS.length}
-          onSkipQuestion={() => {
-            if (promptIndex < WARMUP_PROMPTS.length - 1) {
-              startRecordingPhase(promptIndex + 1);
-            } else {
-              setPhase("transition_orb");
-              setAnnouncement("Transitioning to assessment consent.");
-            }
-          }}
-          onSkipToPreExamOrb={() => {
-            setPhase("pre_exam_orb");
-            setAnnouncement("Final reminders before we begin.");
-          }}
-          onSkipToConsent={() => {
-            setPhase("consent");
-            setAnnouncement("Review and consent.");
-          }}
+          phase={state.phase}
+          onDevSetPhase={(phase) =>
+            dispatch({ type: "DEV_SET_PHASE", phase })
+          }
           onSkipToExam={() => router.push("/assess/1")}
         />
       )}
@@ -602,123 +794,9 @@ export function WarmupExperience() {
   );
 }
 
+// ─── Helpers ────────────────────────────────────────────────────────
+
 // ─── Sub-components ─────────────────────────────────────────────────
-
-function ThinkCountdown({
-  secondsLeft,
-  totalSeconds,
-  reduced,
-}: {
-  secondsLeft: number;
-  totalSeconds: number;
-  reduced: boolean;
-}) {
-  const offset = CIRCUMFERENCE * (1 - secondsLeft / totalSeconds);
-
-  return (
-    <div className="relative flex h-[120px] w-[120px] items-center justify-center">
-      {!reduced && (
-        <svg
-          viewBox="0 0 120 120"
-          className="absolute inset-0 -rotate-90"
-          aria-hidden="true"
-        >
-          <circle
-            cx="60"
-            cy="60"
-            r="54"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            className="text-border-glass"
-          />
-          <circle
-            cx="60"
-            cy="60"
-            r="54"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            className="text-primary"
-            strokeLinecap="round"
-            strokeDasharray={CIRCUMFERENCE}
-            strokeDashoffset={offset}
-            style={{
-              transition: "stroke-dashoffset 1s linear",
-              filter: "drop-shadow(0 0 6px rgba(77, 163, 255, 0.6))",
-            }}
-          />
-        </svg>
-      )}
-      <div className="flex flex-col items-center">
-        <span className="text-[length:var(--text-fluid-sm)] text-text-secondary">
-          Think&hellip;
-        </span>
-        <span className="font-display text-[length:var(--text-fluid-xl)] font-bold tabular-nums text-text-primary">
-          {secondsLeft}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function RecordCountdown({
-  secondsRemaining,
-  totalSeconds,
-  reduced,
-}: {
-  secondsRemaining: number;
-  totalSeconds: number;
-  reduced: boolean;
-}) {
-  const offset = CIRCUMFERENCE * (secondsRemaining / totalSeconds);
-
-  return (
-    <div className="relative flex h-[120px] w-[120px] items-center justify-center">
-      {!reduced && (
-        <svg
-          viewBox="0 0 120 120"
-          className="absolute inset-0 -rotate-90"
-          aria-hidden="true"
-        >
-          <circle
-            cx="60"
-            cy="60"
-            r="54"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            className="text-border-glass"
-          />
-          <circle
-            cx="60"
-            cy="60"
-            r="54"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            className="text-red-500"
-            strokeLinecap="round"
-            strokeDasharray={CIRCUMFERENCE}
-            strokeDashoffset={offset}
-            style={{
-              transition: "stroke-dashoffset 1s linear",
-              filter: "drop-shadow(0 0 6px rgba(239, 68, 68, 0.6))",
-            }}
-          />
-        </svg>
-      )}
-      <span
-        className={cn(
-          "font-display text-[length:var(--text-fluid-xl)] font-bold tabular-nums",
-          secondsRemaining <= 5 ? "text-red-400" : "text-text-primary"
-        )}
-      >
-        {formatTime(secondsRemaining)}
-      </span>
-    </div>
-  );
-}
 
 function StreamErrorAlert({
   error,
@@ -730,10 +808,11 @@ function StreamErrorAlert({
   return (
     <div
       role="alert"
-      className="w-full max-w-lg rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
+      className="mt-6 w-full max-w-lg rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
     >
       <p>
-        {error || "Your camera or microphone disconnected. Please check your device and try again."}
+        {error ||
+          "Your camera or microphone disconnected. Please check your device and try again."}
       </p>
       <div className="mt-2 flex gap-4">
         <button
@@ -743,12 +822,12 @@ function StreamErrorAlert({
         >
           Retry
         </button>
-        <a
+        <Link
           href="/assess/setup"
           className="underline underline-offset-2 hover:text-text-primary"
         >
           Return to Equipment Check
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -789,12 +868,4 @@ function BackgroundDecoration({ reduced }: { reduced: boolean }) {
       />
     </div>
   );
-}
-
-// ─── Helpers ────────────────────────────────────────────────────────
-
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
 }

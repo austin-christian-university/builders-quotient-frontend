@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { VignetteNarrator } from "./VignetteNarrator";
-import { ProcessingBuffer } from "./ProcessingBuffer";
-import { VideoRecorder } from "./VideoRecorder";
+import { CountdownRing } from "./CountdownRing";
 import { CameraPip } from "./CameraPip";
 import { useMediaStreamContext } from "@/lib/assessment/media-stream-context";
 import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
@@ -16,6 +15,7 @@ import { useContentProtection } from "@/lib/assessment/use-content-protection";
 import { useUploadQueue } from "@/lib/assessment/upload-queue";
 import { Button } from "@/components/ui/button";
 import { ResumeBanner } from "./ResumeBanner";
+import { CountdownDigit } from "./CountdownDigit";
 import { reducer, type Phase } from "@/lib/assessment/vignette-reducer";
 import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
 import { playCountdownTone } from "@/lib/assessment/countdown-tone";
@@ -711,6 +711,18 @@ export function VignetteExperience({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
+  const examVisiblePrompts = useMemo(() => {
+    const set = new Set<1 | 2 | 3>();
+    const p = state.phase;
+    // Prompt 1 visible from narrating onward
+    if (p !== "ready" && p !== "countdown") set.add(1);
+    // Prompt 2 visible from buffer_2 onward
+    if (p === "buffer_2" || p === "recording_2" || p === "buffer_3" || p === "recording_3") set.add(2);
+    // Prompt 3 visible from buffer_3 onward
+    if (p === "buffer_3" || p === "recording_3") set.add(3);
+    return set as ReadonlySet<1 | 2 | 3>;
+  }, [state.phase]);
+
   const handleBegin = useCallback(() => {
     const el = audio.audioRef.current;
     if (el) {
@@ -839,32 +851,34 @@ export function VignetteExperience({
                       phase2Prompt={phase2Prompt}
                       phase3Prompt={phase3Prompt}
                       estimatedNarrationSeconds={estimatedNarrationSeconds}
+                      isNarrating={state.phase === "narrating"}
+                      showAllNarrative={state.phase !== "narrating"}
+                      visiblePrompts={examVisiblePrompts}
+                      isPhase1Revealing={state.phase === "narrating"}
+                      isPhase2Revealing={state.phase === "buffer_2" && buffer2SubStage === "prompting"}
+                      isPhase3Revealing={state.phase === "buffer_3" && buffer3SubStage === "prompting"}
+                      onComplete={handleNarrationComplete}
                       audio={audio}
                       audioTiming={audioTiming}
-                      phase={state.phase}
-                      onComplete={handleNarrationComplete}
-                      buffer2SubStage={buffer2SubStage}
-                      buffer3SubStage={buffer3SubStage}
                     />
 
                     {/* Components below the text/prompt */}
                     <div className="flex w-full flex-col items-center space-y-4">
-                      {/* buffer_1: ProcessingBuffer */}
+                      {/* buffer_1: think countdown */}
                       {state.phase === "buffer_1" && (
-                        <div className="w-full">
-                          <ProcessingBuffer
-                            secondsRemaining={buffer1Remaining}
-                            totalSeconds={BUFFER_1_SECONDS}
-                          />
-                        </div>
+                        <CountdownRing
+                          secondsRemaining={buffer1Remaining}
+                          totalSeconds={BUFFER_1_SECONDS}
+                          mode="think"
+                        />
                       )}
 
                       {/* recording_1: countdown ring */}
                       {state.phase === "recording_1" && (
-                        <VideoRecorder
+                        <CountdownRing
                           secondsRemaining={recording1Remaining}
                           totalSeconds={RECORDING_1_SECONDS}
-                          phaseLabel="Phase 1"
+                          mode="recording"
                           onStopEarly={handleStopRecording1Early}
                         />
                       )}
@@ -894,9 +908,10 @@ export function VignetteExperience({
                             </motion.div>
                           )}
                           {buffer2SubStage === "thinking" && (
-                            <ProcessingBuffer
+                            <CountdownRing
                               secondsRemaining={buffer2ThinkingRemaining}
                               totalSeconds={BUFFER_2_THINKING_SECONDS}
+                              mode="think"
                             />
                           )}
                         </div>
@@ -904,10 +919,10 @@ export function VignetteExperience({
 
                       {/* recording_2: countdown ring */}
                       {state.phase === "recording_2" && (
-                        <VideoRecorder
+                        <CountdownRing
                           secondsRemaining={recording2Remaining}
                           totalSeconds={RECORDING_2_SECONDS}
-                          phaseLabel="Phase 2"
+                          mode="recording"
                           onStopEarly={handleStopRecording2Early}
                         />
                       )}
@@ -937,9 +952,10 @@ export function VignetteExperience({
                             </motion.div>
                           )}
                           {buffer3SubStage === "thinking" && (
-                            <ProcessingBuffer
+                            <CountdownRing
                               secondsRemaining={buffer3ThinkingRemaining}
                               totalSeconds={BUFFER_3_THINKING_SECONDS}
+                              mode="think"
                             />
                           )}
                         </div>
@@ -947,10 +963,10 @@ export function VignetteExperience({
 
                       {/* recording_3: countdown ring */}
                       {state.phase === "recording_3" && (
-                        <VideoRecorder
+                        <CountdownRing
                           secondsRemaining={recording3Remaining}
                           totalSeconds={RECORDING_3_SECONDS}
-                          phaseLabel="Phase 3"
+                          mode="recording"
                           onStopEarly={handleStopRecording3Early}
                         />
                       )}
@@ -1045,50 +1061,6 @@ export function VignetteExperience({
   );
 }
 
-// --- Countdown digit with scale+fade animation per number ---
-function CountdownDigit({
-  number,
-  onEnterComplete,
-  prefersReducedMotion,
-}: {
-  number: number;
-  onEnterComplete?: (n: number) => void;
-  prefersReducedMotion?: boolean;
-}) {
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      onEnterComplete?.(number);
-    }
-  }, [prefersReducedMotion, number, onEnterComplete]);
-
-  if (prefersReducedMotion) {
-    return (
-      <span
-        className="select-none text-[clamp(6rem,20vw,10rem)] font-bold leading-none tracking-tight text-text-primary"
-        style={{ textShadow: "0 0 40px rgba(77, 163, 255, 0.35)" }}
-      >
-        {number}
-      </span>
-    );
-  }
-
-  return (
-    <AnimatePresence mode="wait">
-      <motion.span
-        key={number}
-        initial={{ opacity: 0, scale: 1.3 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.85 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        onAnimationComplete={() => onEnterComplete?.(number)}
-        className="select-none text-[clamp(6rem,20vw,10rem)] font-bold leading-none tracking-tight text-text-primary"
-        style={{ textShadow: "0 0 40px rgba(77, 163, 255, 0.35)" }}
-      >
-        {number}
-      </motion.span>
-    </AnimatePresence>
-  );
-}
 
 // --- Ambient gradient orbs behind the glass panels ---
 function AmbientBackground({ phase, prefersReducedMotion }: { phase: Phase; prefersReducedMotion?: boolean }) {
