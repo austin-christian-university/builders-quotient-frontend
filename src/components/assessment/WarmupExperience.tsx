@@ -99,7 +99,8 @@ export function WarmupExperience() {
   const [countdownNumber, setCountdownNumber] = useState(3);
   const [bufferRemaining, setBufferRemaining] = useState(WARMUP_BUFFER_SECONDS);
   const [recordingRemaining, setRecordingRemaining] = useState(WARMUP_RECORDING_SECONDS);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  // Resolves to true when a new session was created; false if resumed/cooldown (already navigated)
+  const sessionPromiseRef = useRef<Promise<boolean> | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
   // ─── Computed: visible prompts ────────────────────────────────────
@@ -422,53 +423,44 @@ export function WarmupExperience() {
 
   // ─── Consent handlers ─────────────────────────────────────────────
   const handleConsentAccept = useCallback(
-    async (consent: ConsentData) => {
+    (consent: ConsentData) => {
       dispatch({ type: "CONSENT_ACCEPTED" });
-      setUploadError(null);
-      setAnnouncement("Setting up your assessment");
+      setAnnouncement("Final reminders before we begin.");
 
-      try {
-        const result = await createSession(consent);
-
-        if (result.status === "resumed" || result.status === "cooldown") {
-          router.push(result.redirectPath);
-          return;
-        }
-
-        // Upload warmup blobs (best-effort — never block the student)
-        const blobs = [blob1Ref.current, blob2Ref.current, blob3Ref.current];
-        const uploadPromises = blobs.map(async (blob, i) => {
-          if (!blob) return;
-          try {
-            const presignRes = await fetch("/api/upload", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ warmupIndex: i + 1 }),
-            });
-            if (!presignRes.ok) return;
-            const { uploadUrl } = await presignRes.json();
-            await fetch(uploadUrl, {
-              method: "PUT",
-              body: blob,
-              headers: { "Content-Type": "video/webm" },
-            });
-          } catch {
-            console.warn(
-              `[Warmup] Failed to upload warmup recording ${i + 1}`
-            );
+      // Start session creation in background (awaited before navigating to /assess/1)
+      if (!sessionPromiseRef.current) {
+        sessionPromiseRef.current = createSession(consent).then((result) => {
+          if (result.status === "resumed" || result.status === "cooldown") {
+            router.push(result.redirectPath);
+            return false; // Already navigated — orb handler should not push /assess/1
           }
+
+          // Upload warmup blobs (best-effort, never awaited)
+          const blobs = [blob1Ref.current, blob2Ref.current, blob3Ref.current];
+          const uploadPromises = blobs.map(async (blob, i) => {
+            if (!blob) return;
+            try {
+              const presignRes = await fetch("/api/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ warmupIndex: i + 1 }),
+              });
+              if (!presignRes.ok) return;
+              const { uploadUrl } = await presignRes.json();
+              await fetch(uploadUrl, {
+                method: "PUT",
+                body: blob,
+                headers: { "Content-Type": "video/webm" },
+              });
+            } catch {
+              console.warn(
+                `[Warmup] Failed to upload warmup recording ${i + 1}`
+              );
+            }
+          });
+          Promise.allSettled(uploadPromises);
+          return true; // New session created — orb handler should navigate to /assess/1
         });
-
-        await Promise.allSettled(uploadPromises);
-
-        dispatch({ type: "UPLOAD_COMPLETE" });
-        setAnnouncement("Final reminders before we begin.");
-      } catch (err) {
-        setUploadError(
-          err instanceof Error
-            ? err.message
-            : "Something went wrong setting up your assessment. Please try again."
-        );
       }
     },
     [router]
@@ -520,13 +512,27 @@ export function WarmupExperience() {
       {state.phase === "pre_exam_orb" && (
         <OrbGuide
           script={PRE_EXAM_SCRIPT}
-          onContinue={() => {
-            dispatch({ type: "PRE_EXAM_COMPLETE" });
-            router.push("/assess/1");
+          onContinue={async () => {
+            try {
+              const shouldNavigate = await sessionPromiseRef.current;
+              if (shouldNavigate) {
+                dispatch({ type: "PRE_EXAM_COMPLETE" });
+                router.push("/assess/1");
+              }
+            } catch {
+              router.push("/assess/setup");
+            }
           }}
-          onSkip={() => {
-            dispatch({ type: "PRE_EXAM_COMPLETE" });
-            router.push("/assess/1");
+          onSkip={async () => {
+            try {
+              const shouldNavigate = await sessionPromiseRef.current;
+              if (shouldNavigate) {
+                dispatch({ type: "PRE_EXAM_COMPLETE" });
+                router.push("/assess/1");
+              }
+            } catch {
+              router.push("/assess/setup");
+            }
           }}
         />
       )}
@@ -690,52 +696,6 @@ export function WarmupExperience() {
                         buttonText="Start the Assessment"
                         embedded
                       />
-                    </motion.div>
-                  )}
-
-                  {/* Uploading */}
-                  {state.phase === "uploading" && (
-                    <motion.div
-                      key="uploading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex flex-1 flex-col items-center justify-center gap-8"
-                    >
-                      <div
-                        className="h-[200px] w-[200px] rounded-full"
-                        style={{
-                          background:
-                            "radial-gradient(circle at 35% 35%, rgba(233,185,73,0.3), rgba(77,163,255,0.15), transparent 70%)",
-                          animation: prefersReducedMotion
-                            ? "none"
-                            : "orb-breathe 4s ease-in-out infinite",
-                          boxShadow: "0 0 60px rgba(233,185,73,0.2)",
-                        }}
-                      />
-                      <p className="font-display text-[length:var(--text-fluid-lg)] font-medium text-text-primary">
-                        Setting up your assessment&hellip;
-                      </p>
-
-                      {uploadError && (
-                        <div
-                          role="alert"
-                          className="w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
-                        >
-                          <p>{uploadError}</p>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              dispatch({ type: "UPLOAD_RETRY" });
-                              setUploadError(null);
-                            }}
-                            className="mt-2 underline underline-offset-2 hover:text-text-primary"
-                          >
-                            Try again
-                          </button>
-                        </div>
-                      )}
                     </motion.div>
                   )}
 

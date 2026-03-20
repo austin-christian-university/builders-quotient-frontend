@@ -10,7 +10,6 @@ export type WarmupPhase =
   | "recording_3"
   | "transition_orb"
   | "consent"
-  | "uploading"
   | "pre_exam_orb"
   | "done"
   | "declined";
@@ -28,8 +27,6 @@ export type WarmupAction =
   | { type: "TRANSITION_COMPLETE" }
   | { type: "CONSENT_ACCEPTED" }
   | { type: "CONSENT_DECLINED" }
-  | { type: "UPLOAD_COMPLETE" }
-  | { type: "UPLOAD_RETRY" }
   | { type: "PRE_EXAM_COMPLETE" }
   | { type: "DEV_SET_PHASE"; phase: WarmupPhase };
 
@@ -49,10 +46,9 @@ const TRANSITIONS: Partial<Record<WarmupPhase, Partial<Record<WarmupAction["type
   recording_3: { RECORDING_3_COMPLETE: "transition_orb" },
   transition_orb: { TRANSITION_COMPLETE: "consent" },
   consent: {
-    CONSENT_ACCEPTED: "uploading",
+    CONSENT_ACCEPTED: "pre_exam_orb",
     CONSENT_DECLINED: "declined",
   },
-  uploading: { UPLOAD_COMPLETE: "pre_exam_orb", UPLOAD_RETRY: "consent" },
   pre_exam_orb: { PRE_EXAM_COMPLETE: "done" },
 };
 

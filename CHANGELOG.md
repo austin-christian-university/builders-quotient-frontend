@@ -2,6 +2,16 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.1.0] - 2026-03-19
+
+### Changed
+- Students no longer see a "Setting up your assessment" loading screen — the flow moves straight from consent to the pre-exam orb
+- Session creation happens silently in the background during the orb narration
+
+### Removed
+- `uploading` phase from warmup state machine (14 phases, down from 15)
+- `UPLOAD_COMPLETE` and `UPLOAD_RETRY` reducer actions
+
 ## [0.2.0.0] - 2026-03-19
 
 ### Added
