@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/server";
-import { deriveArchetype } from "@/lib/assessment/archetypes";
 import {
   FACET_LABELS,
   ENTREPRENEURIAL_FACETS,
@@ -17,6 +16,7 @@ import {
   getPersonalityNarrative,
 } from "@/lib/assessment/narrative-templates";
 import type {
+  Archetype,
   ResultsPageData,
   CategoryScore,
   PersonalityData,
@@ -373,19 +373,16 @@ export async function getResultsByToken(
   const piRadar = computeRadarFromMoveDetails(scored, "practical");
   const ciRadar = computeRadarFromMoveDetails(scored, "creative");
 
-  // 7. Archetype — read from DB, fallback to client derivation during transition
-  const archetype =
-    session.archetype_name && session.archetype_tagline && session.archetype_description && session.archetype_variant
-      ? {
-          name: session.archetype_name as string,
-          tagline: session.archetype_tagline as string,
-          description: session.archetype_description as string,
-          ...(session.archetype_based_on_category
-            ? { basedOnCategory: session.archetype_based_on_category as string }
-            : {}),
-          variant: session.archetype_variant as "pi" | "ci" | "balanced",
-        }
-      : deriveArchetype(piCategories, ciCategories);
+  // 7. Archetype — read from DB
+  const archetype: Archetype = {
+    name: (session.archetype_name as string) ?? "Unclassified",
+    tagline: (session.archetype_tagline as string) ?? "",
+    description: (session.archetype_description as string) ?? "",
+    ...(session.archetype_based_on_category
+      ? { basedOnCategory: session.archetype_based_on_category as string }
+      : {}),
+    variant: (session.archetype_variant as "pi" | "ci" | "balanced") ?? "balanced",
+  };
 
   // 8. Intelligence narrative
   const intelligenceNarrative = getIntelligenceNarrative(piCategories, ciCategories);
