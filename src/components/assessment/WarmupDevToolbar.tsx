@@ -15,7 +15,6 @@ const PHASE_LABELS: Record<WarmupPhase, string> = {
   recording_3: "Recording 3",
   transition_orb: "Transition Orb",
   consent: "Consent",
-  uploading: "Uploading",
   pre_exam_orb: "Pre-Exam Orb",
   done: "Done",
   declined: "Declined",
@@ -33,7 +32,6 @@ const RECORDING_PHASES: ReadonlySet<WarmupPhase> = new Set([
 const LATE_PHASES: ReadonlySet<WarmupPhase> = new Set([
   "transition_orb",
   "consent",
-  "uploading",
   "pre_exam_orb",
   "done",
   "declined",
@@ -146,7 +144,7 @@ export function WarmupDevToolbar({
         <button
           type="button"
           onClick={() => onDevSetPhase("consent")}
-          disabled={phase === "consent" || phase === "uploading" || phase === "done"}
+          disabled={phase === "consent" || phase === "done"}
           className="rounded bg-green-900/50 px-2 py-1.5 text-[11px] text-green-400 transition-colors hover:bg-green-800/60 disabled:opacity-30"
         >
           Skip to Consent

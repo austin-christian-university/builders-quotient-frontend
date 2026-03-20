@@ -42,8 +42,6 @@ describe("warmupReducer", () => {
     state = warmupReducer(state, { type: "TRANSITION_COMPLETE" });
     expect(state.phase).toBe("consent");
     state = warmupReducer(state, { type: "CONSENT_ACCEPTED" });
-    expect(state.phase).toBe("uploading");
-    state = warmupReducer(state, { type: "UPLOAD_COMPLETE" });
     expect(state.phase).toBe("pre_exam_orb");
     state = warmupReducer(state, { type: "PRE_EXAM_COMPLETE" });
     expect(state.phase).toBe("done");
@@ -57,11 +55,6 @@ describe("warmupReducer", () => {
   it("supports DEV_SET_PHASE for dev toolbar", () => {
     const state = warmupReducer(createState(), { type: "DEV_SET_PHASE", phase: "buffer_2" });
     expect(state.phase).toBe("buffer_2");
-  });
-
-  it("transitions from uploading back to consent on UPLOAD_RETRY", () => {
-    const state = warmupReducer(createState({ phase: "uploading" }), { type: "UPLOAD_RETRY" });
-    expect(state.phase).toBe("consent");
   });
 
   it("returns current state for invalid transitions", () => {
