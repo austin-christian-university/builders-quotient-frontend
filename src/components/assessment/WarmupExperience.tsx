@@ -143,16 +143,6 @@ export function WarmupExperience() {
     state.phase === "buffer_3" ||
     state.phase === "recording_3";
 
-  // Which recording phase we are in (1, 2, or 3) — null if not recording
-  const recordingPhaseIndex =
-    state.phase === "recording_1"
-      ? 0
-      : state.phase === "recording_2"
-        ? 1
-        : state.phase === "recording_3"
-          ? 2
-          : null;
-
   // ─── beforeunload during recording ────────────────────────────────
   useEffect(() => {
     if (recorder.status !== "recording") return;
