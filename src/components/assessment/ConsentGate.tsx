@@ -221,7 +221,7 @@ export function ConsentGate({
             <button
               type="button"
               onClick={onDecline}
-              className="text-[length:var(--text-fluid-sm)] text-text-secondary transition-colors hover:text-text-primary"
+              className="min-h-11 text-[length:var(--text-fluid-sm)] text-text-secondary transition-colors hover:text-text-primary"
             >
               I&apos;d rather not continue
             </button>
