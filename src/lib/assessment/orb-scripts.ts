@@ -312,13 +312,13 @@ export const WARMUP_INTRO_SCRIPT: OrbScript = {
 const POST_WARMUP_CAPTIONS: OrbCaption[] = [
   {
     startTime: 0,
-    endTime: 8,
-    text: "Nice work! See, nothing to it. You\u2019re a natural on camera. Now, before we start the real assessment, I need you to review a few quick details.",
+    endTime: 7,
+    text: "Nice work! See, nothing to it. You\u2019re a natural on camera.",
   },
   {
-    startTime: 9,
+    startTime: 7,
     endTime: 14,
-    text: "Take a moment to read through the information below and check the boxes when you\u2019re ready.",
+    text: "Now, before we start the real assessment, you need to review a few quick details. Take a moment to read through the information on the next page and check the boxes when you\u2019re ready.",
   },
 ];
 
