@@ -181,7 +181,7 @@ export function CountdownRing({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           onClick={onStopEarly}
-          className="rounded-full border border-white/15 bg-white/5 px-6 py-2.5 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+          className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
         >
           I&rsquo;m Done
         </motion.button>
