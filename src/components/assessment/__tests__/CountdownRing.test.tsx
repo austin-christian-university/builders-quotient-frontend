@@ -40,13 +40,13 @@ describe("CountdownRing", () => {
       expect(screen.getByText("RECORDING")).toBeInTheDocument();
     });
 
-    it("shows I'm Done button after 5s elapsed", () => {
+    it("shows I'm Done button after 10s elapsed", () => {
       render(<CountdownRing secondsRemaining={20} totalSeconds={30} mode="recording" onStopEarly={() => {}} />);
       expect(screen.getByText(/done/i)).toBeInTheDocument();
     });
 
-    it("hides I'm Done button before 5s elapsed", () => {
-      render(<CountdownRing secondsRemaining={28} totalSeconds={30} mode="recording" onStopEarly={() => {}} />);
+    it("hides I'm Done button before 10s elapsed", () => {
+      render(<CountdownRing secondsRemaining={25} totalSeconds={30} mode="recording" onStopEarly={() => {}} />);
       expect(screen.queryByText(/done/i)).not.toBeInTheDocument();
     });
 

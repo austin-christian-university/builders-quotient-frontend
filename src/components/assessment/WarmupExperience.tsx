@@ -687,7 +687,7 @@ export function WarmupExperience() {
                       transition={{ duration: 0.3 }}
                       className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center pt-4"
                     >
-                      <div className="w-full space-y-6">
+                      <div className="w-full space-y-3">
                         <VignetteNarrator
                           vignetteText={WARMUP_VIGNETTE_TEXT}
                           vignettePrompt={WARMUP_VIGNETTE_PROMPT}
