@@ -2,6 +2,15 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.2.0] - 2026-03-23
+
+### Changed
+- Results page strengths and growth areas now show exactly 2 practical + 2 creative intelligence categories for balanced domain representation
+- Reasoning Highlights slide picks top 2 from each domain instead of top 4 overall
+- Intelligence Narrative slide displays up to 4 cards per column (was 3)
+- "Done Thinking" button now appears during think/buffer phases in warmup and vignette flows (was recording-only)
+- Phase 2 and 3 recording windows extended from 45s to 75s to match phase 1
+
 ## [0.2.1.0] - 2026-03-19
 
 ### Changed
