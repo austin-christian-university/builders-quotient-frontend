@@ -38,7 +38,7 @@ export function CountdownRing({
     ? secondsRemaining <= 3
     : secondsRemaining <= 5;
   const canStopEarly =
-    !isThink && onStopEarly && elapsed >= MIN_SECONDS_BEFORE_STOP;
+    onStopEarly && elapsed >= MIN_SECONDS_BEFORE_STOP;
 
   const ringColor = isThink ? "text-primary" : "text-red-500";
   const glowFilter = isThink
@@ -173,7 +173,7 @@ export function CountdownRing({
         </div>
       </div>
 
-      {/* "I'm Done" button (recording mode only, after 5s) */}
+      {/* "I'm Done" / "Done Thinking" button (after 5s) */}
       {canStopEarly && (
         <motion.button
           type="button"
@@ -183,7 +183,7 @@ export function CountdownRing({
           onClick={onStopEarly}
           className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
         >
-          I&rsquo;m Done
+          {isThink ? "Done Thinking" : "I\u2019m Done"}
         </motion.button>
       )}
     </div>
