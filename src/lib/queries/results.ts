@@ -9,6 +9,11 @@ import {
 import {
   PERSONALITY_DIMENSION_KEYS,
 } from "@/lib/assessment/personality-dimensions";
+import {
+  PI_CANONICAL_CATEGORIES,
+  CI_CANONICAL_CATEGORIES,
+  interpolateFromNeighbors,
+} from "@/lib/assessment/scoring-categories";
 import type { PersonalityVector } from "@/lib/assessment/personality-dimensions";
 import {
   getIntelligenceNarrative,
@@ -209,13 +214,23 @@ function extractCorpusAverage(
  * Per category: studentScore = fraction of moves demonstrated,
  * entrepreneurScore = mean agreement_rate. Both 0–1.
  * Averaged across vignettes of the same type.
+ *
+ * Always returns exactly `canonicalCategories.length` entries in
+ * canonical order. Missing categories are interpolated from neighbors.
  */
 function computeRadarFromMoveDetails(
   responses: ScoredResponse[],
-  type: "practical" | "creative"
+  type: "practical" | "creative",
+  canonicalCategories: readonly string[]
 ): RadarCategory[] {
   const typed = responses.filter((r) => r.vignette_type === type);
-  if (typed.length === 0) return [];
+  if (typed.length === 0) {
+    return canonicalCategories.map((category) => ({
+      category,
+      studentScore: 0,
+      entrepreneurScore: 0,
+    }));
+  }
 
   // Per-vignette: category -> { studentScore, entrepreneurScore }
   const vignetteResults: Map<
@@ -249,17 +264,20 @@ function computeRadarFromMoveDetails(
     vignetteResults.push(catScores);
   }
 
-  if (vignetteResults.length === 0) return [];
-
-  // Collect all categories seen across vignettes
-  const allCategories = new Set<string>();
-  for (const vr of vignetteResults) {
-    for (const cat of vr.keys()) allCategories.add(cat);
+  if (vignetteResults.length === 0) {
+    return canonicalCategories.map((category) => ({
+      category,
+      studentScore: 0,
+      entrepreneurScore: 0,
+    }));
   }
 
-  // Average across vignettes per category
-  const result: RadarCategory[] = [];
-  for (const category of allCategories) {
+  // Average across vignettes per category (only for categories with data)
+  const scored = new Map<
+    string,
+    { studentScore: number; entrepreneurScore: number }
+  >();
+  for (const category of canonicalCategories) {
     let studentSum = 0;
     let entrepreneurSum = 0;
     let count = 0;
@@ -272,31 +290,42 @@ function computeRadarFromMoveDetails(
       }
     }
     if (count > 0) {
-      result.push({
-        category,
+      scored.set(category, {
         studentScore: studentSum / count,
         entrepreneurScore: entrepreneurSum / count,
       });
     }
   }
 
-  // Preserve category order from first response's move_details
-  const firstMoveDetails = typed[0].scoring_result.move_details ?? [];
-  const categoryOrder: string[] = [];
-  const seen = new Set<string>();
-  for (const md of firstMoveDetails) {
-    if (!seen.has(md.category)) {
-      categoryOrder.push(md.category);
-      seen.add(md.category);
+  // Build index-based maps for interpolation
+  const studentScoredMap = new Map<number, number>();
+  const entrepreneurScoredMap = new Map<number, number>();
+  for (let i = 0; i < canonicalCategories.length; i++) {
+    const s = scored.get(canonicalCategories[i]);
+    if (s) {
+      studentScoredMap.set(i, s.studentScore);
+      entrepreneurScoredMap.set(i, s.entrepreneurScore);
     }
   }
-  result.sort((a, b) => {
-    const ai = categoryOrder.indexOf(a.category);
-    const bi = categoryOrder.indexOf(b.category);
-    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-  });
 
-  return result;
+  const n = canonicalCategories.length;
+
+  // Emit all canonical categories in order, interpolating missing ones
+  return canonicalCategories.map((category, i) => {
+    const existing = scored.get(category);
+    if (existing) {
+      return { category, ...existing };
+    }
+    return {
+      category,
+      studentScore: interpolateFromNeighbors(i, studentScoredMap, n),
+      entrepreneurScore: interpolateFromNeighbors(
+        i,
+        entrepreneurScoredMap,
+        n
+      ),
+    };
+  });
 }
 
 // --- Main query ---
@@ -369,9 +398,9 @@ export async function getResultsByToken(
   const piCorpusAverage = extractCorpusAverage(scored, "practical");
   const ciCorpusAverage = extractCorpusAverage(scored, "creative");
 
-  // 6b. Compute bidirectional radar data from move_details
-  const piRadar = computeRadarFromMoveDetails(scored, "practical");
-  const ciRadar = computeRadarFromMoveDetails(scored, "creative");
+  // 6b. Compute bidirectional radar data from move_details (always 12 categories)
+  const piRadar = computeRadarFromMoveDetails(scored, "practical", PI_CANONICAL_CATEGORIES);
+  const ciRadar = computeRadarFromMoveDetails(scored, "creative", CI_CANONICAL_CATEGORIES);
 
   // 7. Archetype — read from DB
   const archetype: Archetype = {
