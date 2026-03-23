@@ -154,7 +154,13 @@ export function VignetteNarrator({
   const showPhase1Prompt = activeContent ? activeContent === "prompt1" : !!visiblePrompts?.has(1);
   const showPhase2Prompt = activeContent ? activeContent === "prompt2" : !!visiblePrompts?.has(2);
   const showPhase3Prompt = activeContent ? activeContent === "prompt3" : !!visiblePrompts?.has(3);
-  // isPhase1Revealing, isPhase2Revealing, isPhase3Revealing come directly from props
+
+  // Track whether reveal has ever started — prevents flashing full text
+  // during the fade-in before the word-by-word reveal begins.
+  const [hasPhase2Revealed, setHasPhase2Revealed] = useState(false);
+  const [hasPhase3Revealed, setHasPhase3Revealed] = useState(false);
+  useEffect(() => { if (isPhase2Revealing) setHasPhase2Revealed(true); }, [isPhase2Revealing]);
+  useEffect(() => { if (isPhase3Revealing) setHasPhase3Revealed(true); }, [isPhase3Revealing]);
 
   // Timer-mode prompt revealing: word-by-word in progress
   const isPrompt1TimerRevealing = !useAudioMode && !prefersReducedMotion
@@ -344,7 +350,7 @@ export function VignetteNarrator({
     const phase2PromptTimings = phase2PromptBound
       ? audioTiming.slice(phase2PromptStartIdx, phase2PromptBound.endIdx + 1)
       : [];
-    const phase2PromptCount = (showPhase2Prompt && !isPhase2Revealing) || showAll
+    const phase2PromptCount = (showPhase2Prompt && !isPhase2Revealing && hasPhase2Revealed) || showAll
       ? phase2PromptTimings.length
       : isPhase2Revealing
         ? Math.max(0, audio.revealedCount - phase2PromptStartIdx)
@@ -354,7 +360,7 @@ export function VignetteNarrator({
     const phase3PromptTimings = phase3PromptBound
       ? audioTiming.slice(phase3PromptStartIdx, phase3PromptBound.endIdx + 1)
       : [];
-    const phase3PromptCount = (showPhase3Prompt && !isPhase3Revealing) || showAll
+    const phase3PromptCount = (showPhase3Prompt && !isPhase3Revealing && hasPhase3Revealed) || showAll
       ? phase3PromptTimings.length
       : isPhase3Revealing
         ? Math.max(0, audio.revealedCount - phase3PromptStartIdx)
@@ -448,7 +454,7 @@ export function VignetteNarrator({
     );
 
     const prompt2Block = showPhase2Prompt && phase2Prompt && (
-      <PromptSection label="Prompt 2" text={!isPhase2Revealing ? stripLeadingEllipsis(phase2Prompt) : undefined}>
+      <PromptSection label="Prompt 2" text={(!isPhase2Revealing && hasPhase2Revealed) ? stripLeadingEllipsis(phase2Prompt) : undefined}>
         {isPhase2Revealing && phase2PromptTimings.length > 0 && (
           <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
             {phase2PromptTimings.map((timing, i) => {
@@ -486,7 +492,7 @@ export function VignetteNarrator({
     );
 
     const prompt3Block = showPhase3Prompt && phase3Prompt && (
-      <PromptSection label="Prompt 3" text={!isPhase3Revealing ? stripLeadingEllipsis(phase3Prompt) : undefined}>
+      <PromptSection label="Prompt 3" text={(!isPhase3Revealing && hasPhase3Revealed) ? stripLeadingEllipsis(phase3Prompt) : undefined}>
         {isPhase3Revealing && phase3PromptTimings.length > 0 && (
           <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
             {phase3PromptTimings.map((timing, i) => {
@@ -674,7 +680,7 @@ export function VignetteNarrator({
   const timerPrompt2Block = showPhase2Prompt && phase2Prompt && (
     <PromptSection
       label="Prompt 2"
-      text={!isPrompt2TimerRevealing ? stripLeadingEllipsis(phase2Prompt) : undefined}
+      text={(!isPrompt2TimerRevealing && hasPhase2Revealed) ? stripLeadingEllipsis(phase2Prompt) : undefined}
     >
       {isPrompt2TimerRevealing && prompt2Words && (
         <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
@@ -715,7 +721,7 @@ export function VignetteNarrator({
   const timerPrompt3Block = showPhase3Prompt && phase3Prompt && (
     <PromptSection
       label="Prompt 3"
-      text={!isPrompt3TimerRevealing ? stripLeadingEllipsis(phase3Prompt) : undefined}
+      text={(!isPrompt3TimerRevealing && hasPhase3Revealed) ? stripLeadingEllipsis(phase3Prompt) : undefined}
     >
       {isPrompt3TimerRevealing && prompt3Words && (
         <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
