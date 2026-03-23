@@ -2,6 +2,18 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.2.0] - 2026-03-23
+
+### Changed
+- PI and CI radar charts now always render exactly 12 categories at fixed 30° intervals, regardless of how many categories the scoring pipeline detected
+- Same category always appears at the same angular position across different students' charts
+- Missing categories are interpolated from nearest scored neighbors (circular walk, averaged)
+
+### Added
+- Canonical 12-category arrays for PI and CI in `scoring-categories.ts`
+- `interpolateFromNeighbors()` pure function with wrap-around neighbor interpolation
+- 12 unit tests covering interpolation edge cases (consecutive missing, wrap-around, single/zero scored, category name consistency)
+
 ## [0.2.1.0] - 2026-03-19
 
 ### Changed
