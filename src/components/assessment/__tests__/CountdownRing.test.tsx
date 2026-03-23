@@ -17,6 +17,20 @@ beforeAll(() => {
       dispatchEvent: () => false,
     }),
   });
+
+  // jsdom doesn't implement IntersectionObserver
+  globalThis.IntersectionObserver = class IntersectionObserver {
+    constructor(private cb: IntersectionObserverCallback) {}
+    observe(target: Element) {
+      // Immediately report as intersecting
+      this.cb(
+        [{ isIntersecting: true, target } as IntersectionObserverEntry],
+        this as unknown as globalThis.IntersectionObserver,
+      );
+    }
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof globalThis.IntersectionObserver;
 });
 
 describe("CountdownRing", () => {

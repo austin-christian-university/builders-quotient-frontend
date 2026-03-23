@@ -149,19 +149,14 @@ export function CountdownRing({
     ? secondsRemaining <= 3
     : secondsRemaining <= 5;
 
-  // Double-check elapsed time against a real wall-clock ref to prevent
-  // the "I'm Done" button from appearing before the minimum time.
-  const mountTimeRef = useRef(Date.now());
-  useEffect(() => {
-    mountTimeRef.current = Date.now();
-  }, [mode, totalSeconds]); // reset on phase change
-
-  const wallElapsedMs = Date.now() - mountTimeRef.current;
+  // Guard: require at least one countdown tick (secondsRemaining < totalSeconds)
+  // AND the full MIN_SECONDS_BEFORE_STOP to have elapsed. This prevents
+  // any flash of the button on first render or stale-state edge cases.
   const canStopEarly =
     !isThink &&
     !!onStopEarly &&
-    elapsed >= MIN_SECONDS_BEFORE_STOP &&
-    wallElapsedMs >= MIN_SECONDS_BEFORE_STOP * 1000;
+    secondsRemaining < totalSeconds &&
+    elapsed >= MIN_SECONDS_BEFORE_STOP;
 
   // --- IntersectionObserver: detect when inline timer leaves viewport ---
   const inlineRef = useRef<HTMLDivElement>(null);
