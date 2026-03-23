@@ -8,7 +8,7 @@ import {
   useState,
   type RefObject,
 } from "react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   calculateWordTiming,
   getSectionBoundaries,
@@ -27,6 +27,8 @@ function stripLeadingEllipsis(text: string): string {
   return text.replace(/^[\s]*[.…]+[\s]+/, "");
 }
 
+export type ActiveContent = "narrative" | "prompt2" | "prompt3";
+
 type VignetteNarratorProps = {
   vignetteText: string;
   vignettePrompt: string;
@@ -37,8 +39,10 @@ type VignetteNarratorProps = {
   isNarrating: boolean;
   /** Whether to show all narrative text (past narration phase) */
   showAllNarrative: boolean;
-  /** Which prompts are currently visible */
-  visiblePrompts: ReadonlySet<1 | 2 | 3>;
+  /** Which prompts are currently visible (legacy — used by WarmupExperience) */
+  visiblePrompts?: ReadonlySet<1 | 2 | 3>;
+  /** Single-slot content display (used by VignetteExperience). Takes precedence over visiblePrompts. */
+  activeContent?: ActiveContent;
   /** Whether phase 1 prompt is currently being revealed word-by-word */
   isPhase1Revealing: boolean;
   /** Whether phase 2 prompt is currently being revealed word-by-word */
@@ -60,6 +64,7 @@ export function VignetteNarrator({
   isNarrating,
   showAllNarrative,
   visiblePrompts,
+  activeContent,
   isPhase1Revealing,
   isPhase2Revealing,
   isPhase3Revealing,
@@ -138,10 +143,12 @@ export function VignetteNarrator({
   // Derived counts for each section
   const totalWords = useAudioMode ? (audioTiming?.length ?? 0) : words.length;
 
-  // Prompt visibility rules come from props
-  const showPhase1Prompt = visiblePrompts.has(1);
-  const showPhase2Prompt = visiblePrompts.has(2);
-  const showPhase3Prompt = visiblePrompts.has(3);
+  // Prompt visibility: activeContent (single-slot) takes precedence over visiblePrompts (stacking)
+  const showPhase1Prompt = activeContent ? activeContent === "narrative" : !!visiblePrompts?.has(1);
+  const showPhase2Prompt = activeContent ? activeContent === "prompt2" : !!visiblePrompts?.has(2);
+  const showPhase3Prompt = activeContent ? activeContent === "prompt3" : !!visiblePrompts?.has(3);
+  // When using activeContent, hide narrative+prompt1 when showing prompt2/3
+  const showNarrative = activeContent ? activeContent === "narrative" : true;
   // isPhase1Revealing, isPhase2Revealing, isPhase3Revealing come directly from props
 
   // Timer-mode prompt revealing: word-by-word in progress
@@ -308,6 +315,21 @@ export function VignetteNarrator({
     return () => cancelAnimationFrame(id);
   }, [totalRevealedCount]);
 
+  // Scroll to top when activeContent changes (new prompt replaces old)
+  useEffect(() => {
+    if (!activeContent) return;
+    scrollContainerRef.current?.scrollTo({ top: 0 });
+  }, [activeContent]);
+
+  // Fade transition variants for AnimatePresence (used in single-slot mode)
+  const fadeVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
+  const fadeDuration = prefersReducedMotion ? 0 : 0.6;
+  const fadeTransition = { duration: fadeDuration, ease: [0.16, 1, 0.3, 1] as const };
+
   // --- Render ---
 
   // Audio mode: section-aware rendering
@@ -346,8 +368,8 @@ export function VignetteNarrator({
         ? Math.max(0, audio.revealedCount - phase3PromptStartIdx)
         : 0;
 
-    return (
-      <div className="w-full space-y-6">
+    const narrativeBlock = (
+      <>
         <ScrollableTextBox scrollContainerRef={scrollContainerRef} ariaLive="polite">
           <p>
             {narrativeTimings.map((timing, i) => {
@@ -390,7 +412,6 @@ export function VignetteNarrator({
           />
         </ScrollableTextBox>
 
-        {/* Phase 1 prompt — word-by-word during narrating, static text after */}
         {showPhase1Prompt && phase1PromptCount > 0 && (
           <PromptSection
             label="Prompt 1"
@@ -431,84 +452,114 @@ export function VignetteNarrator({
             )}
           </PromptSection>
         )}
+      </>
+    );
 
-        {/* Phase 2 prompt */}
-        {showPhase2Prompt && phase2Prompt && (
-          <PromptSection label="Prompt 2" text={!isPhase2Revealing ? stripLeadingEllipsis(phase2Prompt) : undefined}>
-            {isPhase2Revealing && phase2PromptTimings.length > 0 && (
-              <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
-                {phase2PromptTimings.map((timing, i) => {
-                  if (i >= phase2PromptCount) return null;
-                  if (isSkipToken(timing.word)) return null;
+    const prompt2Block = showPhase2Prompt && phase2Prompt && (
+      <PromptSection label="Prompt 2" text={!isPhase2Revealing ? stripLeadingEllipsis(phase2Prompt) : undefined}>
+        {isPhase2Revealing && phase2PromptTimings.length > 0 && (
+          <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
+            {phase2PromptTimings.map((timing, i) => {
+              if (i >= phase2PromptCount) return null;
+              if (isSkipToken(timing.word)) return null;
 
-                  const globalIdx = phase2PromptStartIdx + i;
-                    const isActiveWord = globalIdx === revealedCount - 1 && !showAll;
-                    const isLast = i === phase2PromptTimings.length - 1;
+              const globalIdx = phase2PromptStartIdx + i;
+              const isActiveWord = globalIdx === revealedCount - 1 && !showAll;
+              const isLast = i === phase2PromptTimings.length - 1;
 
-                    if (!isActiveWord) {
-                      return (
-                        <span key={i} className="inline">
-                          {timing.word}
-                          {!isLast ? " " : ""}
-                        </span>
-                      );
-                    }
+              if (!isActiveWord) {
+                return (
+                  <span key={i} className="inline">
+                    {timing.word}
+                    {!isLast ? " " : ""}
+                  </span>
+                );
+              }
 
-                    return (
-                      <ActiveWord
-                        key={i}
-                        ref={latestWordRef}
-                        word={timing.word}
-                        wordStart={timing.start}
-                        wordEnd={timing.end}
-                        currentTimeRef={audio.currentTimeRef}
-                        trailingSpace={!isLast}
-                      />
-                    );
-                  })}
-                </p>
-            )}
-          </PromptSection>
+              return (
+                <ActiveWord
+                  key={i}
+                  ref={latestWordRef}
+                  word={timing.word}
+                  wordStart={timing.start}
+                  wordEnd={timing.end}
+                  currentTimeRef={audio.currentTimeRef}
+                  trailingSpace={!isLast}
+                />
+              );
+            })}
+          </p>
         )}
+      </PromptSection>
+    );
 
-        {/* Phase 3 prompt */}
-        {showPhase3Prompt && phase3Prompt && (
-          <PromptSection label="Prompt 3" text={!isPhase3Revealing ? stripLeadingEllipsis(phase3Prompt) : undefined}>
-            {isPhase3Revealing && phase3PromptTimings.length > 0 && (
-              <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
-                {phase3PromptTimings.map((timing, i) => {
-                  if (i >= phase3PromptCount) return null;
-                  if (isSkipToken(timing.word)) return null;
+    const prompt3Block = showPhase3Prompt && phase3Prompt && (
+      <PromptSection label="Prompt 3" text={!isPhase3Revealing ? stripLeadingEllipsis(phase3Prompt) : undefined}>
+        {isPhase3Revealing && phase3PromptTimings.length > 0 && (
+          <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
+            {phase3PromptTimings.map((timing, i) => {
+              if (i >= phase3PromptCount) return null;
+              if (isSkipToken(timing.word)) return null;
 
-                  const globalIdx = phase3PromptStartIdx + i;
-                    const isActiveWord = globalIdx === revealedCount - 1 && !showAll;
-                    const isLast = i === phase3PromptTimings.length - 1;
+              const globalIdx = phase3PromptStartIdx + i;
+              const isActiveWord = globalIdx === revealedCount - 1 && !showAll;
+              const isLast = i === phase3PromptTimings.length - 1;
 
-                    if (!isActiveWord) {
-                      return (
-                        <span key={i} className="inline">
-                          {timing.word}
-                          {!isLast ? " " : ""}
-                        </span>
-                      );
-                    }
+              if (!isActiveWord) {
+                return (
+                  <span key={i} className="inline">
+                    {timing.word}
+                    {!isLast ? " " : ""}
+                  </span>
+                );
+              }
 
-                    return (
-                      <ActiveWord
-                        key={i}
-                        ref={latestWordRef}
-                        word={timing.word}
-                        wordStart={timing.start}
-                        wordEnd={timing.end}
-                        currentTimeRef={audio.currentTimeRef}
-                        trailingSpace={!isLast}
-                      />
-                    );
-                  })}
-                </p>
-            )}
-          </PromptSection>
+              return (
+                <ActiveWord
+                  key={i}
+                  ref={latestWordRef}
+                  word={timing.word}
+                  wordStart={timing.start}
+                  wordEnd={timing.end}
+                  currentTimeRef={audio.currentTimeRef}
+                  trailingSpace={!isLast}
+                />
+              );
+            })}
+          </p>
         )}
+      </PromptSection>
+    );
+
+    // Single-slot mode: fade between content blocks
+    if (activeContent) {
+      return (
+        <div className="w-full space-y-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeContent}
+              variants={fadeVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={fadeTransition}
+              className="space-y-6"
+            >
+              {activeContent === "narrative" && narrativeBlock}
+              {activeContent === "prompt2" && prompt2Block}
+              {activeContent === "prompt3" && prompt3Block}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      );
+    }
+
+    // Legacy stacking mode (warmup)
+    return (
+      <div className="w-full space-y-6">
+        {narrativeBlock}
+        {prompt2Block}
+        {prompt3Block}
       </div>
     );
   }
@@ -516,8 +567,8 @@ export function VignetteNarrator({
   // --- Timer-based fallback rendering ---
   let globalWordIndex = 0;
 
-  return (
-    <div className="w-full space-y-6">
+  const timerNarrativeBlock = (
+    <>
       <ScrollableTextBox scrollContainerRef={scrollContainerRef} ariaLive="polite">
         {sentenceGroups.map((group, sentenceIdx) => {
           const sentenceStartIdx = globalWordIndex;
@@ -584,7 +635,6 @@ export function VignetteNarrator({
         />
       </ScrollableTextBox>
 
-      {/* Phase 1 prompt (timer fallback — word-by-word when revealing, static after) */}
       {showPhase1Prompt && !isActive && (
         <PromptSection
           label="Prompt 1"
@@ -625,90 +675,120 @@ export function VignetteNarrator({
           )}
         </PromptSection>
       )}
+    </>
+  );
 
-      {/* Phase 2 prompt (timer fallback — word-by-word when revealing, static after) */}
-      {showPhase2Prompt && phase2Prompt && (
-        <PromptSection
-          label="Prompt 2"
-          text={!isPrompt2TimerRevealing ? stripLeadingEllipsis(phase2Prompt) : undefined}
-        >
-          {isPrompt2TimerRevealing && prompt2Words && (
-            <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
-              {prompt2Words.words.map((word, i) => {
-                if (i >= prompt2RevealedCount) return null;
-                if (isSkipToken(word.text)) return null;
+  const timerPrompt2Block = showPhase2Prompt && phase2Prompt && (
+    <PromptSection
+      label="Prompt 2"
+      text={!isPrompt2TimerRevealing ? stripLeadingEllipsis(phase2Prompt) : undefined}
+    >
+      {isPrompt2TimerRevealing && prompt2Words && (
+        <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
+          {prompt2Words.words.map((word, i) => {
+            if (i >= prompt2RevealedCount) return null;
+            if (isSkipToken(word.text)) return null;
 
-                const isActiveW = i === prompt2RevealedCount - 1;
-                const isLast = i === prompt2Words.words.length - 1;
-                const nextWord = prompt2Words.words[i + 1];
-                const wordEnd = nextWord ? nextWord.startTime : prompt2Words.totalDuration;
+            const isActiveW = i === prompt2RevealedCount - 1;
+            const isLast = i === prompt2Words.words.length - 1;
+            const nextWord = prompt2Words.words[i + 1];
+            const wordEnd = nextWord ? nextWord.startTime : prompt2Words.totalDuration;
 
-                if (!isActiveW) {
-                  return (
-                    <span key={i} className="inline">
-                      {word.text}
-                      {!isLast ? " " : ""}
-                    </span>
-                  );
-                }
+            if (!isActiveW) {
+              return (
+                <span key={i} className="inline">
+                  {word.text}
+                  {!isLast ? " " : ""}
+                </span>
+              );
+            }
 
-                return (
-                  <ActiveWord
-                    key={i}
-                    ref={latestWordRef}
-                    word={word.text}
-                    wordStart={word.startTime}
-                    wordEnd={wordEnd}
-                    trailingSpace={!isLast}
-                  />
-                );
-              })}
-            </p>
-          )}
-        </PromptSection>
+            return (
+              <ActiveWord
+                key={i}
+                ref={latestWordRef}
+                word={word.text}
+                wordStart={word.startTime}
+                wordEnd={wordEnd}
+                trailingSpace={!isLast}
+              />
+            );
+          })}
+        </p>
       )}
+    </PromptSection>
+  );
 
-      {/* Phase 3 prompt (timer fallback — word-by-word when revealing, static after) */}
-      {showPhase3Prompt && phase3Prompt && (
-        <PromptSection
-          label="Prompt 3"
-          text={!isPrompt3TimerRevealing ? stripLeadingEllipsis(phase3Prompt) : undefined}
-        >
-          {isPrompt3TimerRevealing && prompt3Words && (
-            <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
-              {prompt3Words.words.map((word, i) => {
-                if (i >= prompt3RevealedCount) return null;
-                if (isSkipToken(word.text)) return null;
+  const timerPrompt3Block = showPhase3Prompt && phase3Prompt && (
+    <PromptSection
+      label="Prompt 3"
+      text={!isPrompt3TimerRevealing ? stripLeadingEllipsis(phase3Prompt) : undefined}
+    >
+      {isPrompt3TimerRevealing && prompt3Words && (
+        <p className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
+          {prompt3Words.words.map((word, i) => {
+            if (i >= prompt3RevealedCount) return null;
+            if (isSkipToken(word.text)) return null;
 
-                const isActiveW = i === prompt3RevealedCount - 1;
-                const isLast = i === prompt3Words.words.length - 1;
-                const nextWord = prompt3Words.words[i + 1];
-                const wordEnd = nextWord ? nextWord.startTime : prompt3Words.totalDuration;
+            const isActiveW = i === prompt3RevealedCount - 1;
+            const isLast = i === prompt3Words.words.length - 1;
+            const nextWord = prompt3Words.words[i + 1];
+            const wordEnd = nextWord ? nextWord.startTime : prompt3Words.totalDuration;
 
-                if (!isActiveW) {
-                  return (
-                    <span key={i} className="inline">
-                      {word.text}
-                      {!isLast ? " " : ""}
-                    </span>
-                  );
-                }
+            if (!isActiveW) {
+              return (
+                <span key={i} className="inline">
+                  {word.text}
+                  {!isLast ? " " : ""}
+                </span>
+              );
+            }
 
-                return (
-                  <ActiveWord
-                    key={i}
-                    ref={latestWordRef}
-                    word={word.text}
-                    wordStart={word.startTime}
-                    wordEnd={wordEnd}
-                    trailingSpace={!isLast}
-                  />
-                );
-              })}
-            </p>
-          )}
-        </PromptSection>
+            return (
+              <ActiveWord
+                key={i}
+                ref={latestWordRef}
+                word={word.text}
+                wordStart={word.startTime}
+                wordEnd={wordEnd}
+                trailingSpace={!isLast}
+              />
+            );
+          })}
+        </p>
       )}
+    </PromptSection>
+  );
+
+  // Single-slot mode: fade between content blocks
+  if (activeContent) {
+    return (
+      <div className="w-full space-y-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeContent}
+            variants={fadeVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={fadeTransition}
+            className="space-y-6"
+          >
+            {activeContent === "narrative" && timerNarrativeBlock}
+            {activeContent === "prompt2" && timerPrompt2Block}
+            {activeContent === "prompt3" && timerPrompt3Block}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  // Legacy stacking mode (warmup)
+  return (
+    <div className="w-full space-y-6">
+      {timerNarrativeBlock}
+      {timerPrompt2Block}
+      {timerPrompt3Block}
     </div>
   );
 }
