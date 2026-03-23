@@ -263,58 +263,59 @@ export const PERSONALITY_TEMPLATES: Record<string, NarrativeTemplate> = {
 // ---------------------------------------------------------------------------
 
 /**
- * Combine PI + CI category scores, pick top 3-4 as strengths
- * and bottom 2-3 as growth. Skips categories without template entries.
+ * Pick top 2 PI + top 2 CI as strengths and bottom 2 from each as growth,
+ * ensuring balanced representation across both intelligence domains.
+ * Skips categories without template entries.
  */
 export function getIntelligenceNarrative(
   piCategories: CategoryScore[],
   ciCategories: CategoryScore[],
 ): NarrativeBlock[] {
-  const all = [...piCategories, ...ciCategories];
-  if (all.length === 0) return [];
-
-  // Merge template lookups — PI and CI share the same shape
-  const templates: Record<string, NarrativeTemplate> = {
-    ...PI_TEMPLATES,
-    ...CI_TEMPLATES,
-  };
-
-  // Filter to categories that have templates, then sort by score desc
-  const withTemplates = all
-    .filter((c) => templates[c.category] !== undefined)
+  // Sort each domain independently by score desc, filtering to those with templates
+  const piSorted = piCategories
+    .filter((c) => PI_TEMPLATES[c.category] !== undefined)
     .sort((a, b) => b.score - a.score);
 
-  if (withTemplates.length === 0) return [];
+  const ciSorted = ciCategories
+    .filter((c) => CI_TEMPLATES[c.category] !== undefined)
+    .sort((a, b) => b.score - a.score);
 
-  // Determine counts: top 3-4 strengths, bottom 2-3 growth
-  const strengthCount = Math.min(
-    withTemplates.length <= 5 ? Math.ceil(withTemplates.length / 2) : 4,
-    withTemplates.length,
-  );
-  const growthCount = Math.min(
-    withTemplates.length <= 4 ? Math.max(1, withTemplates.length - strengthCount) : 3,
-    withTemplates.length - strengthCount,
-  );
+  if (piSorted.length === 0 && ciSorted.length === 0) return [];
 
   const blocks: NarrativeBlock[] = [];
 
-  // Top N = strengths
-  for (let i = 0; i < strengthCount; i++) {
-    const cat = withTemplates[i];
+  // Top 2 from each domain = strengths
+  for (const cat of piSorted.slice(0, 2)) {
     blocks.push({
       category: cat.category,
       type: "strength",
-      text: templates[cat.category].strength,
+      text: PI_TEMPLATES[cat.category].strength,
+    });
+  }
+  for (const cat of ciSorted.slice(0, 2)) {
+    blocks.push({
+      category: cat.category,
+      type: "strength",
+      text: CI_TEMPLATES[cat.category].strength,
     });
   }
 
-  // Bottom N = growth
-  for (let i = withTemplates.length - growthCount; i < withTemplates.length; i++) {
-    const cat = withTemplates[i];
+  // Bottom 2 from each domain = growth areas
+  for (const cat of piSorted.slice(-Math.min(2, piSorted.length)).reverse()) {
+    // Skip if already used as a strength (small dataset edge case)
+    if (blocks.some((b) => b.category === cat.category)) continue;
     blocks.push({
       category: cat.category,
       type: "growth",
-      text: templates[cat.category].growth,
+      text: PI_TEMPLATES[cat.category].growth,
+    });
+  }
+  for (const cat of ciSorted.slice(-Math.min(2, ciSorted.length)).reverse()) {
+    if (blocks.some((b) => b.category === cat.category)) continue;
+    blocks.push({
+      category: cat.category,
+      type: "growth",
+      text: CI_TEMPLATES[cat.category].growth,
     });
   }
 

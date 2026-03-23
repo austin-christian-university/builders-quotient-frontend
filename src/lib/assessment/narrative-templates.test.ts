@@ -167,7 +167,7 @@ describe("PERSONALITY_TEMPLATES", () => {
 // --- Selection function tests ---
 
 describe("getIntelligenceNarrative", () => {
-  it("returns top 3-4 strengths and bottom 2-3 growth from combined PI + CI", () => {
+  it("returns 2 PI + 2 CI strengths and 2 PI + 2 CI growth areas", () => {
     // Create PI categories scored 90 down to 46 (decreasing by 4)
     const piCategories = PI_CATEGORIES.map((cat, i) =>
       makeCategoryScore(cat, 90 - i * 4),
@@ -185,30 +185,28 @@ describe("getIntelligenceNarrative", () => {
     const strengths = result.filter((b) => b.type === "strength");
     const growth = result.filter((b) => b.type === "growth");
 
-    // Top 3-4 categories should be strengths
-    expect(strengths.length).toBeGreaterThanOrEqual(3);
-    expect(strengths.length).toBeLessThanOrEqual(4);
+    // Exactly 4 strengths: 2 PI + 2 CI
+    expect(strengths.length).toBe(4);
 
-    // Bottom 2-3 should be growth
-    expect(growth.length).toBeGreaterThanOrEqual(2);
-    expect(growth.length).toBeLessThanOrEqual(3);
+    // Exactly 4 growth areas: 2 PI + 2 CI
+    expect(growth.length).toBe(4);
 
-    // Verify strength blocks are from the highest-scoring categories
-    const allSorted = [...piCategories, ...ciCategories].sort(
-      (a, b) => b.score - a.score,
-    );
-    for (const s of strengths) {
-      // Each strength category should be in the top portion
-      const idx = allSorted.findIndex((c) => c.category === s.category);
-      expect(idx).toBeLessThan(strengths.length);
-    }
+    // Verify strengths come from top 2 of each domain
+    const piSorted = [...piCategories].sort((a, b) => b.score - a.score);
+    const ciSorted = [...ciCategories].sort((a, b) => b.score - a.score);
 
-    // Verify growth blocks are from the lowest-scoring categories
-    const bottomSorted = [...allSorted].reverse();
-    for (const g of growth) {
-      const idx = bottomSorted.findIndex((c) => c.category === g.category);
-      expect(idx).toBeLessThan(growth.length);
-    }
+    const strengthCategories = new Set(strengths.map((s) => s.category));
+    expect(strengthCategories.has(piSorted[0].category)).toBe(true);
+    expect(strengthCategories.has(piSorted[1].category)).toBe(true);
+    expect(strengthCategories.has(ciSorted[0].category)).toBe(true);
+    expect(strengthCategories.has(ciSorted[1].category)).toBe(true);
+
+    // Verify growth comes from bottom 2 of each domain
+    const growthCategories = new Set(growth.map((g) => g.category));
+    expect(growthCategories.has(piSorted[piSorted.length - 1].category)).toBe(true);
+    expect(growthCategories.has(piSorted[piSorted.length - 2].category)).toBe(true);
+    expect(growthCategories.has(ciSorted[ciSorted.length - 1].category)).toBe(true);
+    expect(growthCategories.has(ciSorted[ciSorted.length - 2].category)).toBe(true);
 
     // Each block has non-empty text
     for (const block of result) {
