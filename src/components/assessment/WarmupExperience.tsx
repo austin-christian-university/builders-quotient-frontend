@@ -15,7 +15,7 @@ import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { OrbGuide } from "@/components/assessment/OrbGuide";
 import { ConsentGate } from "@/components/assessment/ConsentGate";
 import { WarmupJourneyMap } from "@/components/assessment/WarmupJourneyMap";
-import { VignetteNarrator } from "@/components/assessment/VignetteNarrator";
+import { VignetteNarrator, type ActiveContent } from "@/components/assessment/VignetteNarrator";
 import { CountdownRing } from "@/components/assessment/CountdownRing";
 import { CountdownDigit } from "@/components/assessment/CountdownDigit";
 import { CameraPip } from "@/components/assessment/CameraPip";
@@ -38,6 +38,7 @@ import {
   WARMUP_RECORDING_SECONDS,
 } from "@/lib/assessment/warmup-content";
 import { WARMUP_AUDIO_TIMING } from "@/lib/assessment/warmup-audio-timing";
+import { getSectionBoundaries } from "@/lib/assessment/narration-timer";
 import {
   warmupReducer,
   INITIAL_WARMUP_STATE,
@@ -59,6 +60,10 @@ const WarmupDevToolbar =
         { ssr: false }
       )
     : null;
+
+const TRANSITION_SECONDS = 2;
+
+type BufferSubStage = "transition" | "prompting" | "thinking";
 
 // ─── Component ──────────────────────────────────────────────────────
 
@@ -103,31 +108,18 @@ export function WarmupExperience() {
   const sessionPromiseRef = useRef<Promise<boolean> | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
-  // ─── Computed: visible prompts ────────────────────────────────────
-  const warmupVisiblePrompts = useMemo(() => {
-    const set = new Set<1 | 2 | 3>();
-    const p = state.phase;
-    if (
-      [
-        "narrating",
-        "buffer_1",
-        "recording_1",
-        "buffer_2",
-        "recording_2",
-        "buffer_3",
-        "recording_3",
-      ].includes(p)
-    ) {
-      set.add(1);
-    }
-    if (["buffer_2", "recording_2", "buffer_3", "recording_3"].includes(p)) {
-      set.add(2);
-    }
-    if (["buffer_3", "recording_3"].includes(p)) {
-      set.add(3);
-    }
-    return set as ReadonlySet<1 | 2 | 3>;
-  }, [state.phase]);
+  // ─── Single-slot prompt display (same as VignetteExperience) ──────
+  const [activeContent, setActiveContent] = useState<ActiveContent>("prompt1");
+  const [buffer2SubStage, setBuffer2SubStage] = useState<BufferSubStage>("transition");
+  const [buffer3SubStage, setBuffer3SubStage] = useState<BufferSubStage>("transition");
+
+  // Section boundaries for seeking audio to prompt 2/3 sections
+  const sectionBoundaries = useMemo(
+    () => getSectionBoundaries(WARMUP_AUDIO_TIMING),
+    []
+  );
+  const phase2PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_2_prompt");
+  const phase3PromptBoundary = sectionBoundaries.find((b) => b.section === "phase_3_prompt");
 
   // ─── Derived state ────────────────────────────────────────────────
   const isOrbPhase =
@@ -239,13 +231,69 @@ export function WarmupExperience() {
     };
   }, [state.phase, prompt1RevealMs]);
 
+  // --- buffer_2: transition -> prompting -> thinking ---
   useEffect(() => {
     if (state.phase !== "buffer_2") return;
 
-    setBufferRemaining(WARMUP_BUFFER_SECONDS);
+    setBuffer2SubStage("transition");
+    setActiveContent("prompt2");
     setAnnouncement(
       `Question 2 of 3: ${WARMUP_PROMPTS[1]}. Think time: ${WARMUP_BUFFER_SECONDS} seconds.`
     );
+
+    const transitionTimer = setTimeout(() => {
+      setBuffer2SubStage("prompting");
+
+      // Resume audio for phase_2_prompt
+      if (audio.hasAudio && phase2PromptBoundary) {
+        const audioEl = audio.audioRef.current;
+        if (audioEl) {
+          audioEl.currentTime = phase2PromptBoundary.audioStart;
+        }
+        audio.play();
+      }
+    }, TRANSITION_SECONDS * 1000);
+
+    return () => clearTimeout(transitionTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase]);
+
+  // Detect when phase_2_prompt audio finishes -> switch to thinking
+  useEffect(() => {
+    if (state.phase !== "buffer_2" || buffer2SubStage !== "prompting") return;
+
+    if (!audio.hasAudio || !phase2PromptBoundary) {
+      const timer = setTimeout(() => setBuffer2SubStage("thinking"), 1000);
+      return () => clearTimeout(timer);
+    }
+
+    if (audio.revealedCount >= phase2PromptBoundary.endIdx + 1) {
+      const remaining = Math.max(0, (phase2PromptBoundary.audioEnd - audio.currentTimeRef.current) * 1000);
+      if (remaining <= 0) {
+        audio.pause();
+        setBuffer2SubStage("thinking");
+      } else {
+        const timer = setTimeout(() => {
+          audio.pause();
+          setBuffer2SubStage("thinking");
+        }, remaining);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [state.phase, buffer2SubStage, audio, phase2PromptBoundary]);
+
+  useEffect(() => {
+    if (state.phase !== "buffer_2" || buffer2SubStage !== "prompting") return;
+    if (audio.hasAudio && audio.isComplete) {
+      setBuffer2SubStage("thinking");
+    }
+  }, [state.phase, buffer2SubStage, audio]);
+
+  // buffer_2 thinking countdown
+  useEffect(() => {
+    if (state.phase !== "buffer_2" || buffer2SubStage !== "thinking") return;
+
+    setBufferRemaining(WARMUP_BUFFER_SECONDS);
     const interval = setInterval(() => {
       setBufferRemaining((prev) => {
         if (prev <= 1) {
@@ -258,15 +306,71 @@ export function WarmupExperience() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [state.phase]);
+  }, [state.phase, buffer2SubStage]);
 
+  // --- buffer_3: transition -> prompting -> thinking ---
   useEffect(() => {
     if (state.phase !== "buffer_3") return;
 
-    setBufferRemaining(WARMUP_BUFFER_SECONDS);
+    setBuffer3SubStage("transition");
+    setActiveContent("prompt3");
     setAnnouncement(
       `Question 3 of 3: ${WARMUP_PROMPTS[2]}. Think time: ${WARMUP_BUFFER_SECONDS} seconds.`
     );
+
+    const transitionTimer = setTimeout(() => {
+      setBuffer3SubStage("prompting");
+
+      // Resume audio for phase_3_prompt
+      if (audio.hasAudio && phase3PromptBoundary) {
+        const audioEl = audio.audioRef.current;
+        if (audioEl) {
+          audioEl.currentTime = phase3PromptBoundary.audioStart;
+        }
+        audio.play();
+      }
+    }, TRANSITION_SECONDS * 1000);
+
+    return () => clearTimeout(transitionTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase]);
+
+  // Detect when phase_3_prompt audio finishes -> switch to thinking
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "prompting") return;
+
+    if (!audio.hasAudio || !phase3PromptBoundary) {
+      const timer = setTimeout(() => setBuffer3SubStage("thinking"), 1000);
+      return () => clearTimeout(timer);
+    }
+
+    if (audio.revealedCount >= phase3PromptBoundary.endIdx + 1) {
+      const remaining = Math.max(0, (phase3PromptBoundary.audioEnd - audio.currentTimeRef.current) * 1000);
+      if (remaining <= 0) {
+        audio.pause();
+        setBuffer3SubStage("thinking");
+      } else {
+        const timer = setTimeout(() => {
+          audio.pause();
+          setBuffer3SubStage("thinking");
+        }, remaining);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [state.phase, buffer3SubStage, audio, phase3PromptBoundary]);
+
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "prompting") return;
+    if (audio.hasAudio && audio.isComplete) {
+      setBuffer3SubStage("thinking");
+    }
+  }, [state.phase, buffer3SubStage, audio]);
+
+  // buffer_3 thinking countdown
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "thinking") return;
+
+    setBufferRemaining(WARMUP_BUFFER_SECONDS);
     const interval = setInterval(() => {
       setBufferRemaining((prev) => {
         if (prev <= 1) {
@@ -279,7 +383,7 @@ export function WarmupExperience() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [state.phase]);
+  }, [state.phase, buffer3SubStage]);
 
   // ─── Recording phases: auto-start recorder ────────────────────────
   useEffect(() => {
@@ -592,10 +696,10 @@ export function WarmupExperience() {
                           estimatedNarrationSeconds={WARMUP_NARRATION_SECONDS}
                           isNarrating={state.phase === "narrating"}
                           showAllNarrative={state.phase !== "narrating"}
-                          visiblePrompts={warmupVisiblePrompts}
+                          activeContent={activeContent}
                           isPhase1Revealing={state.phase === "narrating"}
-                          isPhase2Revealing={false}
-                          isPhase3Revealing={false}
+                          isPhase2Revealing={state.phase === "buffer_2" && buffer2SubStage === "prompting"}
+                          isPhase3Revealing={state.phase === "buffer_3" && buffer3SubStage === "prompting"}
                           onComplete={handleNarrationComplete}
                           audio={audio}
                           audioTiming={WARMUP_AUDIO_TIMING}
@@ -625,11 +729,36 @@ export function WarmupExperience() {
 
                           {/* buffer_2 */}
                           {state.phase === "buffer_2" && (
-                            <CountdownRing
-                              secondsRemaining={bufferRemaining}
-                              totalSeconds={WARMUP_BUFFER_SECONDS}
-                              mode="think"
-                            />
+                            <div className="w-full">
+                              {buffer2SubStage === "transition" && (
+                                <motion.div
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  className="flex flex-col items-center gap-3"
+                                >
+                                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true" />
+                                  <p className="text-text-secondary">Preparing next prompt&#8230;</p>
+                                </motion.div>
+                              )}
+                              {buffer2SubStage === "prompting" && (
+                                <motion.div
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  className="flex flex-col items-center gap-2"
+                                >
+                                  <p className="text-[length:var(--text-fluid-sm)] text-text-secondary">
+                                    Listen to the next prompt&#8230;
+                                  </p>
+                                </motion.div>
+                              )}
+                              {buffer2SubStage === "thinking" && (
+                                <CountdownRing
+                                  secondsRemaining={bufferRemaining}
+                                  totalSeconds={WARMUP_BUFFER_SECONDS}
+                                  mode="think"
+                                />
+                              )}
+                            </div>
                           )}
 
                           {/* recording_2 */}
@@ -645,11 +774,36 @@ export function WarmupExperience() {
 
                           {/* buffer_3 */}
                           {state.phase === "buffer_3" && (
-                            <CountdownRing
-                              secondsRemaining={bufferRemaining}
-                              totalSeconds={WARMUP_BUFFER_SECONDS}
-                              mode="think"
-                            />
+                            <div className="w-full">
+                              {buffer3SubStage === "transition" && (
+                                <motion.div
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  className="flex flex-col items-center gap-3"
+                                >
+                                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true" />
+                                  <p className="text-text-secondary">Preparing final prompt&#8230;</p>
+                                </motion.div>
+                              )}
+                              {buffer3SubStage === "prompting" && (
+                                <motion.div
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  className="flex flex-col items-center gap-2"
+                                >
+                                  <p className="text-[length:var(--text-fluid-sm)] text-text-secondary">
+                                    Listen to the final prompt&#8230;
+                                  </p>
+                                </motion.div>
+                              )}
+                              {buffer3SubStage === "thinking" && (
+                                <CountdownRing
+                                  secondsRemaining={bufferRemaining}
+                                  totalSeconds={WARMUP_BUFFER_SECONDS}
+                                  mode="think"
+                                />
+                              )}
+                            </div>
                           )}
 
                           {/* recording_3 */}
