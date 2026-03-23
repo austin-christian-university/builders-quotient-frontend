@@ -1,8 +1,11 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import { CountdownRing } from "../CountdownRing";
+
+// Controls whether IntersectionObserver reports the element as in-view
+let intersectionIsIntersecting = true;
 
 // jsdom doesn't implement window.matchMedia — provide a minimal stub
 beforeAll(() => {
@@ -22,15 +25,18 @@ beforeAll(() => {
   globalThis.IntersectionObserver = class IntersectionObserver {
     constructor(private cb: IntersectionObserverCallback) {}
     observe(target: Element) {
-      // Immediately report as intersecting
       this.cb(
-        [{ isIntersecting: true, target } as IntersectionObserverEntry],
+        [{ isIntersecting: intersectionIsIntersecting, target } as IntersectionObserverEntry],
         this as unknown as globalThis.IntersectionObserver,
       );
     }
     unobserve() {}
     disconnect() {}
   } as unknown as typeof globalThis.IntersectionObserver;
+});
+
+beforeEach(() => {
+  intersectionIsIntersecting = true;
 });
 
 describe("CountdownRing", () => {
@@ -67,6 +73,31 @@ describe("CountdownRing", () => {
     it("renders custom label when provided", () => {
       render(<CountdownRing secondsRemaining={30} totalSeconds={45} mode="recording" label="Phase 2" />);
       expect(screen.getByText("Phase 2")).toBeInTheDocument();
+    });
+  });
+
+  describe("floating timer badge", () => {
+    it("renders floating badge when inline timer is out of view", () => {
+      intersectionIsIntersecting = false;
+      render(<CountdownRing secondsRemaining={20} totalSeconds={30} mode="recording" onStopEarly={() => {}} />);
+      // The floating badge renders a second timer via portal to document.body
+      const timers = screen.getAllByRole("timer");
+      expect(timers.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("does not render floating badge when inline timer is in view", () => {
+      intersectionIsIntersecting = true;
+      render(<CountdownRing secondsRemaining={20} totalSeconds={30} mode="recording" onStopEarly={() => {}} />);
+      const timers = screen.getAllByRole("timer");
+      expect(timers).toHaveLength(1);
+    });
+
+    it("shows Done button in floating badge when canStopEarly", () => {
+      intersectionIsIntersecting = false;
+      render(<CountdownRing secondsRemaining={20} totalSeconds={30} mode="recording" onStopEarly={() => {}} />);
+      // Both inline and floating should have a Done button
+      const doneButtons = screen.getAllByText(/done/i);
+      expect(doneButtons.length).toBeGreaterThanOrEqual(2);
     });
   });
 });
