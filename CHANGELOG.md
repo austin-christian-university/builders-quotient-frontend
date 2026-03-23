@@ -10,6 +10,14 @@ All notable changes to the Builders Quotient frontend will be documented in this
 - Intelligence Narrative slide displays up to 4 cards per column (was 3)
 - "Done Thinking" button now appears during think/buffer phases in warmup and vignette flows (was recording-only)
 - Phase 2 and 3 recording windows extended from 45s to 75s to match phase 1
+- PI and CI radar charts now always render exactly 12 categories at fixed 30° intervals, regardless of how many categories the scoring pipeline detected
+- Same category always appears at the same angular position across different students' charts
+- Missing categories are interpolated from nearest scored neighbors (circular walk, averaged)
+
+### Added
+- Canonical 12-category arrays for PI and CI in `scoring-categories.ts`
+- `interpolateFromNeighbors()` pure function with wrap-around neighbor interpolation
+- 12 unit tests covering interpolation edge cases (consecutive missing, wrap-around, single/zero scored, category name consistency)
 
 ## [0.2.1.0] - 2026-03-19
 
