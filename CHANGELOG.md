@@ -2,6 +2,15 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.3.0] - 2026-03-23
+
+### Added
+- Paragraph break support in vignette narratives via `\n\n` in database text
+- `splitIntoParagraphs()` and `getParagraphBreakWordIndices()` utility functions for paragraph-aware text processing
+- `paragraphIndex` field on `WordTiming` type for tracking paragraph boundaries during word-by-word reveal
+- 16 new tests covering paragraph splitting, break index calculation, and cross-paragraph word timing
+- Visual paragraph spacing in both audio mode and timer fallback mode of the teleprompter
+
 ## [0.2.2.0] - 2026-03-23
 
 ### Changed
