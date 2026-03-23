@@ -541,6 +541,15 @@ export function WarmupExperience() {
     setRecordingRemaining(0);
   }, []);
 
+  // ─── Early stop handler for think (buffer) phases ─────────────────
+  const handleStopBufferEarly = useCallback(() => {
+    setBufferRemaining(0);
+    const p = state.phase;
+    if (p === "buffer_1") dispatch({ type: "BUFFER_1_COMPLETE" });
+    else if (p === "buffer_2") dispatch({ type: "BUFFER_2_COMPLETE" });
+    else if (p === "buffer_3") dispatch({ type: "BUFFER_3_COMPLETE" });
+  }, [state.phase]);
+
   // ─── Transition orb -> consent ────────────────────────────────────
   const handleTransitionComplete = useCallback(() => {
     dispatch({ type: "TRANSITION_COMPLETE" });
@@ -735,6 +744,7 @@ export function WarmupExperience() {
                               secondsRemaining={bufferRemaining}
                               totalSeconds={WARMUP_BUFFER_SECONDS}
                               mode="think"
+                              onStopEarly={handleStopBufferEarly}
                             />
                           )}
 
@@ -744,7 +754,6 @@ export function WarmupExperience() {
                               secondsRemaining={recordingRemaining}
                               totalSeconds={WARMUP_RECORDING_SECONDS}
                               mode="recording"
-
                               onStopEarly={handleStopRecordingEarly}
                             />
                           )}
@@ -778,6 +787,7 @@ export function WarmupExperience() {
                                   secondsRemaining={bufferRemaining}
                                   totalSeconds={WARMUP_BUFFER_SECONDS}
                                   mode="think"
+                                  onStopEarly={handleStopBufferEarly}
                                 />
                               )}
                             </div>
@@ -789,7 +799,6 @@ export function WarmupExperience() {
                               secondsRemaining={recordingRemaining}
                               totalSeconds={WARMUP_RECORDING_SECONDS}
                               mode="recording"
-
                               onStopEarly={handleStopRecordingEarly}
                             />
                           )}
@@ -823,6 +832,7 @@ export function WarmupExperience() {
                                   secondsRemaining={bufferRemaining}
                                   totalSeconds={WARMUP_BUFFER_SECONDS}
                                   mode="think"
+                                  onStopEarly={handleStopBufferEarly}
                                 />
                               )}
                             </div>

@@ -47,9 +47,14 @@ describe("CountdownRing", () => {
       expect(screen.getByText("Think\u2026")).toBeInTheDocument();
     });
 
-    it("does not render I'm Done button", () => {
-      render(<CountdownRing secondsRemaining={15} totalSeconds={30} mode="think" onStopEarly={() => {}} />);
-      expect(screen.queryByText(/done/i)).not.toBeInTheDocument();
+    it("shows Done Thinking button after 5s elapsed", () => {
+      render(<CountdownRing secondsRemaining={20} totalSeconds={30} mode="think" onStopEarly={() => {}} />);
+      expect(screen.getByText("Done Thinking")).toBeInTheDocument();
+    });
+
+    it("hides Done Thinking button before 5s elapsed", () => {
+      render(<CountdownRing secondsRemaining={28} totalSeconds={30} mode="think" onStopEarly={() => {}} />);
+      expect(screen.queryByText("Done Thinking")).not.toBeInTheDocument();
     });
   });
 

@@ -37,18 +37,22 @@ function buildHighlights(
   piCategories: CategoryScore[],
   ciCategories: CategoryScore[]
 ): { category: string; tagline: string; variant: "pi" | "ci" }[] {
-  const combined = [
-    ...piCategories.map((c) => ({ ...c, variant: "pi" as const })),
-    ...ciCategories.map((c) => ({ ...c, variant: "ci" as const })),
+  // Top 2 from each domain for balanced representation
+  const piSorted = [...piCategories].sort((a, b) => b.score - a.score);
+  const ciSorted = [...ciCategories].sort((a, b) => b.score - a.score);
+
+  return [
+    ...piSorted.slice(0, 2).map((c) => ({
+      category: c.category,
+      tagline: truncateToFirstSentence(PI_TEMPLATES[c.category]?.strength ?? ""),
+      variant: "pi" as const,
+    })),
+    ...ciSorted.slice(0, 2).map((c) => ({
+      category: c.category,
+      tagline: truncateToFirstSentence(CI_TEMPLATES[c.category]?.strength ?? ""),
+      variant: "ci" as const,
+    })),
   ];
-  combined.sort((a, b) => b.score - a.score);
-  return combined.slice(0, 4).map((c) => ({
-    category: c.category,
-    tagline: truncateToFirstSentence(
-      PI_TEMPLATES[c.category]?.strength ?? CI_TEMPLATES[c.category]?.strength ?? ""
-    ),
-    variant: c.variant,
-  }));
 }
 
 // ---------------------------------------------------------------------------

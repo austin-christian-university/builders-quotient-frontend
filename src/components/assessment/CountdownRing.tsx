@@ -153,7 +153,6 @@ export function CountdownRing({
   // AND the full MIN_SECONDS_BEFORE_STOP to have elapsed. This prevents
   // any flash of the button on first render or stale-state edge cases.
   const canStopEarly =
-    !isThink &&
     !!onStopEarly &&
     secondsRemaining < totalSeconds &&
     elapsed >= MIN_SECONDS_BEFORE_STOP;
@@ -328,7 +327,7 @@ export function CountdownRing({
               onClick={onStopEarly}
               className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
             >
-              I&rsquo;m Done
+              {isThink ? "Done Thinking" : <>I&rsquo;m Done</>}
             </motion.button>
           )}
         </AnimatePresence>

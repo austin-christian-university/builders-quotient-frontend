@@ -35,9 +35,9 @@ const BUFFER_1_SECONDS = 30;
 const RECORDING_1_SECONDS = 75;
 const TRANSITION_SECONDS = 2;
 const BUFFER_2_THINKING_SECONDS = 30;
-const RECORDING_2_SECONDS = 45;
+const RECORDING_2_SECONDS = 75;
 const BUFFER_3_THINKING_SECONDS = 30;
-const RECORDING_3_SECONDS = 45;
+const RECORDING_3_SECONDS = 75;
 const MAX_BLOB_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB Supabase bucket limit
 
 type Buffer2SubStage = "transition" | "prompting" | "thinking";
@@ -163,6 +163,22 @@ export function VignetteExperience({
   // --- Early stop handlers ---
   // These set the actual elapsed duration, then force countdown to 0
   // which triggers the existing auto-clip/stop effects.
+  // --- Early stop handlers for think (buffer) phases ---
+  const handleStopBuffer1Early = useCallback(() => {
+    setBuffer1Remaining(0);
+    dispatch({ type: "BUFFER_1_COMPLETE" });
+  }, []);
+
+  const handleStopBuffer2Early = useCallback(() => {
+    setBuffer2ThinkingRemaining(0);
+    dispatch({ type: "BUFFER_2_COMPLETE" });
+  }, []);
+
+  const handleStopBuffer3Early = useCallback(() => {
+    setBuffer3ThinkingRemaining(0);
+    dispatch({ type: "BUFFER_3_COMPLETE" });
+  }, []);
+
   const handleStopRecording1Early = useCallback(() => {
     const elapsed = RECORDING_1_SECONDS - recording1Remaining;
     phase1DurationRef.current = Math.max(elapsed, 1);
@@ -898,6 +914,7 @@ export function VignetteExperience({
                           secondsRemaining={buffer1Remaining}
                           totalSeconds={BUFFER_1_SECONDS}
                           mode="think"
+                          onStopEarly={handleStopBuffer1Early}
                         />
                       )}
 
@@ -940,6 +957,7 @@ export function VignetteExperience({
                               secondsRemaining={buffer2ThinkingRemaining}
                               totalSeconds={BUFFER_2_THINKING_SECONDS}
                               mode="think"
+                              onStopEarly={handleStopBuffer2Early}
                             />
                           )}
                         </div>
@@ -984,6 +1002,7 @@ export function VignetteExperience({
                               secondsRemaining={buffer3ThinkingRemaining}
                               totalSeconds={BUFFER_3_THINKING_SECONDS}
                               mode="think"
+                              onStopEarly={handleStopBuffer3Early}
                             />
                           )}
                         </div>
