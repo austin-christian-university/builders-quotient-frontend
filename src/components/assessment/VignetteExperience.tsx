@@ -713,11 +713,11 @@ export function VignetteExperience({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
-  // Which content block is active in the single-slot display.
-  // "narrative" = narrative text + prompt 1, "prompt2" = prompt 2 only, "prompt3" = prompt 3 only.
+  // Which prompt card is active in the single-slot display.
+  // The narrative text is always visible; only the prompt card swaps.
   // Never reset — each vignette step is a separate server-rendered page, so
   // this component fully remounts with fresh state per step.
-  const [activeContent, setActiveContent] = useState<"narrative" | "prompt2" | "prompt3">("narrative");
+  const [activeContent, setActiveContent] = useState<"prompt1" | "prompt2" | "prompt3">("prompt1");
 
   const handleBegin = useCallback(() => {
     const el = audio.audioRef.current;
