@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   forwardRef,
   useEffect,
   useMemo,
@@ -11,6 +12,7 @@ import {
 import { motion } from "motion/react";
 import {
   calculateWordTiming,
+  getParagraphBreakWordIndices,
   getSectionBoundaries,
   type AudioWordTiming,
   type WordTiming,
@@ -112,6 +114,30 @@ export function VignetteNarrator({
     () => (phase3Prompt ? calculateWordTiming(phase3Prompt) : null),
     [phase3Prompt]
   );
+
+  // Paragraph break indices for visual grouping (audio mode)
+  const paragraphBreaks = useMemo(
+    () => getParagraphBreakWordIndices(vignetteText),
+    [vignetteText]
+  );
+
+  // Pre-compute narrative paragraph groups for audio mode
+  const narrativeParagraphGroups = useMemo(() => {
+    if (!audioTiming) return [];
+    const timings = audioTiming.slice(0, narrativeEndIdx);
+    if (paragraphBreaks.size === 0) return [{ offset: 0, timings }];
+
+    const groups: { offset: number; timings: AudioWordTiming[] }[] = [
+      { offset: 0, timings: [] },
+    ];
+    for (let i = 0; i < timings.length; i++) {
+      if (paragraphBreaks.has(i) && groups[groups.length - 1].timings.length > 0) {
+        groups.push({ offset: i, timings: [] });
+      }
+      groups[groups.length - 1].timings.push(timings[i]);
+    }
+    return groups;
+  }, [audioTiming, narrativeEndIdx, paragraphBreaks]);
 
   const sentenceGroups = useMemo(() => {
     const groups: WordTiming[][] = [];
@@ -349,35 +375,41 @@ export function VignetteNarrator({
     return (
       <div className="w-full space-y-6">
         <ScrollableTextBox scrollContainerRef={scrollContainerRef} ariaLive="polite">
-          <p>
-            {narrativeTimings.map((timing, i) => {
-              if (i >= narrativeCount) return null;
+          {narrativeParagraphGroups.map((group, pIdx) => (
+            <Fragment key={pIdx}>
+              {pIdx > 0 && <div className="h-3" aria-hidden="true" />}
+              <p>
+                {group.timings.map((timing, localIdx) => {
+                  const i = group.offset + localIdx;
+                  if (i >= narrativeCount) return null;
 
-              const isActiveWord = i === narrativeCount - 1 && !showAll && isActive;
-              const isLast = i === narrativeTimings.length - 1;
+                  const isActiveWord = i === narrativeCount - 1 && !showAll && isActive;
+                  const isLast = i === narrativeEndIdx - 1;
 
-              if (!isActiveWord) {
-                return (
-                  <span key={i} className="inline">
-                    {timing.word}
-                    {!isLast ? " " : ""}
-                  </span>
-                );
-              }
+                  if (!isActiveWord) {
+                    return (
+                      <span key={i} className="inline">
+                        {timing.word}
+                        {!isLast ? " " : ""}
+                      </span>
+                    );
+                  }
 
-              return (
-                <ActiveWord
-                  key={i}
-                  ref={latestWordRef}
-                  word={timing.word}
-                  wordStart={timing.start}
-                  wordEnd={timing.end}
-                  currentTimeRef={audio.currentTimeRef}
-                  trailingSpace={!isLast}
-                />
-              );
-            })}
-          </p>
+                  return (
+                    <ActiveWord
+                      key={i}
+                      ref={latestWordRef}
+                      word={timing.word}
+                      wordStart={timing.start}
+                      wordEnd={timing.end}
+                      currentTimeRef={audio.currentTimeRef}
+                      trailingSpace={!isLast}
+                    />
+                  );
+                })}
+              </p>
+            </Fragment>
+          ))}
 
           <NarrationDebugBar
             mode="audio"
@@ -523,50 +555,56 @@ export function VignetteNarrator({
           const sentenceStartIdx = globalWordIndex;
           globalWordIndex += group.length;
           const sentenceHasAnyRevealed = revealedCount > sentenceStartIdx;
+          const isNewParagraph =
+            sentenceIdx > 0 &&
+            group[0]?.paragraphIndex !==
+              sentenceGroups[sentenceIdx - 1]?.[0]?.paragraphIndex;
 
           return (
-            <p
-              key={sentenceIdx}
-              className={
-                !sentenceHasAnyRevealed && !prefersReducedMotion
-                  ? "opacity-0"
-                  : undefined
-              }
-            >
-              {group.map((word, wordIdx) => {
-                const absIdx = sentenceStartIdx + wordIdx;
-                if (absIdx >= revealedCount) return null;
-
-                const isActiveWord =
-                  absIdx === revealedCount - 1 && !prefersReducedMotion && isActive;
-                const isLastInGroup = wordIdx === group.length - 1;
-
-                if (!isActiveWord) {
-                  return (
-                    <span key={`${sentenceIdx}-${wordIdx}`} className="inline">
-                      {word.text}
-                      {!isLastInGroup ? " " : ""}
-                    </span>
-                  );
+            <Fragment key={sentenceIdx}>
+              {isNewParagraph && <div className="h-3" aria-hidden="true" />}
+              <p
+                className={
+                  !sentenceHasAnyRevealed && !prefersReducedMotion
+                    ? "opacity-0"
+                    : undefined
                 }
+              >
+                {group.map((word, wordIdx) => {
+                  const absIdx = sentenceStartIdx + wordIdx;
+                  if (absIdx >= revealedCount) return null;
 
-                const nextWord = words[absIdx + 1];
-                const wordEndTime = nextWord
-                  ? nextWord.startTime
-                  : totalDuration;
+                  const isActiveWord =
+                    absIdx === revealedCount - 1 && !prefersReducedMotion && isActive;
+                  const isLastInGroup = wordIdx === group.length - 1;
 
-                return (
-                  <ActiveWord
-                    key={`${sentenceIdx}-${wordIdx}`}
-                    ref={latestWordRef}
-                    word={word.text}
-                    wordStart={word.startTime}
-                    wordEnd={wordEndTime}
-                    trailingSpace={!isLastInGroup}
-                  />
-                );
-              })}
-            </p>
+                  if (!isActiveWord) {
+                    return (
+                      <span key={`${sentenceIdx}-${wordIdx}`} className="inline">
+                        {word.text}
+                        {!isLastInGroup ? " " : ""}
+                      </span>
+                    );
+                  }
+
+                  const nextWord = words[absIdx + 1];
+                  const wordEndTime = nextWord
+                    ? nextWord.startTime
+                    : totalDuration;
+
+                  return (
+                    <ActiveWord
+                      key={`${sentenceIdx}-${wordIdx}`}
+                      ref={latestWordRef}
+                      word={word.text}
+                      wordStart={word.startTime}
+                      wordEnd={wordEndTime}
+                      trailingSpace={!isLastInGroup}
+                    />
+                  );
+                })}
+              </p>
+            </Fragment>
           );
         })}
         {sentenceGroups.length === 0 && (

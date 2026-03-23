@@ -3,6 +3,8 @@ import {
   calculateNarrationTiming,
   calculateWordTiming,
   findRevealedCount,
+  getParagraphBreakWordIndices,
+  splitIntoParagraphs,
   type AudioWordTiming,
 } from "./narration-timer";
 
@@ -359,5 +361,129 @@ describe("findRevealedCount", () => {
     expect(findRevealedCount(t, 0.5)).toBe(2);   // + "noticed"
     expect(findRevealedCount(t, 0.87)).toBe(3);  // + "the"
     expect(findRevealedCount(t, 1.0)).toBe(4);   // + "supplier"
+  });
+});
+
+// ---------------------------------------------------------------------------
+// splitIntoParagraphs
+// ---------------------------------------------------------------------------
+
+describe("splitIntoParagraphs", () => {
+  it("returns single paragraph for text without double newlines", () => {
+    expect(splitIntoParagraphs("Hello world. This is a test.")).toEqual([
+      "Hello world. This is a test.",
+    ]);
+  });
+
+  it("splits on double newlines", () => {
+    expect(splitIntoParagraphs("First paragraph.\n\nSecond paragraph.")).toEqual([
+      "First paragraph.",
+      "Second paragraph.",
+    ]);
+  });
+
+  it("does not split on single newlines", () => {
+    expect(splitIntoParagraphs("Line one.\nLine two.")).toEqual([
+      "Line one.\nLine two.",
+    ]);
+  });
+
+  it("handles triple+ newlines as a single break", () => {
+    expect(splitIntoParagraphs("Para one.\n\n\nPara two.")).toEqual([
+      "Para one.",
+      "Para two.",
+    ]);
+  });
+
+  it("trims whitespace from each paragraph", () => {
+    expect(splitIntoParagraphs("  First.  \n\n  Second.  ")).toEqual([
+      "First.",
+      "Second.",
+    ]);
+  });
+
+  it("returns empty array for empty/whitespace input", () => {
+    expect(splitIntoParagraphs("")).toEqual([]);
+    expect(splitIntoParagraphs("   ")).toEqual([]);
+  });
+
+  it("handles newline with spaces between as paragraph break", () => {
+    expect(splitIntoParagraphs("A.\n  \nB.")).toEqual(["A.", "B."]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getParagraphBreakWordIndices
+// ---------------------------------------------------------------------------
+
+describe("getParagraphBreakWordIndices", () => {
+  it("returns empty set for single-paragraph text", () => {
+    expect(getParagraphBreakWordIndices("Hello world.")).toEqual(new Set());
+  });
+
+  it("returns correct break index for two paragraphs", () => {
+    // "Hello world." = 2 words, "Goodbye moon." = 2 words
+    // Break at index 2 (start of second paragraph)
+    expect(getParagraphBreakWordIndices("Hello world.\n\nGoodbye moon.")).toEqual(
+      new Set([2])
+    );
+  });
+
+  it("returns correct break indices for three paragraphs", () => {
+    // "One two." = 2 words → break at 2
+    // "Three four five." = 3 words → break at 5
+    expect(
+      getParagraphBreakWordIndices("One two.\n\nThree four five.\n\nSix.")
+    ).toEqual(new Set([2, 5]));
+  });
+
+  it("returns empty set for empty text", () => {
+    expect(getParagraphBreakWordIndices("")).toEqual(new Set());
+  });
+});
+
+// ---------------------------------------------------------------------------
+// calculateWordTiming — paragraph support
+// ---------------------------------------------------------------------------
+
+describe("calculateWordTiming — paragraphs", () => {
+  it("assigns paragraphIndex 0 to all words in single-paragraph text", () => {
+    const result = calculateWordTiming("Hello world. Goodbye.");
+    expect(result.words.every((w) => w.paragraphIndex === 0)).toBe(true);
+  });
+
+  it("assigns correct paragraphIndex across paragraphs", () => {
+    const result = calculateWordTiming("Hello world.\n\nGoodbye moon.");
+    const indices = result.words.map((w) => w.paragraphIndex);
+    // "Hello" "world." = paragraph 0, "Goodbye" "moon." = paragraph 1
+    expect(indices).toEqual([0, 0, 1, 1]);
+  });
+
+  it("preserves sentence count across paragraphs", () => {
+    const result = calculateWordTiming(
+      "First. Second.\n\nThird. Fourth."
+    );
+    expect(result.sentenceCount).toBe(4);
+  });
+
+  it("maintains monotonic startTimes across paragraph boundaries", () => {
+    const result = calculateWordTiming(
+      "Para one sentence.\n\nPara two sentence."
+    );
+    for (let i = 1; i < result.words.length; i++) {
+      expect(result.words[i].startTime).toBeGreaterThanOrEqual(
+        result.words[i - 1].startTime
+      );
+    }
+  });
+
+  it("word count matches text regardless of paragraph breaks", () => {
+    const text = "One two three.\n\nFour five.\n\nSix.";
+    const result = calculateWordTiming(text);
+    const expectedCount = text
+      .replace(/\n/g, " ")
+      .split(/\s+/)
+      .filter(Boolean).length;
+    expect(result.words).toHaveLength(expectedCount);
   });
 });

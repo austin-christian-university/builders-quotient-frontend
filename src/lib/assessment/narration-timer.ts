@@ -65,6 +65,7 @@ export type WordTiming = {
   text: string;
   startTime: number;
   sentenceIndex: number;
+  paragraphIndex: number;
   isFirstInSentence: boolean;
   isLastInSentence: boolean;
 };
@@ -116,12 +117,24 @@ export function calculateWordTiming(
   text: string,
   overrideDurationSeconds?: number | null
 ): { words: WordTiming[]; totalDuration: number; sentenceCount: number } {
-  const sentences = splitIntoSentences(text);
-  if (sentences.length === 0) {
+  const paragraphs = splitIntoParagraphs(text);
+  if (paragraphs.length === 0) {
     return { words: [], totalDuration: 0, sentenceCount: 0 };
   }
 
-  const sentenceWords = sentences.map((s) => splitIntoWords(s));
+  // Build sentences with paragraph tracking
+  const allSentences: { text: string; paragraphIndex: number }[] = [];
+  for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {
+    for (const s of splitIntoSentences(paragraphs[pIdx])) {
+      allSentences.push({ text: s, paragraphIndex: pIdx });
+    }
+  }
+
+  if (allSentences.length === 0) {
+    return { words: [], totalDuration: 0, sentenceCount: 0 };
+  }
+
+  const sentenceWords = allSentences.map((s) => splitIntoWords(s.text));
   const totalWords = sentenceWords.reduce((sum, ws) => sum + ws.length, 0);
 
   const totalDuration =
@@ -139,6 +152,7 @@ export function calculateWordTiming(
         text: word,
         startTime: totalWords > 1 ? (globalIndex / (totalWords - 1)) * totalDuration : 0,
         sentenceIndex,
+        paragraphIndex: allSentences[sentenceIndex].paragraphIndex,
         isFirstInSentence: wordIndex === 0,
         isLastInSentence: wordIndex === ws.length - 1,
       });
@@ -146,7 +160,7 @@ export function calculateWordTiming(
     });
   });
 
-  return { words, totalDuration, sentenceCount: sentences.length };
+  return { words, totalDuration, sentenceCount: allSentences.length };
 }
 
 /**
@@ -174,6 +188,37 @@ export function findRevealedCount(
   }
 
   return count;
+}
+
+/**
+ * Splits text into paragraphs on double-newline boundaries.
+ * Single newlines are preserved within paragraphs.
+ * Text without double newlines returns as a single paragraph.
+ */
+export function splitIntoParagraphs(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Returns a Set of word indices (0-based within a flat word list) where
+ * a new paragraph begins. Used in audio mode to insert visual paragraph breaks.
+ * Words are counted by whitespace splitting, matching how audio timing entries
+ * correspond to the source text.
+ */
+export function getParagraphBreakWordIndices(text: string): Set<number> {
+  const paragraphs = splitIntoParagraphs(text);
+  if (paragraphs.length <= 1) return new Set();
+
+  const breaks = new Set<number>();
+  let wordCount = 0;
+  for (let i = 0; i < paragraphs.length; i++) {
+    if (i > 0) breaks.add(wordCount);
+    wordCount += paragraphs[i].split(/\s+/).filter(Boolean).length;
+  }
+  return breaks;
 }
 
 /**
