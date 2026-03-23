@@ -23,6 +23,13 @@ const SKIP_TOKENS = new Set(["…", "...", "."]);
 function isSkipToken(word: string): boolean {
   return SKIP_TOKENS.has(word.trim());
 }
+
+// AnimatePresence fade variants for single-slot content transitions
+const FADE_VARIANTS = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+} as const;
 function stripLeadingEllipsis(text: string): string {
   return text.replace(/^[\s]*[.…]+[\s]+/, "");
 }
@@ -147,8 +154,6 @@ export function VignetteNarrator({
   const showPhase1Prompt = activeContent ? activeContent === "narrative" : !!visiblePrompts?.has(1);
   const showPhase2Prompt = activeContent ? activeContent === "prompt2" : !!visiblePrompts?.has(2);
   const showPhase3Prompt = activeContent ? activeContent === "prompt3" : !!visiblePrompts?.has(3);
-  // When using activeContent, hide narrative+prompt1 when showing prompt2/3
-  const showNarrative = activeContent ? activeContent === "narrative" : true;
   // isPhase1Revealing, isPhase2Revealing, isPhase3Revealing come directly from props
 
   // Timer-mode prompt revealing: word-by-word in progress
@@ -315,20 +320,7 @@ export function VignetteNarrator({
     return () => cancelAnimationFrame(id);
   }, [totalRevealedCount]);
 
-  // Scroll to top when activeContent changes (new prompt replaces old)
-  useEffect(() => {
-    if (!activeContent) return;
-    scrollContainerRef.current?.scrollTo({ top: 0 });
-  }, [activeContent]);
-
-  // Fade transition variants for AnimatePresence (used in single-slot mode)
-  const fadeVariants = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-  };
-  const fadeDuration = prefersReducedMotion ? 0 : 0.6;
-  const fadeTransition = { duration: fadeDuration, ease: [0.16, 1, 0.3, 1] as const };
+  const fadeTransition = { duration: prefersReducedMotion ? 0 : 0.6, ease: [0.16, 1, 0.3, 1] as const };
 
   // --- Render ---
 
@@ -538,7 +530,7 @@ export function VignetteNarrator({
           <AnimatePresence mode="wait">
             <motion.div
               key={activeContent}
-              variants={fadeVariants}
+              variants={FADE_VARIANTS}
               initial="initial"
               animate="animate"
               exit="exit"
@@ -767,7 +759,7 @@ export function VignetteNarrator({
         <AnimatePresence mode="wait">
           <motion.div
             key={activeContent}
-            variants={fadeVariants}
+            variants={FADE_VARIANTS}
             initial="initial"
             animate="animate"
             exit="exit"

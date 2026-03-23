@@ -715,6 +715,8 @@ export function VignetteExperience({
 
   // Which content block is active in the single-slot display.
   // "narrative" = narrative text + prompt 1, "prompt2" = prompt 2 only, "prompt3" = prompt 3 only.
+  // Never reset — each vignette step is a separate server-rendered page, so
+  // this component fully remounts with fresh state per step.
   const [activeContent, setActiveContent] = useState<"narrative" | "prompt2" | "prompt3">("narrative");
 
   const handleBegin = useCallback(() => {
