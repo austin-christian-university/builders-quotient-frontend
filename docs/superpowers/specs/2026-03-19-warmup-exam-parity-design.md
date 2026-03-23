@@ -28,7 +28,7 @@ type CountdownRingProps = {
   totalSeconds: number;
   mode: "think" | "recording";
   label?: string;             // optional override text
-  onStopEarly?: () => void;   // shows "I'm Done" after 5s (recording mode only)
+  onStopEarly?: () => void;   // shows "I'm Done" after 10s (recording mode only)
 };
 ```
 
@@ -41,7 +41,7 @@ type CountdownRingProps = {
 | Center text (bottom) | "Think..." | "RECORDING" |
 | Number animation | Spring transition (AnimatePresence) | Static tabular-nums |
 | Dramatic threshold | <= 3s: background pulse, larger text | <= 5s: red text color shift |
-| "I'm Done" button | N/A | Appears after 5s elapsed |
+| "I'm Done" button | N/A | Appears after 10s elapsed |
 
 - Ring starts full and depletes clockwise (same math as current components)
 - SVG viewBox 0 0 120 120, radius 54, strokeWidth 4
@@ -61,7 +61,7 @@ type CountdownRingProps = {
 
 **Audio:** TTS audio file + word-level timing JSON, matching the format used by real vignettes (`audioTiming` array). Initially can be generated via the same TTS pipeline or hardcoded with manual timing. Stored as a static asset (not Supabase Storage).
 
-**Narration:** Uses the existing `VignetteNarrator` component with audio mode for word-by-word reveal. `VignetteNarrator` currently imports the exam's `Phase` type and uses it for prompt visibility logic. To share it with the warmup, generalize it to accept a `visiblePrompts: Set<1 | 2 | 3>` prop (or similar) instead of deriving visibility from the phase name directly. The warmup and exam orchestrators each compute which prompts are visible based on their own phase, then pass that to the narrator. This avoids coupling the narrator to either reducer's phase type.
+**Narration:** Uses the existing `VignetteNarrator` component with audio mode for word-by-word reveal. Both warmup and exam now pass an `activeContent` prop (`"narrative" | "prompt1" | "prompt2" | "prompt3"`) to drive single-slot fade-transition display, replacing the earlier `visiblePrompts: Set<1 | 2 | 3>` approach. Only one content block is visible at a time; prompts fade in/out via AnimatePresence.
 
 ### 3. Warmup State Machine
 
@@ -77,15 +77,15 @@ countdown          # 3-2-1 animated digits + tone (reuse CountdownDigit)
 narrating          # Warmup vignette: audio + teleprompter word reveal
   |                # Prompt 1 revealed at end of narration section
 buffer_1 (10s)     # CountdownRing think mode. Camera PiP visible.
-  |                # No sub-stages — prompts appear instantly (simpler than exam).
-recording_1 (30s)  # CountdownRing recording mode. "I'm Done" after 5s.
+  |                # Updated: now uses transition/prompting/thinking sub-stages
+  |                # matching the exam flow, with fade-transition prompt display.
+recording_1 (30s)  # CountdownRing recording mode. "I'm Done" after 10s.
   |
-buffer_2 (10s)     # Prompt 2 appears instantly at start. CountdownRing think mode.
-  |                # No transition/prompting/thinking sub-stages (exam has these
-  |                # for word-by-word prompt reveal; warmup uses instant reveal).
+buffer_2 (10s)     # Prompt 2 fades in (replacing narrative+prompt1).
+  |                # Uses transition/prompting/thinking sub-stages (same as exam).
 recording_2 (30s)  # CountdownRing recording mode.
   |
-buffer_3 (10s)     # Prompt 3 appears instantly at start. CountdownRing think mode.
+buffer_3 (10s)     # Prompt 3 fades in (replacing prompt 2).
   |
 recording_3 (30s)  # CountdownRing recording mode.
   |
@@ -100,10 +100,10 @@ pre_exam_orb       # Final reminders before vignette 1 (existing)
 done / declined
 ```
 
-**Prompt visibility (progressive reveal, same as exam):**
-- Prompt 1: visible from `narrating` through `recording_3`
-- Prompt 2: visible from `buffer_2` through `recording_3`
-- Prompt 3: visible only during `buffer_3` and `recording_3`
+**Prompt display (single-slot fade, same as exam):**
+- `activeContent = "prompt1"`: during `narrating`, `buffer_1`, and `recording_1`
+- `activeContent = "prompt2"`: during `buffer_2` and `recording_2` (fades in, replacing prompt 1)
+- `activeContent = "prompt3"`: during `buffer_3` and `recording_3` (fades in, replacing prompt 2)
 
 **Durations:**
 - Buffer/think: 10 seconds (all phases)

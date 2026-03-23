@@ -1,7 +1,7 @@
 # Replace Prompts with Fade Transition
 
 **Date:** 2026-03-23
-**Status:** Draft
+**Status:** Shipped (v0.2.3.0)
 
 ## Problem
 
@@ -13,7 +13,7 @@ Replace the stacking model with a single content slot. When a new prompt arrives
 
 ## Scope
 
-This change applies only to the intelligence assessment flow (`VignetteExperience`). The warmup flow (`WarmupExperience`) also uses `VignetteNarrator` but only ever shows one prompt, so it is unaffected by the stacking problem. To avoid breaking the warmup, `VignetteNarrator` will accept both the legacy `visiblePrompts` prop and the new `activeContent` prop, with `activeContent` taking precedence when provided. WarmupExperience continues passing `visiblePrompts` unchanged.
+This change applies to both the intelligence assessment flow (`VignetteExperience`) and the warmup flow (`WarmupExperience`). Both now use the `activeContent` prop on `VignetteNarrator` for single-slot fade-transition prompt display. The warmup was updated to use the same pattern for visual consistency, replacing the earlier `visiblePrompts` approach with `activeContent` and buffer sub-stages (transition/prompting/thinking) mirroring the exam flow.
 
 ## State Model
 
@@ -69,7 +69,7 @@ No changes to:
 - Pass `activeContent` to VignetteNarrator instead of `visiblePrompts`
 
 ### VignetteNarrator.tsx (display)
-- Accept both `visiblePrompts` (legacy, for warmup) and `activeContent` (new, for intelligence) props. When `activeContent` is provided, it takes precedence.
+- Accept both `visiblePrompts` (legacy, unused since both callers now use `activeContent`) and `activeContent` (new) props. When `activeContent` is provided, it takes precedence. The `visiblePrompts` prop is dead code and can be removed in a future cleanup.
 - Wrap content area in `<AnimatePresence mode="wait">`
 - Use `activeContent` as the `key` on the `<motion.div>` wrapper
 - When `"narrative"`: render narrative text + prompt 1 (same as today's full narration view)
@@ -80,11 +80,10 @@ No changes to:
 - Remove the `showPhase1Prompt`, `showPhase2Prompt`, `showPhase3Prompt` derived booleans (local to VignetteNarrator) when `activeContent` is provided, since visibility is now driven by the single `activeContent` value
 
 ### No changes needed
-- `CountdownRing.tsx` — sits below the content slot, unaffected
+- `CountdownRing.tsx` — sits below the content slot; independently gained a floating timer badge (IntersectionObserver + createPortal) and "I'm Done" minimum increased to 10s
 - `vignette-reducer.ts` — phase state machine unchanged
 - `use-audio-narrator.ts` — audio seek and word reveal decoupled from display
 - `narration-timer.ts` — timing utilities unchanged
-- `WarmupExperience.tsx` — continues using `visiblePrompts` prop, unaffected
 
 ## Files Touched
 
@@ -92,3 +91,5 @@ No changes to:
 |------|--------|
 | `src/components/assessment/VignetteExperience.tsx` | Replace `examVisiblePrompts` memo with `activeContent` state, pass to VignetteNarrator |
 | `src/components/assessment/VignetteNarrator.tsx` | Accept `activeContent` prop, AnimatePresence wrapper, conditional rendering by active content, fade animation, scroll-to-top on change. Both audio and timer-fallback paths updated. |
+| `src/components/assessment/WarmupExperience.tsx` | Replace `warmupVisiblePrompts` memo with `activeContent` state, add buffer sub-stages (transition/prompting/thinking) mirroring exam flow, pass `activeContent` to VignetteNarrator |
+| `src/components/assessment/CountdownRing.tsx` | Add FloatingTimerBadge (IntersectionObserver + createPortal), increase MIN_SECONDS_BEFORE_STOP from 5 to 10, add audio stall watchdog (15s) |
