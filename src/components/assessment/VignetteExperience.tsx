@@ -113,6 +113,16 @@ export function VignetteExperience({
   const audioPlayRef = useRef(audio.play);
   audioPlayRef.current = audio.play;
 
+  // Guard: all three prompts must be present for the 3-phase recording flow.
+  // The DB column is nullable but the pipeline always generates all 3. If data
+  // is ever corrupted, fail fast rather than recording against a blank prompt.
+  useEffect(() => {
+    if (!phase2Prompt || !phase3Prompt) {
+      console.error(`[BQ] Vignette ${vignetteId} missing follow-up prompts`);
+      dispatch({ type: "ERROR", message: "This scenario is incomplete. Please contact support." });
+    }
+  }, [phase2Prompt, phase3Prompt, vignetteId]);
+
   // Analytics: track vignette viewed (and assessment started on step 1)
   useEffect(() => {
     analytics.vignetteViewed(sessionId, step, vignetteType);
@@ -376,6 +386,17 @@ export function VignetteExperience({
     }
   }, [state.phase, buffer2SubStage, audio]);
 
+  // Watchdog: auto-advance if audio stalls for 15s in prompting
+  useEffect(() => {
+    if (state.phase !== "buffer_2" || buffer2SubStage !== "prompting") return;
+    const watchdog = setTimeout(() => {
+      console.warn("[BQ] Audio stall detected in buffer_2 prompting, auto-advancing");
+      audio.pause();
+      setBuffer2SubStage("thinking");
+    }, 15_000);
+    return () => clearTimeout(watchdog);
+  }, [state.phase, buffer2SubStage, audio]);
+
   // buffer_2 thinking countdown
   useEffect(() => {
     if (state.phase !== "buffer_2" || buffer2SubStage !== "thinking") return;
@@ -549,6 +570,17 @@ export function VignetteExperience({
     if (audio.hasAudio && audio.isComplete) {
       setBuffer3SubStage("thinking");
     }
+  }, [state.phase, buffer3SubStage, audio]);
+
+  // Watchdog: auto-advance if audio stalls for 15s in prompting
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "prompting") return;
+    const watchdog = setTimeout(() => {
+      console.warn("[BQ] Audio stall detected in buffer_3 prompting, auto-advancing");
+      audio.pause();
+      setBuffer3SubStage("thinking");
+    }, 15_000);
+    return () => clearTimeout(watchdog);
   }, [state.phase, buffer3SubStage, audio]);
 
   // buffer_3 thinking countdown

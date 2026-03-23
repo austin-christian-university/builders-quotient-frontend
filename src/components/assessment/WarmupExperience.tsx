@@ -289,6 +289,17 @@ export function WarmupExperience() {
     }
   }, [state.phase, buffer2SubStage, audio]);
 
+  // Watchdog: auto-advance if audio stalls for 15s in prompting
+  useEffect(() => {
+    if (state.phase !== "buffer_2" || buffer2SubStage !== "prompting") return;
+    const watchdog = setTimeout(() => {
+      console.warn("[BQ] Audio stall detected in buffer_2 prompting, auto-advancing");
+      audio.pause();
+      setBuffer2SubStage("thinking");
+    }, 15_000);
+    return () => clearTimeout(watchdog);
+  }, [state.phase, buffer2SubStage, audio]);
+
   // buffer_2 thinking countdown
   useEffect(() => {
     if (state.phase !== "buffer_2" || buffer2SubStage !== "thinking") return;
@@ -364,6 +375,17 @@ export function WarmupExperience() {
     if (audio.hasAudio && audio.isComplete) {
       setBuffer3SubStage("thinking");
     }
+  }, [state.phase, buffer3SubStage, audio]);
+
+  // Watchdog: auto-advance if audio stalls for 15s in prompting
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "prompting") return;
+    const watchdog = setTimeout(() => {
+      console.warn("[BQ] Audio stall detected in buffer_3 prompting, auto-advancing");
+      audio.pause();
+      setBuffer3SubStage("thinking");
+    }, 15_000);
+    return () => clearTimeout(watchdog);
   }, [state.phase, buffer3SubStage, audio]);
 
   // buffer_3 thinking countdown
