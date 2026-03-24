@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' https://*.i.posthog.com",
     "style-src 'self' 'unsafe-inline'",
     `connect-src 'self' ${supabaseUrl} https://*.supabase.co https://*.ingest.us.sentry.io https://*.i.posthog.com`,
     "img-src 'self' data: blob:",
