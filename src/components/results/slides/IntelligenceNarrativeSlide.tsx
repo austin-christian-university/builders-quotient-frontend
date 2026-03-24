@@ -20,7 +20,7 @@ export function IntelligenceNarrativeSlide({
 
   // Limit cards so content fits within the viewport on desktop
   // (nav arrows occupy top/bottom zones on md+)
-  const maxCards = 4;
+  const maxCards = 2;
   const visibleStrengths = strengths.slice(0, maxCards);
   const visibleGrowth = growthAreas.slice(0, maxCards);
 

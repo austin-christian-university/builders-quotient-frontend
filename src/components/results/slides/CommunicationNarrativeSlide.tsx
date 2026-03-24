@@ -20,7 +20,7 @@ export function CommunicationNarrativeSlide({
   const growthAreas = data.narrative.filter((b) => b.type === "growth");
 
   // Limit cards so content fits within the viewport on desktop
-  const maxCards = 3;
+  const maxCards = 2;
   const visibleStrengths = strengths.slice(0, maxCards);
   const visibleGrowth = growthAreas.slice(0, maxCards);
 
