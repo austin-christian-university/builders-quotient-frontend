@@ -1,0 +1,63 @@
+{
+  "url": "https://bq.austinchristianu.org",
+  "timestamp": "2026-03-24T00:00:00Z",
+  "branch": "main (8e5ea1f)",
+  "pages": {
+    "/": {
+      "ttfb_ms": 36,
+      "fcp_ms": 418,
+      "dom_ready_ms": 499,
+      "full_load_ms": 700,
+      "total_requests": 39,
+      "total_transfer_bytes": 578324,
+      "js_bundle_bytes": 448738,
+      "js_decoded_bytes": 1357810,
+      "js_chunk_count": 21,
+      "css_decoded_bytes": 117749,
+      "font_transfer_bytes": 93948,
+      "fetch_count": 12,
+      "html_transfer_bytes": 8579,
+      "html_decoded_bytes": 44659,
+      "largest_resources": [
+        {"name": "7ab2ef0244db2b4d.js", "size": 172681, "duration": 198},
+        {"name": "688116dbd32fb249.js", "size": 59759, "duration": 90},
+        {"name": "2cbde1dac66ac6f2.js", "size": 45489, "duration": 216},
+        {"name": "4c61d4deebc8a523.js", "size": 45416, "duration": 58},
+        {"name": "ab57efd000576a30-s.p.woff2", "size": 45216, "duration": 219},
+        {"name": "83afe278b6a6bb3c-s.p.woff2", "size": 48732, "duration": 203}
+      ]
+    },
+    "/assess/overview": {
+      "ttfb_ms": 44,
+      "fcp_ms": 397,
+      "dom_ready_ms": 446,
+      "full_load_ms": 451,
+      "total_requests": 31,
+      "total_transfer_bytes": 3043,
+      "note": "warm cache - most resources cached from homepage"
+    },
+    "/results/test-jordan-maker": {
+      "ttfb_ms": 59,
+      "fcp_ms": 1267,
+      "dom_ready_ms": 1270,
+      "full_load_ms": 1381,
+      "total_requests": 30,
+      "total_transfer_bytes": 67140,
+      "new_js_bytes": 65593,
+      "html_transfer_bytes": 19906,
+      "html_decoded_bytes": 62872,
+      "note": "warm cache - 3 new JS chunks loaded, heavy HTML payload"
+    },
+    "/privacy": {
+      "ttfb_ms": 116,
+      "fcp_ms": 352,
+      "dom_ready_ms": 362,
+      "full_load_ms": 370,
+      "total_requests": 24,
+      "total_transfer_bytes": 1247,
+      "html_transfer_bytes": 8842,
+      "html_decoded_bytes": 49983,
+      "note": "warm cache - mostly static content"
+    }
+  }
+}

@@ -48,4 +48,5 @@ next-env.d.ts
 .env.sentry-build-plugin
 
 certificates
-.gstack/
+.gstack/*
+!.gstack/benchmark-reports/
