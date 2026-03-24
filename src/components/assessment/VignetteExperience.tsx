@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
@@ -112,6 +112,16 @@ export function VignetteExperience({
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioPlayRef = useRef(audio.play);
   audioPlayRef.current = audio.play;
+
+  // Guard: all three prompts must be present for the 3-phase recording flow.
+  // The DB column is nullable but the pipeline always generates all 3. If data
+  // is ever corrupted, fail fast rather than recording against a blank prompt.
+  useEffect(() => {
+    if (!phase2Prompt || !phase3Prompt) {
+      console.error(`[BQ] Vignette ${vignetteId} missing follow-up prompts`);
+      dispatch({ type: "ERROR", message: "This scenario is incomplete. Please contact support." });
+    }
+  }, [phase2Prompt, phase3Prompt, vignetteId]);
 
   // Analytics: track vignette viewed (and assessment started on step 1)
   useEffect(() => {
@@ -304,6 +314,7 @@ export function VignetteExperience({
 
     setBuffer2SubStage("transition");
     setBuffer2ThinkingRemaining(BUFFER_2_THINKING_SECONDS);
+    setActiveContent("prompt2");
 
     // Sub-stage 1: "transition" (2s) — enqueue phase 1 blob for upload
     const phase1Blob = phase1BlobRef.current;
@@ -389,6 +400,17 @@ export function VignetteExperience({
     if (audio.hasAudio && audio.isComplete) {
       setBuffer2SubStage("thinking");
     }
+  }, [state.phase, buffer2SubStage, audio]);
+
+  // Watchdog: auto-advance if audio stalls for 15s in prompting
+  useEffect(() => {
+    if (state.phase !== "buffer_2" || buffer2SubStage !== "prompting") return;
+    const watchdog = setTimeout(() => {
+      console.warn("[BQ] Audio stall detected in buffer_2 prompting, auto-advancing");
+      audio.pause();
+      setBuffer2SubStage("thinking");
+    }, 15_000);
+    return () => clearTimeout(watchdog);
   }, [state.phase, buffer2SubStage, audio]);
 
   // buffer_2 thinking countdown
@@ -478,6 +500,7 @@ export function VignetteExperience({
 
     setBuffer3SubStage("transition");
     setBuffer3ThinkingRemaining(BUFFER_3_THINKING_SECONDS);
+    setActiveContent("prompt3");
 
     // Sub-stage 1: "transition" (2s) — enqueue phase 2 blob for upload
     const phase2Blob = phase2BlobRef.current;
@@ -563,6 +586,17 @@ export function VignetteExperience({
     if (audio.hasAudio && audio.isComplete) {
       setBuffer3SubStage("thinking");
     }
+  }, [state.phase, buffer3SubStage, audio]);
+
+  // Watchdog: auto-advance if audio stalls for 15s in prompting
+  useEffect(() => {
+    if (state.phase !== "buffer_3" || buffer3SubStage !== "prompting") return;
+    const watchdog = setTimeout(() => {
+      console.warn("[BQ] Audio stall detected in buffer_3 prompting, auto-advancing");
+      audio.pause();
+      setBuffer3SubStage("thinking");
+    }, 15_000);
+    return () => clearTimeout(watchdog);
   }, [state.phase, buffer3SubStage, audio]);
 
   // buffer_3 thinking countdown
@@ -727,17 +761,11 @@ export function VignetteExperience({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
-  const examVisiblePrompts = useMemo(() => {
-    const set = new Set<1 | 2 | 3>();
-    const p = state.phase;
-    // Prompt 1 visible from narrating onward
-    if (p !== "ready" && p !== "countdown") set.add(1);
-    // Prompt 2 visible from buffer_2 onward
-    if (p === "buffer_2" || p === "recording_2" || p === "buffer_3" || p === "recording_3") set.add(2);
-    // Prompt 3 visible from buffer_3 onward
-    if (p === "buffer_3" || p === "recording_3") set.add(3);
-    return set as ReadonlySet<1 | 2 | 3>;
-  }, [state.phase]);
+  // Which prompt card is active in the single-slot display.
+  // The narrative text is always visible; only the prompt card swaps.
+  // Never reset — each vignette step is a separate server-rendered page, so
+  // this component fully remounts with fresh state per step.
+  const [activeContent, setActiveContent] = useState<"prompt1" | "prompt2" | "prompt3">("prompt1");
 
   const handleBegin = useCallback(() => {
     const el = audio.audioRef.current;
@@ -860,7 +888,7 @@ export function VignetteExperience({
                   transition={{ duration: 0.3 }}
                   className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center pt-4"
                 >
-                  <div className="w-full space-y-6">
+                  <div className="w-full space-y-3">
                     <VignetteNarrator
                       vignetteText={vignetteText}
                       vignettePrompt={vignettePrompt}
@@ -869,7 +897,7 @@ export function VignetteExperience({
                       estimatedNarrationSeconds={estimatedNarrationSeconds}
                       isNarrating={state.phase === "narrating"}
                       showAllNarrative={state.phase !== "narrating"}
-                      visiblePrompts={examVisiblePrompts}
+                      activeContent={activeContent}
                       isPhase1Revealing={state.phase === "narrating"}
                       isPhase2Revealing={state.phase === "buffer_2" && buffer2SubStage === "prompting"}
                       isPhase3Revealing={state.phase === "buffer_3" && buffer3SubStage === "prompting"}
