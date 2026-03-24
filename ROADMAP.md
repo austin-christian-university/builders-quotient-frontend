@@ -666,14 +666,20 @@ src/
 
 ## 14. Environment Variables
 
+See `.env.example` for the canonical list. Summary:
+
 ```
 # Client (safe to expose)
 NEXT_PUBLIC_SUPABASE_URL=https://pdvzwldlpnpuvepnoliq.supabase.co
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 
 # Server only (NEVER prefix with NEXT_PUBLIC_)
 SUPABASE_SERVICE_ROLE_KEY=[from Supabase dashboard]
 SESSION_SECRET=[openssl rand -hex 32]
-ASSESSMENT_ACTIVE=true
+IP_HASH_SALT=[openssl rand -hex 32]
+REVIEW_PASSWORD=[password for /review vignette review page]
+SENTRY_AUTH_TOKEN=[from Sentry dashboard]
 ```
 
 ---
@@ -682,7 +688,7 @@ ASSESSMENT_ACTIVE=true
 
 - [ ] **Applicant auth method**: Invite token links vs. Supabase Auth (deferred to Product B)
 - [x] **TTS provider**: ElevenLabs selected — superior word-level timing support for teleprompter sync, premium voice quality
-- [ ] **Analytics platform**: Vercel Analytics (simple) vs. PostHog (richer funnels, self-hostable)
+- [x] **Analytics platform**: PostHog selected — richer funnels, funnel events already instrumented
 - [ ] **Video storage at scale**: Supabase Storage vs. S3/R2 (monitor costs post-launch)
 - [ ] **Personality quiz interaction**: Traditional Likert (1–5 scale) vs. like/dislike swipe pattern from the-arena
 - [ ] **STT provider**: Whisper API vs. Gemini Flash audio (cost/accuracy tradeoff)
