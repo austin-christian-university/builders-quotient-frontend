@@ -2,6 +2,11 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.4.3] - 2026-03-24
+
+### Added
+- Students who skip the personality quiz can now complete it later via an email link (`/assess/resume?token=`) — restores their session and picks up where they left off
+
 ## [0.2.4.2] - 2026-03-24
 
 ### Fixed
