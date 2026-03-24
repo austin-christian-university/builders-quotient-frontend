@@ -273,6 +273,41 @@ describe("calculateWordTiming", () => {
     expect(result.words).toHaveLength(wordCount);
     expect(result.sentenceCount).toBe(3);
   });
+
+  it("assigns paragraphIndex 0 to all words when no double newlines", () => {
+    const result = calculateWordTiming("First sentence. Second sentence.");
+    expect(result.words.every((w) => w.paragraphIndex === 0)).toBe(true);
+  });
+
+  it("splits on double newlines into separate paragraphs", () => {
+    const result = calculateWordTiming("Paragraph one.\n\nParagraph two.");
+    const paraIndices = new Set(result.words.map((w) => w.paragraphIndex));
+    expect(paraIndices.size).toBe(2);
+    expect(paraIndices.has(0)).toBe(true);
+    expect(paraIndices.has(1)).toBe(true);
+  });
+
+  it("assigns correct paragraphIndex across multiple paragraphs", () => {
+    const text = "Alpha bravo.\n\nCharlie delta.\n\nEcho foxtrot.";
+    const result = calculateWordTiming(text);
+    expect(result.words.map((w) => w.paragraphIndex)).toEqual([0, 0, 1, 1, 2, 2]);
+  });
+
+  it("handles triple+ newlines the same as double newlines", () => {
+    const result = calculateWordTiming("One.\n\n\n\nTwo.");
+    const paraIndices = new Set(result.words.map((w) => w.paragraphIndex));
+    expect(paraIndices.size).toBe(2);
+  });
+
+  it("preserves sentence tracking across paragraphs", () => {
+    const result = calculateWordTiming("First. Second.\n\nThird.");
+    expect(result.sentenceCount).toBe(3);
+    // sentenceIndex should increment across paragraph boundaries
+    const sentenceIndices = result.words
+      .filter((w) => w.isFirstInSentence)
+      .map((w) => w.sentenceIndex);
+    expect(sentenceIndices).toEqual([0, 1, 2]);
+  });
 });
 
 // ---------------------------------------------------------------------------
