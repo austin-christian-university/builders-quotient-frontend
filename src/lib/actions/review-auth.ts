@@ -29,6 +29,7 @@ export async function verifyReviewPassword(
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/review",
+    maxAge: 86400,
   });
 
   return { success: true };
