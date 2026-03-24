@@ -2,6 +2,15 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.4.4] - 2026-03-24
+
+### Fixed
+- Removed `unsafe-eval` from Content Security Policy script-src to harden XSS protections
+- Added 24-hour expiration to review auth cookie (was session-only, persisted indefinitely)
+- Updated Next.js 16.1.6 → 16.2.1 to patch SSRF vulnerability (GHSA-qpjv-v59x-3qc4)
+- Added rollup >=4.59.0 override to patch path traversal vulnerability (GHSA-mw96-cpmx-2vgc)
+- Added missing `IP_HASH_SALT` and `REVIEW_PASSWORD` to `.env.example`
+
 ## [0.2.4.3] - 2026-03-24
 
 ### Added
