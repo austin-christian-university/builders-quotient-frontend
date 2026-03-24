@@ -2,6 +2,16 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.4.0] - 2026-03-24
+
+### Changed
+- Timer-mode narration renders paragraphs as flowing prose within `<p>` elements instead of one `<p>` per sentence, matching how text appears in Supabase (no artificial line breaks between sentences)
+- Paragraph spacing in ScrollableTextBox increased from `space-y-3` (12px) to `space-y-4` (16px) for clearer visual separation
+
+### Added
+- 5 new unit tests for `paragraphIndex` assignment in `calculateWordTiming`: single paragraph, double-newline split, multi-paragraph indices, triple+ newlines, and sentence tracking across paragraphs
+- Visual test page at `/test/narration` for verifying paragraph rendering with dummy vignette text
+
 ## [0.2.3.0] - 2026-03-23
 
 ### Changed
