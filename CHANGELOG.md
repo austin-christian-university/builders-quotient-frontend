@@ -2,6 +2,15 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.4.2] - 2026-03-24
+
+### Fixed
+- Orb no longer shifts vertically when subtitle text changes line count or when Begin is tapped on mobile
+- Subtitle text expands downward within a fixed 3-line reservation instead of pushing the orb up
+- Controls area uses fixed min-height (`min-h-44`) to prevent layout shift between idle and playing states
+- Removed double horizontal padding on subtitle container for better text fit on narrow screens
+- Orb positioned slightly higher on mobile (`-translate-y-6`) to accommodate subtitle space below
+
 ## [0.2.4.1] - 2026-03-24
 
 ### Changed
