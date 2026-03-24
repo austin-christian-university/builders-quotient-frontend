@@ -42,7 +42,6 @@ import { getSectionBoundaries } from "@/lib/assessment/narration-timer";
 import {
   warmupReducer,
   INITIAL_WARMUP_STATE,
-  type WarmupPhase,
 } from "@/lib/assessment/warmup-reducer";
 import { createSession } from "@/lib/actions/session";
 import { Button } from "@/components/ui/button";

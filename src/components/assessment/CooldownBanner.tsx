@@ -26,14 +26,16 @@ export function CooldownBanner() {
   const cooldown = searchParams.get("cooldown") === "true";
   const until = searchParams.get("until");
 
-  const [remaining, setRemaining] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(() =>
+    cooldown && until ? getTimeRemaining(until) : null
+  );
 
   useEffect(() => {
     if (!cooldown || !until) return;
 
     const ms = getTimeRemaining(until);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync remaining when until param changes
     setRemaining(ms);
-
     if (ms <= 0) return;
 
     const tick = ms < 5 * 60_000 ? 1_000 : 60_000;

@@ -93,6 +93,7 @@ export function EmailCapture() {
   // Open modal when duplicate is detected
   useEffect(() => {
     if (duplicateState) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync UI to form action result
       setShowDuplicateModal(true);
       setLinkError(null);
     }

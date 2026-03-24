@@ -28,6 +28,7 @@ export default async function SetupPage() {
       const cooldownExpiresAt =
         new Date(session.completed_at).getTime() + COOLDOWN_MS;
 
+      // eslint-disable-next-line react-hooks/purity -- this is a server component; Date.now() is fine
       if (Date.now() < cooldownExpiresAt) {
         const until = new Date(cooldownExpiresAt).toISOString();
 

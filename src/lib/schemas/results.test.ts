@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars -- _omitted destructuring pattern is intentional */
 import { describe, it, expect } from "vitest";
 import {
   narrativeBlockSchema,

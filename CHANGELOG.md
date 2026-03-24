@@ -2,6 +2,13 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.5.0] - 2026-03-24
+
+### For contributors
+- Codebase is now fully lint-clean for React 19 — all 28 compiler warnings resolved across 20 files
+- Removed dead code and unused variables for a cleaner, more maintainable codebase
+- Cleaned up tracked `.gstack/` files (benchmark reports now fully gitignored)
+
 ## [0.2.4.5] - 2026-03-24
 
 ### Fixed

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 type UseSwipeNavigationOptions = {
   onSwipeLeft: () => void;
@@ -27,7 +27,9 @@ export function useSwipeNavigation({
   } | null>(null);
 
   const callbacksRef = useRef({ onSwipeLeft, onSwipeRight, enabled });
-  callbacksRef.current = { onSwipeLeft, onSwipeRight, enabled };
+  useEffect(() => {
+    callbacksRef.current = { onSwipeLeft, onSwipeRight, enabled };
+  });
 
   const cleanupRef = useRef<(() => void) | null>(null);
 

@@ -1099,7 +1099,6 @@ export function VignetteExperience({
           streamStatus={streamStatus}
           sessionId={sessionId}
           step={step}
-          totalSteps={totalSteps}
           vignetteId={vignetteId}
           vignetteType={vignetteType}
         />

@@ -50,7 +50,6 @@ type DevToolbarProps = {
   streamStatus: string;
   sessionId: string;
   step: number;
-  totalSteps: number;
   vignetteId: string;
   vignetteType: "practical" | "creative";
 };
@@ -70,7 +69,6 @@ export function DevToolbar({
   streamStatus,
   sessionId,
   step,
-  totalSteps,
   vignetteId,
   vignetteType,
 }: DevToolbarProps) {

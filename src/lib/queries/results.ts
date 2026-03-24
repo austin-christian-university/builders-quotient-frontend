@@ -141,26 +141,6 @@ function aggregateCategories(
   });
 }
 
-/** Union move details across responses: a move is "present" if demonstrated in either. */
-function unionMoveDetails(responses: ScoredResponse[]): RawMoveDetail[] {
-  const map = new Map<string, RawMoveDetail>();
-
-  for (const r of responses) {
-    if (!Array.isArray(r.scoring_result.move_details)) continue;
-    for (const md of r.scoring_result.move_details) {
-      const existing = map.get(md.move_key);
-      if (!existing) {
-        map.set(md.move_key, { ...md });
-      } else if (md.student_present && !existing.student_present) {
-        // Upgrade: demonstrated in this response but not the other
-        map.set(md.move_key, { ...md });
-      }
-    }
-  }
-
-  return Array.from(map.values());
-}
-
 /**
  * Extract corpus averages from raw category scores.
  * Returns null if no entrepreneur_mean data is available.

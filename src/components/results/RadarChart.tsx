@@ -321,7 +321,6 @@ export function RadarChart({
   let tooltipY = cy;
   if (activeIndex !== null) {
     const angle = step * activeIndex;
-    const pos = dotPositions[activeIndex];
     // Offset outward from center
     const outward = polarToCartesian(cx, cy, maxRadius + 4, angle);
     tooltipX = outward.x;

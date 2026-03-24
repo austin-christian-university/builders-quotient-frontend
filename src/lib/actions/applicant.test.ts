@@ -20,7 +20,7 @@ vi.mock("@/lib/queries/session", () => ({
 // Supabase mock: chainable query builder
 function createQueryBuilder(returnData: unknown = null, returnError: unknown = null) {
   const builder: Record<string, unknown> = {};
-  const chain = (..._args: unknown[]) => builder;
+  const chain = () => builder;
   builder.select = chain;
   builder.insert = chain;
   builder.update = chain;
