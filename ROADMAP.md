@@ -62,8 +62,8 @@ Each vignette is presented as an **AI-narrated experience**:
 
 1. **Camera check** (before first vignette only): Permission prompt, preview of self, confirmation that camera/mic work. Hard block if camera is denied — video is mandatory.
 2. **Narration phase** (~90–120s depending on vignette length): A pre-generated TTS voice reads the scenario aloud. Text appears on screen synchronized with the narration (teleprompter-style progressive reveal). The vignette cannot be skipped or replayed.
-3. **Think phase** (30 seconds): Full vignette text remains visible. A `CountdownRing` (think mode) counts down "Recording begins in 30s." User collects their thoughts.
-4. **Recording phase** (3 minutes): Camera records automatically. A `CountdownRing` (recording mode) shows elapsed time with a red recording indicator. User delivers their response. They can stop early but cannot restart. Vignette text remains visible during recording.
+3. **Think phase** (30 seconds): The current prompt is visible (only the active prompt; earlier prompts and narrative fade out via single-slot fade transition). A `CountdownRing` (think mode) counts down "Recording begins in 30s." User collects their thoughts.
+4. **Recording phase** (3 minutes): Camera records automatically. A `CountdownRing` (recording mode) shows elapsed time with a red recording indicator. A floating timer badge appears in the top-right corner when the inline timer scrolls out of view. User delivers their response. They can stop early (after 10s minimum) but cannot restart. The current prompt remains visible during recording.
 5. **Upload + transition**: Video uploads (progress indicator). On success, advance to next vignette. No going back.
 
 ### 3.2 Pre-Generated TTS Audio
@@ -485,7 +485,7 @@ The AI narration UX is critical for completion. It creates a guided, almost medi
 - `MediaRecorder` — video capture
 - `getUserMedia` — camera/mic access
 - `Web Audio API` — narration playback with timing sync
-- `IntersectionObserver` — lazy loading on marketing pages
+- `IntersectionObserver` — lazy loading on marketing pages; floating timer badge in assessment
 - `document.visibilityState` — detect tab switches during recording
 
 ---
@@ -532,7 +532,7 @@ src/
 │   │   ├── WarmupJourneyMap.tsx  # Visual progress indicator for warmup phases
 │   │   ├── WarmupDevToolbar.tsx  # Dev-only toolbar for skipping warmup phases
 │   │   ├── VignetteNarrator.tsx  # AI narration + synced text reveal
-│   │   ├── CountdownRing.tsx     # Unified countdown ring (think mode + recording mode)
+│   │   ├── CountdownRing.tsx     # Unified countdown ring (think mode + recording mode) + floating timer badge
 │   │   ├── CountdownDigit.tsx    # Animated digit display for countdown timers
 │   │   ├── ProgressBar.tsx       # Step indicator (1 of 4)
 │   │   └── EmailCapture.tsx      # Post-assessment email form

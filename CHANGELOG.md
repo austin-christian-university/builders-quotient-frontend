@@ -4,12 +4,28 @@ All notable changes to the Builders Quotient frontend will be documented in this
 
 ## [0.2.3.0] - 2026-03-23
 
+### Changed
+- Prompts 2 and 3 now fade-transition in place instead of stacking below prompt 1 and the narrative, keeping the timer and recording controls visible without scrolling
+- Warmup experience uses the same fade-transition prompt reveal as the exam vignettes
+- "I'm Done" button minimum recording time increased from 5s to 10s to match server schema validation
+- Reduced vertical padding between timer and prompt card for tighter mobile layout
+
 ### Added
 - Paragraph break support in vignette narratives via `\n\n` in database text
 - `splitIntoParagraphs()` and `getParagraphBreakWordIndices()` utility functions for paragraph-aware text processing
 - `paragraphIndex` field on `WordTiming` type for tracking paragraph boundaries during word-by-word reveal
 - 16 new tests covering paragraph splitting, break index calculation, and cross-paragraph word timing
 - Visual paragraph spacing in both audio mode and timer fallback mode of the teleprompter
+- Floating timer badge appears in top-right corner when the inline countdown timer scrolls out of view (IntersectionObserver + createPortal)
+- Floating badge includes mini countdown ring, time display, REC indicator, and compact "Done" button
+- Audio stall watchdog (15s timeout) prevents deadlock if TTS audio buffers indefinitely during prompt narration
+- Null prompt guard in VignetteExperience dispatches error state if follow-up prompts are missing
+- Design spec for the fade-transition prompt reveal (`docs/superpowers/specs/`)
+- 3 new CountdownRing tests covering floating badge visibility and Done button rendering
+
+### Fixed
+- Full-text flash before prompt word reveal starts (prompt text no longer visible until reveal begins)
+- Narrative text stays visible during prompt transitions (only prompt cards fade, not the vignette narrative)
 
 ## [0.2.2.0] - 2026-03-23
 

@@ -175,7 +175,7 @@ Three prompts, ordered from easiest to most reflective. Tone: what a cool profes
 - Recording indicator pill appears (top-right of camera preview): pulsing red dot + "REC" + timer in `tabular-nums`
 - Same red glow shadow as VideoRecorder: `shadow-[0_0_20px_rgba(239,68,68,0.15)]`
 - Countdown ring switches to red stroke, counting down remaining record time
-- "I'm Done" button appears after 5s elapsed (same as VignetteExperience): `rounded-full border border-white/15 bg-white/5 px-6 py-2.5 backdrop-blur-sm`
+- "I'm Done" button appears after 10s elapsed (same as VignetteExperience): `rounded-full border border-white/15 bg-white/5 px-6 py-2.5 backdrop-blur-sm`
 - Auto-stops at time limit
 
 **Between prompts:** Crossfade transition (300ms, opacity only). No jarring cut. Prompt text fades out, next prompt fades in. Camera preview stays continuous.
