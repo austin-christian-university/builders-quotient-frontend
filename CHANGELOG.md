@@ -2,6 +2,11 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.4.3] - 2026-03-24
+
+### Added
+- Resume route (`/assess/resume?token=`) for email-based personality quiz completion — validates token, restores session cookie, redirects to personality quiz or results page
+
 ## [0.2.4.2] - 2026-03-24
 
 ### Fixed
