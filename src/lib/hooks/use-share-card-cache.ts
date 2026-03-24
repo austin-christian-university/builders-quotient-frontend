@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toBlob } from "html-to-image";
 
 // Safari detection — stable for the session, no need for useSyncExternalStore
@@ -67,7 +67,9 @@ export function useShareCardCache(
 
   // Track the current cardId to discard stale results
   const currentCardIdRef = useRef(cardId);
-  currentCardIdRef.current = cardId;
+  useEffect(() => {
+    currentCardIdRef.current = cardId;
+  });
 
   // Derive cachedBlob only if it matches the current card
   const cachedBlob = cache?.cardId === cardId ? cache.blob : null;
@@ -83,6 +85,7 @@ export function useShareCardCache(
     if (!options.enabled) return;
 
     // Clear stale cache when card changes
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset cache synchronously on card change to avoid stale blob flash
     setCache(null);
 
     const debounceTimer = setTimeout(() => {

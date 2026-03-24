@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo, useSyncExternalStore } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "motion/react";
 import type { ResultsPageData } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
@@ -392,6 +392,7 @@ function TiltWrapper({
     const [isCoarse, setIsCoarse] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe: must read window in effect
         setIsCoarse(window.matchMedia("(pointer: coarse)").matches);
     }, []);
 
@@ -495,42 +496,45 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
     const printRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
 
-    // Build available cards dynamically
-    const cards: { id: string; render: (exp: boolean) => React.ReactNode }[] = [];
-    if (data.reasoningMatch?.primary) {
-        cards.push({
-            id: "reasoning-match",
-            render: (exp) => <MatchupCard data={data} matchType="reasoning" isExporting={exp} />,
+    // Build available cards dynamically (memoized so useCallback deps stay stable)
+    const cards = useMemo(() => {
+        const result: { id: string; render: (exp: boolean) => React.ReactNode }[] = [];
+        if (data.reasoningMatch?.primary) {
+            result.push({
+                id: "reasoning-match",
+                render: (exp) => <MatchupCard data={data} matchType="reasoning" isExporting={exp} />,
+            });
+        }
+        if (data.communicationMatch?.primary) {
+            result.push({
+                id: "communication-match",
+                render: (exp) => <MatchupCard data={data} matchType="communication" isExporting={exp} />,
+            });
+        }
+        if (data.piRadar.length > 0) {
+            result.push({
+                id: "pi-radar",
+                render: (exp) => <RadarShareCard data={data} variant="pi" isExporting={exp} />,
+            });
+        }
+        if (data.ciRadar.length > 0) {
+            result.push({
+                id: "ci-radar",
+                render: (exp) => <RadarShareCard data={data} variant="ci" isExporting={exp} />,
+            });
+        }
+        if (data.communicationProfile && data.communicationProfile.length > 0) {
+            result.push({
+                id: "communication-radar",
+                render: (exp) => <CommunicationRadarShareCard data={data} isExporting={exp} />,
+            });
+        }
+        result.push({
+            id: "archetype",
+            render: (exp) => <ArchetypeCard data={data} isExporting={exp} />,
         });
-    }
-    if (data.communicationMatch?.primary) {
-        cards.push({
-            id: "communication-match",
-            render: (exp) => <MatchupCard data={data} matchType="communication" isExporting={exp} />,
-        });
-    }
-    if (data.piRadar.length > 0) {
-        cards.push({
-            id: "pi-radar",
-            render: (exp) => <RadarShareCard data={data} variant="pi" isExporting={exp} />,
-        });
-    }
-    if (data.ciRadar.length > 0) {
-        cards.push({
-            id: "ci-radar",
-            render: (exp) => <RadarShareCard data={data} variant="ci" isExporting={exp} />,
-        });
-    }
-    if (data.communicationProfile && data.communicationProfile.length > 0) {
-        cards.push({
-            id: "communication-radar",
-            render: (exp) => <CommunicationRadarShareCard data={data} isExporting={exp} />,
-        });
-    }
-    cards.push({
-        id: "archetype",
-        render: (exp) => <ArchetypeCard data={data} isExporting={exp} />,
-    });
+        return result;
+    }, [data]);
 
     const handleNext = () => {
         setDirection(1);
@@ -829,6 +833,7 @@ function SharePreviewOverlay({
 
     useEffect(() => {
         const url = URL.createObjectURL(blob);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- must create/revoke ObjectURL in effect for cleanup
         setObjectUrl(url);
         return () => URL.revokeObjectURL(url);
     }, [blob]);

@@ -206,6 +206,7 @@ export function AudioOrb({
     try {
       renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
     } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronizing with WebGL availability
       setWebglFailed(true);
       return;
     }

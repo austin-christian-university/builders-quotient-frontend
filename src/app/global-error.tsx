@@ -32,6 +32,7 @@ export default function GlobalError({
               >
                 Try again
               </button>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- global-error replaces the root layout; Link may not have router context */}
               <a
                 href="/"
                 className="inline-flex items-center rounded-full border border-[#1f1f23] px-6 py-3 font-medium text-[#9aa0ac] transition-colors hover:text-[#f5f6fa] hover:border-[#2f2f35]"

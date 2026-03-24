@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Phase } from "./vignette-reducer";
 
 export type SuspicionEvent = {
@@ -31,7 +31,9 @@ export function useContentProtection(
 } {
   const eventsRef = useRef<SuspicionEvent[]>([]);
   const phaseRef = useRef(phase);
-  phaseRef.current = phase;
+  useEffect(() => {
+    phaseRef.current = phase;
+  });
 
   const push = useCallback(
     (type: SuspicionEvent["type"]) => {

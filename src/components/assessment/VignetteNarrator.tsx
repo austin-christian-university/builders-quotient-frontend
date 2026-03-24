@@ -187,8 +187,12 @@ export function VignetteNarrator({
   // during the fade-in before the word-by-word reveal begins.
   const [hasPhase2Revealed, setHasPhase2Revealed] = useState(false);
   const [hasPhase3Revealed, setHasPhase3Revealed] = useState(false);
-  useEffect(() => { if (isPhase2Revealing) setHasPhase2Revealed(true); }, [isPhase2Revealing]);
-  useEffect(() => { if (isPhase3Revealing) setHasPhase3Revealed(true); }, [isPhase3Revealing]);
+  useEffect(() => {
+    if (isPhase2Revealing) setHasPhase2Revealed(true);
+  }, [isPhase2Revealing]);
+  useEffect(() => {
+    if (isPhase3Revealing) setHasPhase3Revealed(true);
+  }, [isPhase3Revealing]);
 
   // Timer-mode prompt revealing: word-by-word in progress
   const isPrompt1TimerRevealing = !useAudioMode && !prefersReducedMotion
@@ -240,6 +244,7 @@ export function VignetteNarrator({
       hasCompletedRef.current = true;
       onComplete();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- audio.currentTimeRef is a stable ref, not a reactive dependency
   }, [useAudioMode, audio.isComplete, audio.revealedCount, phase1PromptBound, phase1PromptEndIdx, onComplete]);
 
   // --- Timer mode: drive reveal with setTimeout per word ---

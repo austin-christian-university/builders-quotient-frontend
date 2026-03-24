@@ -58,6 +58,7 @@ export function OrbSubtitles({
   // Hold the last subtitle briefly after playback ends
   useEffect(() => {
     if (!isPlaying && currentTime > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync linger state with playback lifecycle
       setLingering(true);
       lingerRef.current = setTimeout(() => setLingering(false), LINGER_MS);
       return () => clearTimeout(lingerRef.current);

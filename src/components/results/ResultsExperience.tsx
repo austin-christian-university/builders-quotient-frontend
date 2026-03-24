@@ -64,6 +64,7 @@ function useIsDesktop() {
 
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 768px)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe: must read window in effect
     setIsDesktop(mql.matches);
     function onChange(e: MediaQueryListEvent) {
       setIsDesktop(e.matches);
@@ -321,10 +322,10 @@ export function ResultsExperience({ data, token }: Props) {
 
   // Track whether user has navigated — skip enter animation on first mount
   // to avoid axis-flip bug (isDesktop SSR mismatch causes stuck translateX)
-  const hasNavigated = useRef(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
 
   const goNext = useCallback(() => {
-    hasNavigated.current = true;
+    setHasNavigated(true);
     setCurrentSection((prev) => {
       if (prev >= sections.length - 1) return prev;
       setDirection(1);
@@ -333,7 +334,7 @@ export function ResultsExperience({ data, token }: Props) {
   }, [sections.length]);
 
   const goPrev = useCallback(() => {
-    hasNavigated.current = true;
+    setHasNavigated(true);
     setCurrentSection((prev) => {
       if (prev <= 0) return prev;
       setDirection(-1);
@@ -434,7 +435,7 @@ export function ResultsExperience({ data, token }: Props) {
               key={currentSection}
               custom={direction}
               variants={variants}
-              initial={hasNavigated.current ? "enter" : false}
+              initial={hasNavigated ? "enter" : false}
               animate="center"
               exit="exit"
               transition={transition}
