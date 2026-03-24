@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  forwardRef,
   useEffect,
   useMemo,
   useRef,
@@ -18,6 +17,7 @@ import {
 import type { AudioNarratorResult } from "@/lib/assessment/use-audio-narrator";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
+import { ActiveWord } from "./ActiveWord";
 
 const SKIP_TOKENS = new Set(["…", "...", "."]);
 function isSkipToken(word: string): boolean {
@@ -372,7 +372,6 @@ export function VignetteNarrator({
                   word={timing.word}
                   wordStart={timing.start}
                   wordEnd={timing.end}
-                  currentTimeRef={audio.currentTimeRef}
                   trailingSpace={!isLast}
                 />
               );
@@ -422,7 +421,6 @@ export function VignetteNarrator({
                       word={timing.word}
                       wordStart={timing.start}
                       wordEnd={timing.end}
-                      currentTimeRef={audio.currentTimeRef}
                       trailingSpace={!isLast}
                     />
                   );
@@ -461,7 +459,6 @@ export function VignetteNarrator({
                         word={timing.word}
                         wordStart={timing.start}
                         wordEnd={timing.end}
-                        currentTimeRef={audio.currentTimeRef}
                         trailingSpace={!isLast}
                       />
                     );
@@ -500,7 +497,6 @@ export function VignetteNarrator({
                         word={timing.word}
                         wordStart={timing.start}
                         wordEnd={timing.end}
-                        currentTimeRef={audio.currentTimeRef}
                         trailingSpace={!isLast}
                       />
                     );
@@ -712,45 +708,6 @@ export function VignetteNarrator({
     </div>
   );
 }
-
-// --- ActiveWord: per-character fade-in reveal ---
-
-type ActiveWordProps = {
-  word: string;
-  wordStart: number;
-  wordEnd: number;
-  currentTimeRef?: RefObject<number>;
-  trailingSpace: boolean;
-};
-
-const ActiveWord = forwardRef<HTMLSpanElement, ActiveWordProps>(
-  function ActiveWord({ word, wordStart, wordEnd, trailingSpace }, ref) {
-    const chars = [...word];
-    const wordDuration = Math.max(wordEnd - wordStart, 0.05);
-    const charAnimDuration = 0.12;
-
-    return (
-      <span ref={ref} className="inline whitespace-nowrap">
-        {chars.map((char, i) => {
-          const delay = (i / chars.length) * wordDuration;
-          return (
-            <span
-              key={i}
-              className="inline-block opacity-0"
-              style={{
-                animation: `char-reveal ${charAnimDuration}s ease-out both`,
-                animationDelay: `${delay}s`,
-              }}
-            >
-              {char}
-            </span>
-          );
-        })}
-        {trailingSpace && <span className="inline"> </span>}
-      </span>
-    );
-  }
-);
 
 // --- Narration Debug Bar (dev only, inline) ---
 
