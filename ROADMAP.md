@@ -532,6 +532,9 @@ src/
 │   │   ├── WarmupJourneyMap.tsx  # Visual progress indicator for warmup phases
 │   │   ├── WarmupDevToolbar.tsx  # Dev-only toolbar for skipping warmup phases
 │   │   ├── VignetteNarrator.tsx  # AI narration + synced text reveal
+│   │   ├── OrbGuide.tsx          # AI orb narrator for warmup/transition phases
+│   │   ├── OrbSubtitles.tsx      # Cinematic floating subtitles synced to orb audio
+│   │   ├── ActiveWord.tsx        # Per-character reveal animation for narrated text
 │   │   ├── CountdownRing.tsx     # Unified countdown ring (think mode + recording mode) + floating timer badge
 │   │   ├── CountdownDigit.tsx    # Animated digit display for countdown timers
 │   │   ├── ProgressBar.tsx       # Step indicator (1 of 4)
@@ -558,9 +561,12 @@ src/
     │   ├── applicant.ts          # Email capture validation
     │   └── response.ts           # Response timing validation
     ├── assessment/
-    │   ├── warmup-reducer.ts     # 15-phase state machine for warmup flow
+    │   ├── warmup-reducer.ts     # 14-phase state machine for warmup flow
     │   ├── warmup-content.ts     # Warmup vignette text, prompts, and timing constants
     │   ├── warmup-audio-timing.ts # Word-level timing for warmup TTS narration
+    │   ├── orb-scripts.ts        # Orb narration scripts with word-level timing data
+    │   ├── cue-groups.ts         # Sentence-level subtitle grouping from word timings
+    │   ├── scoring-categories.ts # Canonical 12-category arrays for PI and CI
     │   ├── vignette-reducer.ts   # State machine for exam vignette flow
     │   ├── vignette-assignment.ts # Select vignettes excluding burned ones
     │   ├── rate-limiter.ts       # IP-based rate limiting via Supabase
@@ -593,7 +599,7 @@ src/
 - Vignette assignment logic with exposure tracking
 - VignetteNarrator component (audio playback + synced text reveal)
 - CountdownRing component (unified think/recording countdown, shared warmup+exam)
-- Warmup flow with exam-parity state machine (15-phase warmupReducer)
+- Warmup flow with exam-parity state machine (14-phase warmupReducer)
 - Presigned upload URL generation
 - Server Actions for response submission + timing validation
 - Step-by-step flow with progress indicator
