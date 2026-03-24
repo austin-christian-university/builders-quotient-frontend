@@ -65,7 +65,7 @@ Only use useEffect for:
 
 ## Environment & Configuration
 
-Environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for the client, plus server-side keys as needed. Prefix client-exposed vars with `NEXT_PUBLIC_`. Never commit `.env` files.
+Environment variables are documented in `.env.example`. Key variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_POSTHOG_KEY` for the client; `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_SECRET`, `IP_HASH_SALT`, `REVIEW_PASSWORD`, and `SENTRY_AUTH_TOKEN` on the server. There is no client-side Supabase anon key — all DB access is server-only via the service role. Prefix client-exposed vars with `NEXT_PUBLIC_`. Never commit `.env` files.
 
 ## Assessment Domain Context
 
