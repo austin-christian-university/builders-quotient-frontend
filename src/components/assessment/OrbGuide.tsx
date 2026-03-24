@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
 import { AudioOrb } from "./AudioOrb";
+import { OrbSubtitles } from "./OrbSubtitles";
 import type { OrbScript } from "@/lib/assessment/orb-scripts";
 import { motion } from "motion/react";
 
@@ -128,6 +129,16 @@ export function OrbGuide({ script, onContinue, onSkip }: OrbGuideProps) {
           isPlaying={isSpeaking}
           prefersReducedMotion={prefersReducedMotion}
         />
+
+        {/* Cinematic subtitles — word-by-word reveal synced to audio */}
+        {script.wordTimings && !showAllCaptions && (
+          <OrbSubtitles
+            wordTimings={script.wordTimings}
+            captions={script.captions}
+            audioRef={audioRef}
+            isPlaying={isSpeaking}
+          />
+        )}
 
         {/* Screen reader: full transcript always available */}
         <div aria-live="polite" className="sr-only">
