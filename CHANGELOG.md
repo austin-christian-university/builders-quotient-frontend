@@ -4,12 +4,10 @@ All notable changes to the Builders Quotient frontend will be documented in this
 
 ## [0.2.5.0] - 2026-03-24
 
-### Changed
-- Resolved all 28 lint errors for React 19 compiler compatibility: ref-during-render patterns moved to useEffect, setState-in-effect calls annotated, unused variables and dead code removed
-- Migrated `hasNavigated` from useRef to useState in ResultsExperience to fix ref-read-during-render lint violation
-- Stabilized ShareApplySlide cards array with useMemo to prevent useCallback dependency churn
-- Removed dead `unionMoveDetails` function from results queries
-- Removed `.gstack/benchmark-reports/` from tracked files (now fully gitignored)
+### For contributors
+- Codebase is now fully lint-clean for React 19 — all 28 compiler warnings resolved across 20 files
+- Removed dead code and unused variables for a cleaner, more maintainable codebase
+- Cleaned up tracked `.gstack/` files (benchmark reports now fully gitignored)
 
 ## [0.2.4.4] - 2026-03-24
 
