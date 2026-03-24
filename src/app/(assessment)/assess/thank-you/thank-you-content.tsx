@@ -316,7 +316,10 @@ function StudentVariant() {
                 Beyond intelligence, the most successful entrepreneurs share a unique blend of personality traits &mdash; grit, risk tolerance, innovativeness, and more. Our personality profile measures 8&nbsp;key dimensions that define great founders.
               </p>
               <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
-                Complete it now and we&rsquo;ll <strong className="font-medium text-text-primary">include your personality profile when your Builders Quotient is ready</strong>. It&rsquo;s also the next step in the ACU&nbsp;application.
+                This one takes about <strong className="font-medium text-text-primary">25&nbsp;minutes</strong> &mdash; quick agree/disagree questions, no video required. We&rsquo;d love for you to knock it out while you&rsquo;re here, and we&rsquo;ll <strong className="font-medium text-text-primary">include your personality profile when your Builders Quotient is ready</strong>. It&rsquo;s also the next step in the ACU&nbsp;application.
+              </p>
+              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary/70">
+                If now isn&rsquo;t a good time, no worries &mdash; we&rsquo;ll email you a link to come back and complete it&nbsp;later.
               </p>
             </div>
 
@@ -325,7 +328,7 @@ function StudentVariant() {
                 Start Personality Profile
               </Button>
               <span className="text-[length:var(--text-fluid-xs)] font-medium text-text-secondary/60 uppercase tracking-widest">
-                ~5&nbsp;minutes
+                ~25&nbsp;minutes
               </span>
             </div>
 
@@ -341,7 +344,7 @@ function StudentVariant() {
         className="scroll-mt-8"
       >
         <p className="mb-8 text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
-          Not ready for another quiz right now? Explore what else we have to&nbsp;offer.
+          While you&rsquo;re here, explore what we&rsquo;re building at&nbsp;ACU.
         </p>
         <div className="grid gap-8 md:grid-cols-2 lg:gap-10">
           <ExploreCard
