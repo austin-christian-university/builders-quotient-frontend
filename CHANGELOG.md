@@ -9,6 +9,11 @@ All notable changes to the Builders Quotient frontend will be documented in this
 - Removed dead code and unused variables for a cleaner, more maintainable codebase
 - Cleaned up tracked `.gstack/` files (benchmark reports now fully gitignored)
 
+## [0.2.4.5] - 2026-03-24
+
+### Fixed
+- Added PostHog asset domain (`https://*.i.posthog.com`) to CSP `script-src` — analytics scripts were blocked after v0.2.4.4 CSP hardening
+
 ## [0.2.4.4] - 2026-03-24
 
 ### Fixed
