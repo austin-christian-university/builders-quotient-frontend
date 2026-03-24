@@ -967,21 +967,21 @@ function ScrollableTextBox({
       <div className="relative">
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200",
+            "pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200 hidden md:block",
             canScrollUp ? "opacity-100" : "opacity-0"
           )}
         />
 
         <div
           ref={scrollContainerRef}
-          className="max-h-[50vh] select-none space-y-3 overflow-y-auto pr-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
+          className="md:max-h-[50vh] select-none space-y-3 md:overflow-y-auto md:pr-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
         >
           {children}
         </div>
 
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200",
+            "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200 hidden md:block",
             canScrollDown ? "opacity-100" : "opacity-0"
           )}
         />
