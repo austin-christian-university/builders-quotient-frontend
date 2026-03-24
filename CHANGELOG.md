@@ -11,6 +11,11 @@ All notable changes to the Builders Quotient frontend will be documented in this
 - Reduced vertical padding between timer and prompt card for tighter mobile layout
 
 ### Added
+- Paragraph break support in vignette narratives via `\n\n` in database text
+- `splitIntoParagraphs()` and `getParagraphBreakWordIndices()` utility functions for paragraph-aware text processing
+- `paragraphIndex` field on `WordTiming` type for tracking paragraph boundaries during word-by-word reveal
+- 16 new tests covering paragraph splitting, break index calculation, and cross-paragraph word timing
+- Visual paragraph spacing in both audio mode and timer fallback mode of the teleprompter
 - Floating timer badge appears in top-right corner when the inline countdown timer scrolls out of view (IntersectionObserver + createPortal)
 - Floating badge includes mini countdown ring, time display, REC indicator, and compact "Done" button
 - Audio stall watchdog (15s timeout) prevents deadlock if TTS audio buffers indefinitely during prompt narration
