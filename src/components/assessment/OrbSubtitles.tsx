@@ -91,24 +91,19 @@ export function OrbSubtitles({
     : "";
 
   return (
-    <div
-      className="mx-auto max-w-[500px] min-h-[3.5em] px-6 text-center"
-      aria-hidden="true"
-    >
-      <AnimatePresence mode="wait">
-        {visible ? (
-          <motion.p
-            key={activeCueIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: lingering ? 0.4 : 0.15, ease: "easeOut" }}
-            className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary/80 font-light"
-          >
-            {cueText}
-          </motion.p>
-        ) : null}
-      </AnimatePresence>
-    </div>
+    <AnimatePresence mode="wait">
+      {visible ? (
+        <motion.p
+          key={activeCueIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: lingering ? 0.4 : 0.15, ease: "easeOut" }}
+          className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary/80 font-light"
+        >
+          {cueText}
+        </motion.p>
+      ) : null}
+    </AnimatePresence>
   );
 }

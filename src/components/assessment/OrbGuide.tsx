@@ -123,21 +123,28 @@ export function OrbGuide({ script, onContinue, onSkip }: OrbGuideProps) {
       />
 
       {/* Orb */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-8 px-6">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4 sm:gap-8 px-6 -translate-y-6 sm:translate-y-0">
         <AudioOrb
           audioRef={audioRef}
           isPlaying={isSpeaking}
           prefersReducedMotion={prefersReducedMotion}
         />
 
-        {/* Cinematic subtitles — word-by-word reveal synced to audio */}
-        {script.wordTimings && !showAllCaptions && (
-          <OrbSubtitles
-            wordTimings={script.wordTimings}
-            captions={script.captions}
-            audioRef={audioRef}
-            isPlaying={isSpeaking}
-          />
+        {/* Subtitle area — always reserves 3 lines so the orb never shifts */}
+        {!showAllCaptions && (
+          <div
+            className="shrink-0 mx-auto max-w-[500px] h-[4.875em] text-center text-[length:var(--text-fluid-base)] leading-relaxed overflow-hidden"
+            aria-hidden="true"
+          >
+            {script.wordTimings && (
+              <OrbSubtitles
+                wordTimings={script.wordTimings}
+                captions={script.captions}
+                audioRef={audioRef}
+                isPlaying={isSpeaking}
+              />
+            )}
+          </div>
         )}
 
         {/* Screen reader: full transcript always available */}
@@ -181,7 +188,7 @@ export function OrbGuide({ script, onContinue, onSkip }: OrbGuideProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="relative z-10 flex flex-col items-center gap-3 pb-12"
+        className="relative z-10 flex flex-col items-center justify-end gap-3 pb-12 min-h-44 sm:min-h-20"
       >
         {playbackState === "idle" && (
           <div className="relative group w-full px-6 sm:px-0 sm:w-auto">
