@@ -13,8 +13,12 @@ All notable changes to the Builders Quotient frontend will be documented in this
 - `cue-groups` module: reconciles Whisper word timings with punctuated caption text, splits into sentence-level subtitle groups with orphan merging
 - `extract-orb-timings.mjs` one-time script for extracting word timestamps from existing MP3 files
 - 14 tests covering cue group reconciliation, sentence breaking, hyphenated words, and edge cases
+- 5 new unit tests for `paragraphIndex` assignment in `calculateWordTiming`: single paragraph, double-newline split, multi-paragraph indices, triple+ newlines, and sentence tracking across paragraphs
+- Visual test page at `/test/narration` for verifying paragraph rendering with dummy vignette text
 
 ### Changed
+- Timer-mode narration renders paragraphs as flowing prose within `<p>` elements instead of one `<p>` per sentence, matching how text appears in Supabase (no artificial line breaks between sentences)
+- Paragraph spacing in ScrollableTextBox increased from `space-y-3` (12px) to `space-y-4` (16px) for clearer visual separation
 - Pre-exam caption punctuation: em dash replaced with semicolon for "think out loud; narrate your reasoning"
 - Pre-exam caption: "real-world" split to "real world" for Whisper alignment compatibility
 

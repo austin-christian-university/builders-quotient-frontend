@@ -151,13 +151,15 @@ export function VignetteNarrator({
     return groups;
   }, [audioTiming, narrativeEndIdx, paragraphBreaks]);
 
-  const sentenceGroups = useMemo(() => {
+  // Group words into paragraphs (by paragraphIndex) so each paragraph
+  // renders as a single <p> with flowing inline text.
+  const paragraphGroups = useMemo(() => {
     const groups: WordTiming[][] = [];
     for (const word of words) {
-      if (!groups[word.sentenceIndex]) {
-        groups[word.sentenceIndex] = [];
+      if (!groups[word.paragraphIndex]) {
+        groups[word.paragraphIndex] = [];
       }
-      groups[word.sentenceIndex].push(word);
+      groups[word.paragraphIndex].push(word);
     }
     return groups;
   }, [words]);
@@ -592,68 +594,63 @@ export function VignetteNarrator({
   }
 
   // --- Timer-based fallback rendering ---
-  let globalWordIndex = 0;
+  // Track cumulative word offset per paragraph for reveal logic
+  let paraWordOffset = 0;
 
   // Timer fallback: narrative text — always visible
   const timerNarrativeTextBlock = (
     <ScrollableTextBox scrollContainerRef={scrollContainerRef} ariaLive="polite">
-      {sentenceGroups.map((group, sentenceIdx) => {
-        const sentenceStartIdx = globalWordIndex;
-        globalWordIndex += group.length;
-        const sentenceHasAnyRevealed = revealedCount > sentenceStartIdx;
-        const isNewParagraph =
-          sentenceIdx > 0 &&
-          group[0]?.paragraphIndex !==
-            sentenceGroups[sentenceIdx - 1]?.[0]?.paragraphIndex;
+      {paragraphGroups.map((paraWords, paraIdx) => {
+        const paraStartIdx = paraWordOffset;
+        paraWordOffset += paraWords.length;
+        const paraHasAnyRevealed = revealedCount > paraStartIdx;
 
         return (
-          <Fragment key={sentenceIdx}>
-            {isNewParagraph && <div className="h-3" aria-hidden="true" />}
-            <p
-              className={
-                !sentenceHasAnyRevealed && !prefersReducedMotion
-                  ? "opacity-0"
-                  : undefined
-              }
-            >
-              {group.map((word, wordIdx) => {
-                const absIdx = sentenceStartIdx + wordIdx;
-                if (absIdx >= revealedCount) return null;
+          <p
+            key={paraIdx}
+            className={cn(
+              !paraHasAnyRevealed && !prefersReducedMotion
+                ? "opacity-0"
+                : undefined,
+            )}
+          >
+            {paraWords.map((word, wordIdx) => {
+              const absIdx = paraStartIdx + wordIdx;
+              if (absIdx >= revealedCount) return null;
 
-                const isActiveWord =
-                  absIdx === revealedCount - 1 && !prefersReducedMotion && isActive;
-                const isLastInGroup = wordIdx === group.length - 1;
+              const isActiveWord =
+                absIdx === revealedCount - 1 && !prefersReducedMotion && isActive;
+              const isLastInPara = wordIdx === paraWords.length - 1;
 
-                if (!isActiveWord) {
-                  return (
-                    <span key={`${sentenceIdx}-${wordIdx}`} className="inline">
-                      {word.text}
-                      {!isLastInGroup ? " " : ""}
-                    </span>
-                  );
-                }
-
-                const nextWord = words[absIdx + 1];
-                const wordEndTime = nextWord
-                  ? nextWord.startTime
-                  : totalDuration;
-
+              if (!isActiveWord) {
                 return (
-                  <ActiveWord
-                    key={`${sentenceIdx}-${wordIdx}`}
-                    ref={latestWordRef}
-                    word={word.text}
-                    wordStart={word.startTime}
-                    wordEnd={wordEndTime}
-                    trailingSpace={!isLastInGroup}
-                  />
+                  <span key={`${paraIdx}-${wordIdx}`} className="inline">
+                    {word.text}
+                    {!isLastInPara ? " " : ""}
+                  </span>
                 );
-              })}
-            </p>
-          </Fragment>
+              }
+
+              const nextWord = words[absIdx + 1];
+              const wordEndTime = nextWord
+                ? nextWord.startTime
+                : totalDuration;
+
+              return (
+                <ActiveWord
+                  key={`${paraIdx}-${wordIdx}`}
+                  ref={latestWordRef}
+                  word={word.text}
+                  wordStart={word.startTime}
+                  wordEnd={wordEndTime}
+                  trailingSpace={!isLastInPara}
+                />
+              );
+            })}
+          </p>
         );
       })}
-      {sentenceGroups.length === 0 && (
+      {paragraphGroups.length === 0 && (
         <p className="opacity-0">{vignetteText}</p>
       )}
 
