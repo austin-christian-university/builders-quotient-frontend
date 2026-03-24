@@ -2,6 +2,13 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.4.1] - 2026-03-24
+
+### Changed
+- Narrative text box expands to full height on mobile instead of internal scroll, eliminating double-scrollbar UX
+- Floating timer pill positioned below progress bar on mobile (`top-[42px]`) to avoid overlap
+- Floating timer "Done" button uses scale animation instead of width animation to prevent jerky loading
+
 ## [0.2.4.0] - 2026-03-24
 
 ### Added
