@@ -185,9 +185,9 @@ export const COMMUNICATION_TEMPLATES: Record<string, NarrativeTemplate> = {
   },
   "Warmth & Interpersonal": {
     strength:
-      "You communicate with genuine warmth — approachability, humor, active listening, and empathy that make people feel seen and valued. Founders with this quality build teams that stay loyal through hard stretches and customer relationships that drive organic growth.",
+      "You communicate with genuine warmth — your tone, expressiveness, and empathy come through naturally when you talk through problems. Founders with this quality build teams that stay loyal through hard stretches and customer relationships that drive organic growth.",
     growth:
-      "Developing interpersonal warmth means intentionally slowing down in conversations to signal that you're fully present. Practice active listening cues, ask follow-up questions, and allow moments of lightness. Entrepreneurs who cultivate warmth often find it unlocks trust that no amount of competence alone can build.",
+      "Developing interpersonal warmth means letting more of your personality come through when you communicate your reasoning. Lean into approachability — a conversational tone, moments of humor or empathy, and language that acknowledges the human side of a problem. Entrepreneurs who cultivate warmth often find it unlocks trust that no amount of competence alone can build.",
   },
   "Communication Style": {
     strength:
