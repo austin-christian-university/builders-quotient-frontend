@@ -88,6 +88,7 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
             containerWidth={containerWidth}
             onCategoryHover={handleCategoryHover}
             activeCategoryIndex={activeIndex}
+            tooltipLabels={categoryNames}
           />
         </div>
       </motion.div>
@@ -120,14 +121,13 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
               <motion.p
                 key="hint"
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="text-center text-xs"
-                style={{ color: "rgba(154,160,172,0.6)" }}
+                animate={{ opacity: 1, transition: { duration: 0.8, delay: 0.6, ease: "easeOut" } }}
+                exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                className="text-center text-base"
+                style={{ color: "rgba(154,160,172,0.85)" }}
               >
-                <span className="hidden [@media(hover:hover)]:inline">Hover or click a trait to see its definition</span>
-                <span className="[@media(hover:hover)]:hidden">Tap a trait to see its definition</span>
+                <span className="hidden [@media(hover:hover)]:inline">Hover or click any point to see its definition</span>
+                <span className="[@media(hover:hover)]:hidden">Tap any point to see its definition</span>
               </motion.p>
             )}
           </AnimatePresence>

@@ -171,7 +171,9 @@ export function RadarChart({
   const uid = useId();
   const n = categories.length;
   const hasSectors = !!sectorGroups && sectorGroups.length > 0;
-  const isInteractive = hasSectors && interactive;
+  const isInteractive =
+    interactive &&
+    (hasSectors || (!!tooltipLabels && tooltipLabels.length > 0) || !!onCategoryHover);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipTextRef = useRef<SVGTextElement>(null);
@@ -234,6 +236,9 @@ export function RadarChart({
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
       if (!isInteractive || tappedIndex !== null) return;
+      // Don't override label hover — labels handle their own mouse events
+      const target = e.target as Element;
+      if (target.closest?.("[data-radar='label']")) return;
       const svg = svgRef.current;
       if (!svg) return;
       const { x, y } = svgPoint(svg, e.clientX, e.clientY);
@@ -296,14 +301,14 @@ export function RadarChart({
   // Active group
   const activeGroup =
     isInteractive && activeIndex !== null
-      ? sectorGroups!.find((g) => g.indices.includes(activeIndex))
+      ? sectorGroups?.find((g) => g.indices.includes(activeIndex))
       : null;
 
-  // Tooltip
+  // Tooltip — only shown when tooltipLabels are provided (not just onCategoryHover)
   const tooltipContent =
-    isInteractive && activeIndex !== null
+    isInteractive && activeIndex !== null && tooltipLabels
       ? {
-        label: tooltipLabels?.[activeIndex] ?? categories[activeIndex],
+        label: tooltipLabels[activeIndex] ?? categories[activeIndex],
         groupName: activeGroup?.label ?? "",
         groupColor: activeGroup?.color ?? accentColor,
       }
@@ -471,7 +476,7 @@ export function RadarChart({
                 fontWeight={700}
                 letterSpacing="0.1em"
                 fill={group.color}
-                opacity={isGroupActive ? 1 : 0.4}
+                opacity={isGroupActive ? 1 : 0.5}
                 style={{
                   transition: "opacity 0.15s ease",
                   cursor: "pointer",
@@ -514,7 +519,7 @@ export function RadarChart({
 
       {/* Vertex dots (purely visual — interaction is via SVG-level mouse tracking) */}
       {dotPositions.map(({ x, y }, i) => {
-        const isActive = activeIndex === i;
+        const isActive = activeIndex === i || activeCategoryIndex === i;
         const dotColor = dotColors?.[i] ?? accentColor;
         return (
           <g key={i} style={{ pointerEvents: "none" }}>
@@ -552,8 +557,8 @@ export function RadarChart({
             angle
           );
           const anchor = textAnchor(x, cx);
-          const isActive = activeCategoryIndex === i;
-          const isInteractive = !!onCategoryHover;
+          const isActive = activeIndex === i || activeCategoryIndex === i;
+          const isLabelClickable = !!onCategoryHover || isInteractive;
 
           const labelColor = dotColors?.[i] ?? accentColor;
           const glowOpacity = isActive ? "99" : "33"; // 60% vs 20% alpha
@@ -573,35 +578,61 @@ export function RadarChart({
               dominantBaseline="middle"
               fontSize={compensatedFontSize}
               fill={isActive ? "#ffffff" : labelColor}
-              opacity={isActive ? 0.85 : 0.4}
+              opacity={isActive ? 0.85 : 0.55}
               fontFamily="'Inter Tight', Inter, sans-serif"
               fontWeight={600}
               letterSpacing="0.08em"
               style={{
                 textShadow,
                 transition: "all 0.2s ease",
-                cursor: isInteractive ? "pointer" : "default",
-                pointerEvents: isInteractive ? "all" : "none",
+                cursor: isLabelClickable ? "pointer" : "default",
+                pointerEvents: isLabelClickable ? "all" : "none",
               }}
               onMouseEnter={
-                isInteractive ? () => onCategoryHover(i) : undefined
+                isLabelClickable
+                  ? () => {
+                      setHoveredIndex(i);
+                      onCategoryHover?.(i);
+                    }
+                  : undefined
               }
               onMouseLeave={
-                isInteractive ? () => onCategoryHover(null) : undefined
+                isLabelClickable
+                  ? () => {
+                      setHoveredIndex(null);
+                      onCategoryHover?.(tappedIndex ?? null);
+                    }
+                  : undefined
               }
               onClick={
-                isInteractive
+                isLabelClickable
                   ? (e) => {
                       e.stopPropagation();
-                      onCategoryHover(activeCategoryIndex === i ? null : i);
+                      if (tappedIndex === i) {
+                        // Un-sticky — mouse still here, keep showing via hover
+                        setTappedIndex(null);
+                        onCategoryHover?.(i);
+                      } else {
+                        setTappedIndex(i);
+                        onCategoryHover?.(i);
+                      }
                     }
                   : undefined
               }
               onTouchEnd={
-                isInteractive
+                isLabelClickable
                   ? (e) => {
-                      e.preventDefault(); // Bypass iOS double-tap-to-click delay
-                      onCategoryHover(activeCategoryIndex === i ? null : i);
+                      e.preventDefault();
+                      if (tappedIndex === i) {
+                        // Un-sticky on mobile — dismiss fully (no hover)
+                        setTappedIndex(null);
+                        setHoveredIndex(null);
+                        onCategoryHover?.(null);
+                      } else {
+                        setTappedIndex(i);
+                        setHoveredIndex(i);
+                        onCategoryHover?.(i);
+                      }
                     }
                   : undefined
               }
