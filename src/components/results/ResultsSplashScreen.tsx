@@ -59,6 +59,7 @@ export function ResultsSplashScreen({ onComplete }: Props) {
                   src="/White-Crest-sm.png"
                   alt="Austin Christian University Crest"
                   fill
+                  sizes="(min-width: 640px) 200px, 160px"
                   className="object-contain"
                   priority
                 />
@@ -99,6 +100,7 @@ export function ResultsSplashScreen({ onComplete }: Props) {
                   src="/White-Crest-sm.png"
                   alt="Austin Christian University Crest"
                   fill
+                  sizes="(min-width: 640px) 200px, 160px"
                   className="object-contain"
                   priority
                 />
