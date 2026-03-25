@@ -121,9 +121,8 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
               <motion.p
                 key="hint"
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+                animate={{ opacity: 1, transition: { duration: 0.8, delay: 0.6, ease: "easeOut" } }}
+                exit={{ opacity: 0, transition: { duration: 0.15 } }}
                 className="text-center text-base"
                 style={{ color: "rgba(154,160,172,0.85)" }}
               >
