@@ -2,6 +2,22 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.6.0] - 2026-03-25
+
+### Changed
+- Improved radar chart label discoverability — increased resting opacity from 0.4 to 0.55 and sector labels from 0.4 to 0.5
+- Hint text below radar charts is now larger (text-base) and more visible (85% opacity) with a smoother entrance animation
+- Legend on intelligence radar slides only appears when corpus comparison is shown
+
+### Added
+- Dot-tap and label-tap interaction on all radar charts — tap a point or label to sticky-select, tap again to dismiss
+- Built-in tooltip on personality radar chart via `tooltipLabels` prop
+- Labels on non-sector radar charts now respond to hover/click/touch with the same sticky-toggle behavior as dots
+
+### Fixed
+- Fixed slow exit animation on radar chart hint text — now fades out in 150ms instead of 300ms
+- Fixed SVG mouse tracking overriding label hover by adding `data-radar='label'` guard
+
 ## [0.2.5.2] - 2026-03-25
 
 ### Fixed
