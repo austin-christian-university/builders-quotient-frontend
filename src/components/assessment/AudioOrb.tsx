@@ -213,7 +213,9 @@ export function AudioOrb({
 
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
-    container.appendChild(gl.canvas);
+
+    // Prevent white flash: ensure canvas is transparent before it enters the DOM
+    gl.canvas.style.background = "transparent";
 
     const geometry = new Triangle(gl);
     const program = new Program(gl, {
@@ -249,6 +251,13 @@ export function AudioOrb({
     }
     window.addEventListener("resize", resize);
     resize();
+
+    // Render first frame synchronously before adding canvas to DOM.
+    // This eliminates the white flash caused by the uninitialized WebGL
+    // buffer being visible between appendChild and the first rAF callback.
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    renderer.render({ scene: mesh });
+    container.appendChild(gl.canvas);
 
     let lastTime = 0;
     let currentRot = 0;
