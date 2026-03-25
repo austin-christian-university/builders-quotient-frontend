@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useContainerWidth } from "@/lib/hooks/use-container-width";
 import type { RadarCategory } from "@/lib/schemas/results";
@@ -45,6 +45,10 @@ export function IntelligenceRadarSlide({
   const accentColor = ACCENT_COLOR[variant];
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [containerRef, containerWidth] = useContainerWidth();
+
+  const handleCategoryHover = useCallback((index: number | null) => {
+    setActiveIndex(index);
+  }, []);
 
   const categoryNames = data.radar.map((c) => getShortLabel(c.category));
 
@@ -124,7 +128,7 @@ export function IntelligenceRadarSlide({
             corpusScores={corpusScores.length > 0 ? corpusScores : undefined}
             maxValue={chartMax}
             accentColor={accentColor}
-            onCategoryHover={setActiveIndex}
+            onCategoryHover={handleCategoryHover}
             activeCategoryIndex={activeIndex}
             gridStyle={gridStyle}
             containerWidth={containerWidth}
@@ -158,9 +162,9 @@ export function IntelligenceRadarSlide({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="text-xs text-center"
-                style={{ color: "rgba(154,160,172,0.6)" }}
+                transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+                className="text-base text-center"
+                style={{ color: "rgba(154,160,172,0.85)" }}
               >
                 <span className="hidden [@media(hover:hover)]:inline">Hover or click a label to learn more</span>
                 <span className="[@media(hover:hover)]:hidden">Tap a label to learn more</span>
@@ -169,38 +173,40 @@ export function IntelligenceRadarSlide({
           </AnimatePresence>
         </div>
 
-        {/* Legend */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-          className="flex items-center justify-center gap-6 mt-1"
-          aria-label="Chart legend"
-        >
-          <div className="flex items-center gap-2">
-            <span
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: accentColor }}
-              aria-hidden="true"
-            />
-            <span className="text-sm" style={{ color: "#9aa0ac" }}>
-              Your Profile
-            </span>
-          </div>
-          {!hideCorpus && <div className="flex items-center gap-2">
-            <span
-              className="w-3 h-3 rounded-full border"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.04)",
-                borderColor: "rgba(255,255,255,0.3)",
-              }}
-              aria-hidden="true"
-            />
-            <span className="text-sm" style={{ color: "#9aa0ac" }}>
-              Entrepreneur Average
-            </span>
-          </div>}
-        </motion.div>
+        {/* Legend — only shown when corpus polygon is visible (two things to distinguish) */}
+        {!hideCorpus && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+            className="flex items-center justify-center gap-6 mt-1"
+            aria-label="Chart legend"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: accentColor }}
+                aria-hidden="true"
+              />
+              <span className="text-sm" style={{ color: "#9aa0ac" }}>
+                Your Profile
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="w-3 h-3 rounded-full border"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.04)",
+                  borderColor: "rgba(255,255,255,0.3)",
+                }}
+                aria-hidden="true"
+              />
+              <span className="text-sm" style={{ color: "#9aa0ac" }}>
+                Entrepreneur Average
+              </span>
+            </div>
+          </motion.div>
+        )}
       </div>
     </section>
   );

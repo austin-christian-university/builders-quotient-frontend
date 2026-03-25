@@ -166,9 +166,9 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.9 }}
-          className="text-center mt-2 text-xs"
-          style={{ color: "rgba(154,160,172,0.6)" }}
+          transition={{ duration: 0.8, delay: 0.9, ease: "easeOut" }}
+          className="text-center mt-2 text-base"
+          style={{ color: "rgba(154,160,172,0.85)" }}
         >
           <span className="hidden [@media(hover:hover)]:inline">Hover or click any point to see the dimension</span>
           <span className="[@media(hover:hover)]:hidden">Tap any point to see the dimension</span>

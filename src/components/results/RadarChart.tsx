@@ -471,7 +471,7 @@ export function RadarChart({
                 fontWeight={700}
                 letterSpacing="0.1em"
                 fill={group.color}
-                opacity={isGroupActive ? 1 : 0.4}
+                opacity={isGroupActive ? 1 : 0.5}
                 style={{
                   transition: "opacity 0.15s ease",
                   cursor: "pointer",
@@ -514,7 +514,7 @@ export function RadarChart({
 
       {/* Vertex dots (purely visual — interaction is via SVG-level mouse tracking) */}
       {dotPositions.map(({ x, y }, i) => {
-        const isActive = activeIndex === i;
+        const isActive = activeIndex === i || activeCategoryIndex === i;
         const dotColor = dotColors?.[i] ?? accentColor;
         return (
           <g key={i} style={{ pointerEvents: "none" }}>
@@ -573,7 +573,7 @@ export function RadarChart({
               dominantBaseline="middle"
               fontSize={compensatedFontSize}
               fill={isActive ? "#ffffff" : labelColor}
-              opacity={isActive ? 0.85 : 0.4}
+              opacity={isActive ? 0.85 : 0.55}
               fontFamily="'Inter Tight', Inter, sans-serif"
               fontWeight={600}
               letterSpacing="0.08em"
