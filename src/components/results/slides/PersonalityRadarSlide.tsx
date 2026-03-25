@@ -88,6 +88,7 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
             containerWidth={containerWidth}
             onCategoryHover={handleCategoryHover}
             activeCategoryIndex={activeIndex}
+            tooltipLabels={categoryNames}
           />
         </div>
       </motion.div>
@@ -126,8 +127,8 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
                 className="text-center text-base"
                 style={{ color: "rgba(154,160,172,0.85)" }}
               >
-                <span className="hidden [@media(hover:hover)]:inline">Hover or click a trait to see its definition</span>
-                <span className="[@media(hover:hover)]:hidden">Tap a trait to see its definition</span>
+                <span className="hidden [@media(hover:hover)]:inline">Hover or click any point to see its definition</span>
+                <span className="[@media(hover:hover)]:hidden">Tap any point to see its definition</span>
               </motion.p>
             )}
           </AnimatePresence>

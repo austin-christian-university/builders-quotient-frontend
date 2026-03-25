@@ -171,7 +171,8 @@ export function RadarChart({
   const uid = useId();
   const n = categories.length;
   const hasSectors = !!sectorGroups && sectorGroups.length > 0;
-  const isInteractive = hasSectors && interactive;
+  const isInteractive =
+    interactive && (hasSectors || (!!tooltipLabels && tooltipLabels.length > 0));
 
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipTextRef = useRef<SVGTextElement>(null);
@@ -296,7 +297,7 @@ export function RadarChart({
   // Active group
   const activeGroup =
     isInteractive && activeIndex !== null
-      ? sectorGroups!.find((g) => g.indices.includes(activeIndex))
+      ? sectorGroups?.find((g) => g.indices.includes(activeIndex))
       : null;
 
   // Tooltip
@@ -552,8 +553,8 @@ export function RadarChart({
             angle
           );
           const anchor = textAnchor(x, cx);
-          const isActive = activeCategoryIndex === i;
-          const isInteractive = !!onCategoryHover;
+          const isActive = activeIndex === i || activeCategoryIndex === i;
+          const isLabelClickable = !!onCategoryHover || isInteractive;
 
           const labelColor = dotColors?.[i] ?? accentColor;
           const glowOpacity = isActive ? "99" : "33"; // 60% vs 20% alpha
@@ -580,28 +581,54 @@ export function RadarChart({
               style={{
                 textShadow,
                 transition: "all 0.2s ease",
-                cursor: isInteractive ? "pointer" : "default",
-                pointerEvents: isInteractive ? "all" : "none",
+                cursor: isLabelClickable ? "pointer" : "default",
+                pointerEvents: isLabelClickable ? "all" : "none",
               }}
               onMouseEnter={
-                isInteractive ? () => onCategoryHover(i) : undefined
+                isLabelClickable
+                  ? () => {
+                      setHoveredIndex(i);
+                      onCategoryHover?.(i);
+                    }
+                  : undefined
               }
               onMouseLeave={
-                isInteractive ? () => onCategoryHover(null) : undefined
+                isLabelClickable
+                  ? () => {
+                      setHoveredIndex(null);
+                      onCategoryHover?.(tappedIndex ?? null);
+                    }
+                  : undefined
               }
               onClick={
-                isInteractive
+                isLabelClickable
                   ? (e) => {
                       e.stopPropagation();
-                      onCategoryHover(activeCategoryIndex === i ? null : i);
+                      if (tappedIndex === i) {
+                        // Un-sticky — mouse still here, keep showing via hover
+                        setTappedIndex(null);
+                        onCategoryHover?.(i);
+                      } else {
+                        setTappedIndex(i);
+                        onCategoryHover?.(i);
+                      }
                     }
                   : undefined
               }
               onTouchEnd={
-                isInteractive
+                isLabelClickable
                   ? (e) => {
-                      e.preventDefault(); // Bypass iOS double-tap-to-click delay
-                      onCategoryHover(activeCategoryIndex === i ? null : i);
+                      e.preventDefault();
+                      if (tappedIndex === i) {
+                        // Un-sticky on mobile — dismiss fully (no hover)
+                        setTappedIndex(null);
+                        setHoveredIndex(null);
+                        onCategoryHover?.(null);
+                      } else {
+                        setTappedIndex(i);
+                        setHoveredIndex(i);
+                        onCategoryHover?.(i);
+                      }
                     }
                   : undefined
               }
