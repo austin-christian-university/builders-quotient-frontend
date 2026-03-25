@@ -172,7 +172,8 @@ export function RadarChart({
   const n = categories.length;
   const hasSectors = !!sectorGroups && sectorGroups.length > 0;
   const isInteractive =
-    interactive && (hasSectors || (!!tooltipLabels && tooltipLabels.length > 0));
+    interactive &&
+    (hasSectors || (!!tooltipLabels && tooltipLabels.length > 0) || !!onCategoryHover);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipTextRef = useRef<SVGTextElement>(null);
@@ -235,6 +236,9 @@ export function RadarChart({
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
       if (!isInteractive || tappedIndex !== null) return;
+      // Don't override label hover — labels handle their own mouse events
+      const target = e.target as Element;
+      if (target.closest?.("[data-radar='label']")) return;
       const svg = svgRef.current;
       if (!svg) return;
       const { x, y } = svgPoint(svg, e.clientX, e.clientY);
@@ -300,11 +304,11 @@ export function RadarChart({
       ? sectorGroups?.find((g) => g.indices.includes(activeIndex))
       : null;
 
-  // Tooltip
+  // Tooltip — only shown when tooltipLabels are provided (not just onCategoryHover)
   const tooltipContent =
-    isInteractive && activeIndex !== null
+    isInteractive && activeIndex !== null && tooltipLabels
       ? {
-        label: tooltipLabels?.[activeIndex] ?? categories[activeIndex],
+        label: tooltipLabels[activeIndex] ?? categories[activeIndex],
         groupName: activeGroup?.label ?? "",
         groupColor: activeGroup?.color ?? accentColor,
       }
