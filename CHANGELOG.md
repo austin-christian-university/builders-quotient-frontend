@@ -2,6 +2,11 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.5.1] - 2026-03-25
+
+### Fixed
+- Fixed white flash on WebGL orb during loading and screen transitions — canvas now renders its first frame before entering the DOM, with transparent CSS fallback
+
 ## [0.2.5.0] - 2026-03-24
 
 ### For contributors
