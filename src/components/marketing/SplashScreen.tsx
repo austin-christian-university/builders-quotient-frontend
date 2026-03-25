@@ -47,6 +47,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                                 src="/White-Crest-sm.png"
                                 alt="Austin Christian University Crest"
                                 fill
+                                sizes="(min-width: 640px) 240px, 200px"
                                 className="object-contain"
                                 priority
                             />
@@ -79,6 +80,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                                     src="/White-Crest-sm.png"
                                     alt="Austin Christian University Crest"
                                     fill
+                                    sizes="(min-width: 640px) 240px, 200px"
                                     className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                                     priority
                                 />
