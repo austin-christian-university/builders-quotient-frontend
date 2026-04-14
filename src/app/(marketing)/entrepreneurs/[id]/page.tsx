@@ -106,10 +106,6 @@ export default async function EntrepreneurProfilePage({ params }: PageProps) {
         archetypeAvgCiScores={archetypeAvgCiScores}
         corpusMax={corpusMax}
         entrepreneurId={entrepreneur.id}
-        piD1={entrepreneur.pi_d1_score}
-        piD2={entrepreneur.pi_d2_score}
-        ciD1={entrepreneur.ci_d1_score}
-        ciD2={entrepreneur.ci_d2_score}
         allEntrepreneurs={allEntrepreneurs}
         archetypeName={entrepreneur.archetype_name}
       />

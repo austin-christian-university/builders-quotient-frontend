@@ -18,10 +18,6 @@ interface EntrepreneurProfileVisualsProps {
   archetypeAvgCiScores: Record<string, number>;
   corpusMax: CorpusMaxScores;
   entrepreneurId: string;
-  piD1: number;
-  piD2: number;
-  ciD1: number;
-  ciD2: number;
   allEntrepreneurs: { id: string; pi_d1_score: number; pi_d2_score: number; ci_d1_score: number; ci_d2_score: number }[];
   archetypeName: string;
 }
@@ -33,10 +29,6 @@ export function EntrepreneurProfileVisuals({
   archetypeAvgCiScores,
   corpusMax,
   entrepreneurId,
-  piD1,
-  piD2,
-  ciD1,
-  ciD2,
   allEntrepreneurs,
   archetypeName,
 }: EntrepreneurProfileVisualsProps) {

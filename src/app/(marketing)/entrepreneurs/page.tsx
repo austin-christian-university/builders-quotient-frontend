@@ -17,7 +17,7 @@ export default async function EntrepreneurExplorerPage() {
   const data = await getExplorerData();
   if (!data) notFound();
 
-  const { gridCells, stats, entrepreneurs, corpusMax } = data;
+  const { gridCells, stats, entrepreneurs } = data;
   const maxCount = Math.max(...gridCells.map((c) => c.count));
 
   // Prepare scatter plot dots
