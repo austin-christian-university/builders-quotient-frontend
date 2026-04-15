@@ -121,7 +121,7 @@ export default async function EntrepreneurExplorerPage() {
       </section>
 
       {/* Scatter Plots */}
-      <section className="px-6 py-16 md:py-24 border-t border-border/50">
+      <section className="px-6 py-16 md:py-24">
         <div className="mx-auto max-w-7xl">
           <h2
             className="text-2xl font-bold text-text-primary mb-2 text-center"
@@ -139,7 +139,7 @@ export default async function EntrepreneurExplorerPage() {
 
       {/* Corpus Communication Style */}
       {corpusAvgPersonalityVector && (
-        <section className="px-6 py-16 md:py-24 border-t border-border/50">
+        <section className="px-6 py-16 md:py-24">
           <div className="mx-auto max-w-7xl">
             <h2
               className="text-2xl font-bold text-text-primary mb-2 text-center"

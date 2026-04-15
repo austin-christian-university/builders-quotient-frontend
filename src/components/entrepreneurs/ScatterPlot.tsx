@@ -109,7 +109,7 @@ export function ScatterPlot({
           y={PADDING}
           width={PLOT_SIZE}
           height={PLOT_SIZE}
-          fill="rgba(255,255,255,0.02)"
+          fill="transparent"
           rx={8}
         />
 

@@ -110,7 +110,7 @@ export default async function ArchetypeDetailPage({ params }: PageProps) {
       </section>
 
       {/* Entrepreneur Grid */}
-      <section className="px-6 py-12 md:py-16 border-t border-border/50">
+      <section className="px-6 py-12 md:py-16">
         <div className="mx-auto max-w-5xl">
           <h2
             className="text-xl font-bold text-text-primary mb-8 text-center"
