@@ -173,7 +173,7 @@ export default async function EntrepreneurExplorerPage() {
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-sm">
                 <p
-                  className="text-3xl font-bold text-[#fbbf24]"
+                  className="text-3xl font-bold text-secondary"
                   style={{
                     fontFamily: "'Inter Tight', Inter, sans-serif",
                     fontVariantNumeric: "tabular-nums",
@@ -184,7 +184,7 @@ export default async function EntrepreneurExplorerPage() {
                 <p className="mt-2 text-sm text-text-secondary">
                   Formality Range
                 </p>
-                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-[#fbbf24]/70">
+                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-secondary/70">
                   Most polarizing
                 </p>
               </div>
