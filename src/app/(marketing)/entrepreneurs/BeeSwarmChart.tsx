@@ -19,15 +19,15 @@ const TRAITS = [
   { key: "pv_16", index: 15, label: "Conciseness", color: "#b79cff" },
 ] as const;
 
-const WIDTH = 760;
-const HEIGHT = 310;
-const MARGIN = { top: 32, right: 78, bottom: 36, left: 154 };
+const WIDTH = 860;
+const HEIGHT = 360;
+const MARGIN = { top: 32, right: 78, bottom: 44, left: 120 };
 const X_MIN = MARGIN.left;
 const X_MAX = WIDTH - MARGIN.right;
 const X_RANGE = X_MAX - X_MIN;
-const ROW_START_Y = 58;
-const ROW_SPACING = 46;
-const JITTER_RANGE = 10;
+const ROW_START_Y = 62;
+const ROW_SPACING = 54;
+const JITTER_RANGE = 14;
 
 function valueToX(value: number): number {
   return X_MIN + Math.max(0, Math.min(1, value)) * X_RANGE;
@@ -50,20 +50,23 @@ export default function BeeSwarmChart({
   const statsByKey = new Map(traitStats.map((stat) => [stat.key, stat]));
 
   return (
-    <div className="w-full">
+    <div className="w-full" style={{ overflow: "visible" }}>
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         width="100%"
+        style={{ overflow: "visible" }}
         role="img"
         aria-label="Distribution strips showing selected communication traits across entrepreneurs"
       >
+        {/* Box outline around data area */}
         <rect
           x={X_MIN}
           y={24}
           width={X_RANGE}
-          height={HEIGHT - 58}
-          rx={16}
-          fill="rgba(255,255,255,0.01)"
+          height={HEIGHT - 24 - MARGIN.bottom}
+          fill="none"
+          stroke="rgba(255,255,255,0.1)"
+          strokeWidth={1}
         />
 
         <text
@@ -95,20 +98,12 @@ export default function BeeSwarmChart({
           const x = valueToX(tick);
           return (
             <g key={tick}>
-              <line
-                x1={x}
-                y1={24}
-                x2={x}
-                y2={HEIGHT - MARGIN.bottom}
-                stroke="rgba(255,255,255,0.06)"
-                strokeWidth={0.8}
-              />
               <text
                 x={x}
                 y={HEIGHT - 10}
                 textAnchor="middle"
                 fill="#9aa0ac"
-                fontSize={12}
+                fontSize={14}
                 fontFamily="Inter, sans-serif"
               >
                 {Math.round(tick * 100)}%
@@ -124,32 +119,17 @@ export default function BeeSwarmChart({
 
           return (
             <g key={trait.key}>
-              <circle
-                cx={X_MIN - 16}
-                cy={rowY}
-                r={4}
-                fill={trait.color}
-              />
               <text
-                x={X_MIN - 28}
-                y={rowY + 4}
+                x={X_MIN - 14}
+                y={rowY + 5}
                 textAnchor="end"
                 fill="#f5f6fa"
-                fontSize={13}
+                fontSize={14}
                 fontWeight={500}
                 fontFamily="Inter, sans-serif"
               >
                 {trait.label}
               </text>
-
-              <line
-                x1={X_MIN}
-                y1={rowY}
-                x2={X_MAX}
-                y2={rowY}
-                stroke="rgba(255,255,255,0.06)"
-                strokeWidth={1}
-              />
 
               {personalityVectors.map((vector, dotIndex) => {
                 const value = vector[trait.index];
@@ -181,7 +161,7 @@ export default function BeeSwarmChart({
                     cx={meanX}
                     cy={rowY}
                     r={4}
-                    fill="#111113"
+                    fill="transparent"
                     stroke="rgba(255,255,255,0.68)"
                     strokeWidth={1.2}
                   />

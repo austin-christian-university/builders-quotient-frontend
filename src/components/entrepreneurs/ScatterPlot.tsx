@@ -132,15 +132,15 @@ export function ScatterPlot({
         />
 
         {/* Axis labels */}
-        <text x={PADDING + 4} y={cy - 6} fontSize={10} fill="#9aa0ac" opacity={0.6}>
+        <text x={PADDING + 4} y={cy - 6} fontSize={13} fill="#9aa0ac" opacity={0.7}>
           {xLabelNegative}
         </text>
         <text
           x={SIZE - PADDING - 4}
           y={cy - 6}
-          fontSize={10}
+          fontSize={13}
           fill="#9aa0ac"
-          opacity={0.6}
+          opacity={0.7}
           textAnchor="end"
         >
           {xLabelPositive}
@@ -148,18 +148,18 @@ export function ScatterPlot({
         <text
           x={cx + 6}
           y={PADDING + 14}
-          fontSize={10}
+          fontSize={13}
           fill="#9aa0ac"
-          opacity={0.6}
+          opacity={0.7}
         >
           {yLabelPositive}
         </text>
         <text
           x={cx + 6}
           y={SIZE - PADDING - 6}
-          fontSize={10}
+          fontSize={13}
           fill="#9aa0ac"
-          opacity={0.6}
+          opacity={0.7}
         >
           {yLabelNegative}
         </text>

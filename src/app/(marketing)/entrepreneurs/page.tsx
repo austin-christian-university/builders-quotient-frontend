@@ -51,6 +51,7 @@ export default async function EntrepreneurExplorerPage() {
     {
       eyebrow: "Shared baseline",
       value: composureTrait ? `${Math.round(composureTrait.mean * 100)}%` : "\u2014",
+      traitName: "Composure Under Pressure",
       detail: "Composure under pressure stays high across the corpus.",
       tone: "primary",
     },
@@ -59,6 +60,7 @@ export default async function EntrepreneurExplorerPage() {
       value: formalityTrait
         ? `${Math.round(formalityTrait.min * 100)}\u2013${Math.round(formalityTrait.max * 100)}%`
         : "\u2014",
+      traitName: "Formality",
       detail: "Formality is where founder styles split most sharply.",
       tone: "secondary",
     },
@@ -180,22 +182,16 @@ export default async function EntrepreneurExplorerPage() {
               How Entrepreneurs Communicate
             </h2>
             <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
-              Video analysis of {stats.totalEntrepreneurs} entrepreneurs reveals
+              Video analysis of {stats.totalEntrepreneurs}&nbsp;entrepreneurs reveals
               what&apos;s universal and what&apos;s polarizing in how they present.
             </p>
 
             {/* Stat highlights */}
             <div className="mx-auto mb-12 grid max-w-md grid-cols-2 gap-4">
               {communicationHighlights.map((highlight) => (
-                <div key={highlight.eyebrow} className="text-center">
+                <div key={highlight.traitName} className="text-center">
                   <p
-                    className="text-xs font-medium uppercase tracking-[0.28em] text-text-secondary/80"
-                    style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                  >
-                    {highlight.eyebrow}
-                  </p>
-                  <p
-                    className={`mt-2 text-[clamp(1.5rem,1.25rem+0.8vw,2rem)] font-semibold tracking-tight ${
+                    className={`text-[clamp(1.5rem,1.25rem+0.8vw,2rem)] font-semibold tracking-tight ${
                       highlight.tone === "primary"
                         ? "text-primary"
                         : highlight.tone === "secondary"
@@ -209,6 +205,12 @@ export default async function EntrepreneurExplorerPage() {
                   >
                     {highlight.value}
                   </p>
+                  <p
+                    className="mt-1 text-base font-bold text-text-primary"
+                    style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                  >
+                    {highlight.traitName}
+                  </p>
                   <p className="mt-1 text-sm leading-5 text-text-secondary/80">
                     {highlight.detail}
                   </p>
@@ -217,16 +219,26 @@ export default async function EntrepreneurExplorerPage() {
             </div>
 
             {/* Charts stacked vertically */}
-            <div className="max-w-3xl mx-auto space-y-12">
-              <CorpusCommunicationRadar
-                corpusAvgPersonalityVector={corpusAvgPersonalityVector}
-              />
+            <div className="mx-auto space-y-12" style={{ maxWidth: "min(100%, 48rem)" }}>
+              <div>
+                <p
+                  className="text-sm font-medium text-text-secondary/70 text-center mb-4"
+                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                >
+                  Entrepreneurial Average — Communication Profile
+                </p>
+                <CorpusCommunicationRadar
+                  corpusAvgPersonalityVector={corpusAvgPersonalityVector}
+                />
+              </div>
               <TraitScatterChart traitStats={personalityTraitStats} />
               {personalityVectors && (
-                <BeeSwarmChart
-                  personalityVectors={personalityVectors}
-                  traitStats={personalityTraitStats}
-                />
+                <div className="mt-20">
+                  <BeeSwarmChart
+                    personalityVectors={personalityVectors}
+                    traitStats={personalityTraitStats}
+                  />
+                </div>
               )}
             </div>
           </div>
