@@ -207,7 +207,9 @@ export default async function EntrepreneurExplorerPage() {
                 Each dot is a trait. Bottom-right means everyone scores high.
                 Top-left means low and all over the map.
               </p>
-              <TraitScatterChart traitStats={personalityTraitStats} />
+              <div className="max-w-3xl mx-auto">
+                <TraitScatterChart traitStats={personalityTraitStats} />
+              </div>
             </div>
 
             {/* Bee swarm: individual distributions */}
@@ -223,10 +225,12 @@ export default async function EntrepreneurExplorerPage() {
                   Every dot is a real entrepreneur. See the tight clusters
                   and the wide spreads for yourself.
                 </p>
-                <BeeSwarmChart
-                  personalityVectors={personalityVectors}
-                  traitStats={personalityTraitStats}
-                />
+                <div className="max-w-3xl mx-auto">
+                  <BeeSwarmChart
+                    personalityVectors={personalityVectors}
+                    traitStats={personalityTraitStats}
+                  />
+                </div>
               </div>
             )}
           </div>

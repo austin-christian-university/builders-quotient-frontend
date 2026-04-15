@@ -24,7 +24,7 @@ const TRAITS = [
 ] as const;
 
 const X_MIN = 160;
-const X_MAX = 760;
+const X_MAX = 640;
 const X_RANGE = X_MAX - X_MIN;
 const ROW_START_Y = 45;
 const ROW_SPACING = 65;
