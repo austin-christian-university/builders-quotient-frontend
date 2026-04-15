@@ -4,6 +4,7 @@ import { getExplorerData } from "@/lib/queries/entrepreneurs";
 import { StatCard } from "@/components/entrepreneurs/StatCard";
 import { ArchetypeGrid } from "@/components/entrepreneurs/ArchetypeGrid";
 import { ExplorerScatterPlots } from "./ExplorerScatterPlots";
+import { CorpusCommunicationRadar } from "./CorpusCommunicationRadar";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -17,7 +18,7 @@ export default async function EntrepreneurExplorerPage() {
   const data = await getExplorerData();
   if (!data) notFound();
 
-  const { gridCells, stats, entrepreneurs } = data;
+  const { gridCells, stats, entrepreneurs, corpusAvgPersonalityVector } = data;
   const maxCount = Math.max(...gridCells.map((c) => c.count));
 
   // Prepare scatter plot dots
@@ -100,8 +101,8 @@ export default async function EntrepreneurExplorerPage() {
             16 Archetypes
           </h2>
           <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
-            Every entrepreneur falls into one of 16 cognitive archetypes based on how
-            they solve problems and create opportunities.
+            Our framework organizes entrepreneurial thinking into 16 archetypes based
+            on practical intelligence and creative intelligence profiles.
           </p>
           <ArchetypeGrid cells={gridCells} maxCount={maxCount} />
 
@@ -135,6 +136,27 @@ export default async function EntrepreneurExplorerPage() {
           <ExplorerScatterPlots dots={scatterDots} />
         </div>
       </section>
+
+      {/* Corpus Communication Style */}
+      {corpusAvgPersonalityVector && (
+        <section className="px-6 py-16 md:py-24 border-t border-border/50">
+          <div className="mx-auto max-w-7xl">
+            <h2
+              className="text-2xl font-bold text-text-primary mb-2 text-center"
+              style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+            >
+              How Entrepreneurs Communicate
+            </h2>
+            <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
+              The average communication profile across {stats.totalEntrepreneurs}{" "}
+              entrepreneurs — energy, confidence, warmth, style, and presentation.
+            </p>
+            <CorpusCommunicationRadar
+              corpusAvgPersonalityVector={corpusAvgPersonalityVector}
+            />
+          </div>
+        </section>
+      )}
 
       {/* Bottom CTA */}
       <section className="relative px-6 py-24 md:py-32">
