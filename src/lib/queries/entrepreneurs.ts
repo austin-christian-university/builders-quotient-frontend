@@ -3,6 +3,7 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/server";
 import {
   ARCHETYPES,
+  communicationNarrativeSchema,
   type EntrepreneurSummary,
   type EntrepreneurDetail,
   type ArchetypeGridCell,
@@ -69,6 +70,47 @@ function averageScores(
     avg[cat] = sums[cat] / counts[cat];
   }
   return avg;
+}
+
+/** Average personality vectors across all entrepreneurs for corpus comparison. */
+function computeAvgPersonalityVector(
+  profiles: { personality_vector: Record<string, number> }[]
+): Record<string, number> | null {
+  if (profiles.length === 0) return null;
+
+  const sums: Record<string, number> = {};
+  const counts: Record<string, number> = {};
+
+  for (const profile of profiles) {
+    if (!profile.personality_vector) continue;
+    for (const [key, val] of Object.entries(profile.personality_vector)) {
+      if (typeof val !== "number" || isNaN(val)) continue; // skip bad values
+      sums[key] = (sums[key] ?? 0) + val;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+  }
+
+  if (Object.keys(sums).length === 0) return null;
+
+  const avg: Record<string, number> = {};
+  for (const key of Object.keys(sums)) {
+    avg[key] = sums[key] / counts[key];
+  }
+  return avg;
+}
+
+/** Whitelist pv_01–pv_20 keys and clamp values to 0–1. */
+function sanitizePersonalityVector(raw: Record<string, number> | null | undefined): Record<string, number> | null {
+  if (!raw) return null;
+  const VALID_KEYS = Array.from({ length: 20 }, (_, i) => `pv_${String(i + 1).padStart(2, "0")}`);
+  const result: Record<string, number> = {};
+  for (const key of VALID_KEYS) {
+    const val = raw[key];
+    if (typeof val === "number" && !isNaN(val)) {
+      result[key] = Math.max(0, Math.min(1, val));
+    }
+  }
+  return Object.keys(result).length > 0 ? result : null;
 }
 
 /** Count distinct values from an array-of-arrays. */
@@ -235,13 +277,33 @@ export async function getEntrepreneurProfile(
 
   if (error || !entrepreneur) return null;
 
-  // Fetch all entrepreneurs for corpus max + scatter plot positions
-  const { data: allEntrepreneurs } = await supabase
-    .from("entrepreneurs")
-    .select(
-      "id, name, archetype_key, archetype_name, archetype_tagline, pi_style, ci_style, pi_d1_score, pi_d2_score, ci_d1_score, ci_d2_score, pi_category_scores, ci_category_scores, industries"
-    )
-    .not("archetype_key", "is", null);
+  // Run all independent fetches in parallel
+  const [
+    { data: allEntrepreneurs },
+    { data: personalityProfile },
+    { data: commNarrative },
+    { data: allPersonalityProfiles },
+  ] = await Promise.all([
+    supabase
+      .from("entrepreneurs")
+      .select(
+        "id, name, archetype_key, archetype_name, archetype_tagline, pi_style, ci_style, pi_d1_score, pi_d2_score, ci_d1_score, ci_d2_score, pi_category_scores, ci_category_scores, industries"
+      )
+      .not("archetype_key", "is", null),
+    supabase
+      .from("entrepreneur_personality_profiles")
+      .select("personality_vector")
+      .eq("entrepreneur_id", id)
+      .maybeSingle(),
+    supabase
+      .from("entrepreneur_communication_narratives")
+      .select("communication_style, signature_moves, strengths, blindspots")
+      .eq("entrepreneur_id", id)
+      .maybeSingle(),
+    supabase
+      .from("entrepreneur_personality_profiles")
+      .select("personality_vector"),
+  ]);
 
   const allEnts = (allEntrepreneurs ?? []) as EntrepreneurSummary[];
   const corpusMax = computeCorpusMax(allEnts);
@@ -250,6 +312,10 @@ export async function getEntrepreneurProfile(
   const sameArchetype = allEnts.filter((e) => e.archetype_key === entrepreneur.archetype_key);
   const archetypeAvgPiScores = averageScores(sameArchetype, "pi_category_scores");
   const archetypeAvgCiScores = averageScores(sameArchetype, "ci_category_scores");
+
+  const parsedNarrative = commNarrative
+    ? communicationNarrativeSchema.safeParse(commNarrative)
+    : null;
 
   return {
     entrepreneur: entrepreneur as EntrepreneurDetail,
@@ -263,8 +329,8 @@ export async function getEntrepreneurProfile(
       ci_d1_score: e.ci_d1_score,
       ci_d2_score: e.ci_d2_score,
     })),
-    personalityVector: null,
-    corpusAvgPersonalityVector: null,
-    communicationNarrative: null,
+    personalityVector: sanitizePersonalityVector(personalityProfile?.personality_vector),
+    corpusAvgPersonalityVector: computeAvgPersonalityVector(allPersonalityProfiles ?? []),
+    communicationNarrative: parsedNarrative?.success ? parsedNarrative.data : null,
   };
 }
