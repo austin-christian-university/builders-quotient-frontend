@@ -20,10 +20,16 @@ export default async function EntrepreneurExplorerPage() {
   const data = await getExplorerData();
   if (!data) notFound();
 
-  const { gridCells, stats, entrepreneurs, corpusAvgPersonalityVector, personalityTraitStats, personalityVectors } = data;
+  const {
+    gridCells,
+    stats,
+    entrepreneurs,
+    corpusAvgPersonalityVector,
+    personalityTraitStats,
+    personalityVectors,
+  } = data;
   const maxCount = Math.max(...gridCells.map((c) => c.count));
 
-  // Prepare scatter plot dots
   const scatterDots = entrepreneurs.map((e) => ({
     id: e.id,
     name: e.name,
@@ -33,6 +39,30 @@ export default async function EntrepreneurExplorerPage() {
     ciD2: e.ci_d2_score,
     archetypeKey: e.archetype_key,
   }));
+
+  const traitStatsByKey = new Map(
+    (personalityTraitStats ?? []).map((trait) => [trait.key, trait]),
+  );
+
+  const composureTrait = traitStatsByKey.get("pv_06");
+  const formalityTrait = traitStatsByKey.get("pv_17");
+
+  const communicationHighlights = [
+    {
+      eyebrow: "Shared baseline",
+      value: composureTrait ? `${Math.round(composureTrait.mean * 100)}%` : "\u2014",
+      detail: "Composure under pressure stays high across the corpus.",
+      tone: "primary",
+    },
+    {
+      eyebrow: "Widest spread",
+      value: formalityTrait
+        ? `${Math.round(formalityTrait.min * 100)}\u2013${Math.round(formalityTrait.max * 100)}%`
+        : "\u2014",
+      detail: "Formality is where founder styles split most sharply.",
+      tone: "secondary",
+    },
+  ];
 
   return (
     <main className="relative min-h-screen bg-bg-base">
@@ -150,89 +180,55 @@ export default async function EntrepreneurExplorerPage() {
               How Entrepreneurs Communicate
             </h2>
             <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
-              Communication style across {stats.totalEntrepreneurs} entrepreneurs
-              — what&apos;s universal, what&apos;s polarizing, and where they
-              couldn&apos;t be more different.
+              Video analysis of {stats.totalEntrepreneurs} entrepreneurs reveals
+              what&apos;s universal and what&apos;s polarizing in how they present.
             </p>
 
-            {/* Headline stat cards */}
-            <div className="mx-auto mb-8 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-sm">
-                <p
-                  className="text-3xl font-bold text-[#63b3ed]"
-                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                >
-                  89%
-                </p>
-                <p className="mt-2 text-sm text-text-secondary">
-                  Composure Under Pressure
-                </p>
-                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-[#63b3ed]/70">
-                  Nearly universal
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-sm">
-                <p
-                  className="text-3xl font-bold text-secondary"
-                  style={{
-                    fontFamily: "'Inter Tight', Inter, sans-serif",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  12–96%
-                </p>
-                <p className="mt-2 text-sm text-text-secondary">
-                  Formality Range
-                </p>
-                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-secondary/70">
-                  Most polarizing
-                </p>
-              </div>
-            </div>
-
-            {/* Radar chart */}
-            <CorpusCommunicationRadar
-              corpusAvgPersonalityVector={corpusAvgPersonalityVector}
-            />
-
-            {/* Trait scatter: mean vs spread */}
-            <div className="mt-10">
-              <h3
-                className="text-lg font-semibold text-text-primary mb-2 text-center"
-                style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-              >
-                Consensus vs. Controversy
-              </h3>
-              <p className="text-text-secondary/70 text-center mb-6 max-w-md mx-auto text-sm">
-                Each dot is a trait. Bottom-right means everyone scores high.
-                Top-left means low and all over the map.
-              </p>
-              <div className="max-w-3xl mx-auto">
-                <TraitScatterChart traitStats={personalityTraitStats} />
-              </div>
-            </div>
-
-            {/* Bee swarm: individual distributions */}
-            {personalityVectors && (
-              <div className="mt-10">
-                <h3
-                  className="text-lg font-semibold text-text-primary mb-2 text-center"
-                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                >
-                  The Actual Distributions
-                </h3>
-                <p className="text-text-secondary/70 text-center mb-6 max-w-md mx-auto text-sm">
-                  Every dot is a real entrepreneur. See the tight clusters
-                  and the wide spreads for yourself.
-                </p>
-                <div className="max-w-3xl mx-auto">
-                  <BeeSwarmChart
-                    personalityVectors={personalityVectors}
-                    traitStats={personalityTraitStats}
-                  />
+            {/* Stat highlights */}
+            <div className="mx-auto mb-12 grid max-w-md grid-cols-2 gap-4">
+              {communicationHighlights.map((highlight) => (
+                <div key={highlight.eyebrow} className="text-center">
+                  <p
+                    className="text-xs font-medium uppercase tracking-[0.28em] text-text-secondary/80"
+                    style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                  >
+                    {highlight.eyebrow}
+                  </p>
+                  <p
+                    className={`mt-2 text-[clamp(1.5rem,1.25rem+0.8vw,2rem)] font-semibold tracking-tight ${
+                      highlight.tone === "primary"
+                        ? "text-primary"
+                        : highlight.tone === "secondary"
+                          ? "text-secondary"
+                          : "text-text-primary"
+                    }`}
+                    style={{
+                      fontFamily: "'Inter Tight', Inter, sans-serif",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {highlight.value}
+                  </p>
+                  <p className="mt-1 text-sm leading-5 text-text-secondary/80">
+                    {highlight.detail}
+                  </p>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
+
+            {/* Charts stacked vertically */}
+            <div className="max-w-3xl mx-auto space-y-12">
+              <CorpusCommunicationRadar
+                corpusAvgPersonalityVector={corpusAvgPersonalityVector}
+              />
+              <TraitScatterChart traitStats={personalityTraitStats} />
+              {personalityVectors && (
+                <BeeSwarmChart
+                  personalityVectors={personalityVectors}
+                  traitStats={personalityTraitStats}
+                />
+              )}
+            </div>
           </div>
         </section>
       )}

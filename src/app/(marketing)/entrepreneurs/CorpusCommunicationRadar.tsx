@@ -3,22 +3,22 @@
 import { RadarChart } from "@/components/results/RadarChart";
 import { useContainerWidth } from "@/lib/hooks/use-container-width";
 import {
-  PERSONALITY_DIMENSION_NAMES,
   PERSONALITY_DIMENSION_CATEGORIES,
+  PERSONALITY_DIMENSION_NAMES,
 } from "@/lib/assessment/personality-dimensions";
 
 interface CorpusCommunicationRadarProps {
   corpusAvgPersonalityVector: Record<string, number>;
 }
 
-const ACCENT_COLOR = "#2dd4bf";
+const ACCENT_COLOR = "#4da3ff";
 
 const SECTOR_COLORS: Record<string, string> = {
-  "Energy & Dynamism": "#2dd4bf",
-  "Confidence & Authority": "#63b3ed",
-  "Warmth & Interpersonal": "#f87171",
-  "Communication Style": "#a78bfa",
-  "Self-Presentation": "#fbbf24",
+  "Energy & Dynamism": "#5cc8ff",
+  "Confidence & Authority": "#4da3ff",
+  "Warmth & Interpersonal": "#f28b82",
+  "Communication Style": "#b79cff",
+  "Self-Presentation": "#e9b949",
 };
 
 const SECTOR_FULL_LABELS: Record<string, string> = {
@@ -40,37 +40,40 @@ export function CorpusCommunicationRadar({
     value: corpusAvgPersonalityVector[key] ?? 0,
   }));
 
-  const keyToIndex = new Map(profile.map((p, i) => [p.category, i]));
+  const keyToIndex = new Map(profile.map((point, index) => [point.category, index]));
 
-  const categoryNames = profile.map((p) => p.category);
-  const studentScores = profile.map((p) => p.value * 100);
+  const categories = profile.map((point) => point.category);
+  const studentScores = profile.map((point) => point.value * 100);
   const tooltipLabels = profile.map(
-    (p) => PERSONALITY_DIMENSION_NAMES[p.category] ?? p.category
+    (point) => PERSONALITY_DIMENSION_NAMES[point.category] ?? point.category,
   );
 
   const sectorGroups = Object.entries(PERSONALITY_DIMENSION_CATEGORIES).map(
-    ([catName, keys]) => ({
-      label: SECTOR_FULL_LABELS[catName] ?? catName,
-      color: SECTOR_COLORS[catName] ?? ACCENT_COLOR,
+    ([categoryName, keys]) => ({
+      label: SECTOR_FULL_LABELS[categoryName] ?? categoryName,
+      color: SECTOR_COLORS[categoryName] ?? ACCENT_COLOR,
       indices: keys
-        .map((k) => keyToIndex.get(k))
-        .filter((i): i is number => i !== undefined),
-    })
+        .map((key) => keyToIndex.get(key))
+        .filter((index): index is number => index !== undefined),
+    }),
   );
 
-  const dotColors = profile.map((p) => {
-    for (const [catName, keys] of Object.entries(PERSONALITY_DIMENSION_CATEGORIES)) {
-      if (keys.includes(p.category)) {
-        return SECTOR_COLORS[catName] ?? ACCENT_COLOR;
+  const dotColors = profile.map((point) => {
+    for (const [categoryName, keys] of Object.entries(PERSONALITY_DIMENSION_CATEGORIES)) {
+      if (keys.includes(point.category)) {
+        return SECTOR_COLORS[categoryName] ?? ACCENT_COLOR;
       }
     }
     return ACCENT_COLOR;
   });
 
   return (
-    <div ref={containerRef} className="w-full max-w-lg mx-auto min-h-[300px]">
+    <div
+      ref={containerRef}
+      className="mx-auto w-full max-w-md min-h-[300px]"
+    >
       <RadarChart
-        categories={categoryNames}
+        categories={categories}
         studentScores={studentScores}
         accentColor={ACCENT_COLOR}
         sectorGroups={sectorGroups}
