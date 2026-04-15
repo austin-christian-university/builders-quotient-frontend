@@ -141,7 +141,7 @@ export default async function EntrepreneurExplorerPage() {
 
       {/* Corpus Communication Style */}
       {corpusAvgPersonalityVector && personalityTraitStats && (
-        <section className="px-6 py-16 md:py-24 border-t border-border/50">
+        <section className="px-6 py-16 md:py-24">
           <div className="mx-auto max-w-7xl">
             <h2
               className="text-[clamp(1.5rem,1.15rem+1.75vw,2.25rem)] font-bold text-text-primary mb-2 text-center"
