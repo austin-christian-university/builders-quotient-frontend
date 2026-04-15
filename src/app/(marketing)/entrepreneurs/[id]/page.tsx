@@ -5,7 +5,7 @@ import { getEntrepreneurProfile } from "@/lib/queries/entrepreneurs";
 import { PI_STYLES, CI_STYLES } from "@/lib/schemas/entrepreneurs";
 import { ArchetypeBadge } from "@/components/entrepreneurs/ArchetypeBadge";
 import { Button } from "@/components/ui/button";
-import { EntrepreneurProfileVisuals } from "./EntrepreneurProfileVisuals";
+import { PracticalIntelligenceSection, CreativeIntelligenceSection } from "./EntrepreneurProfileVisuals";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -98,11 +98,17 @@ export default async function EntrepreneurProfilePage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Visualizations (client component) */}
-      <EntrepreneurProfileVisuals
+      {/* Visualizations (client components) */}
+      <PracticalIntelligenceSection
         piScores={entrepreneur.pi_category_scores}
-        ciScores={entrepreneur.ci_category_scores}
         archetypeAvgPiScores={archetypeAvgPiScores}
+        corpusMax={corpusMax}
+        entrepreneurId={entrepreneur.id}
+        allEntrepreneurs={allEntrepreneurs}
+        archetypeName={entrepreneur.archetype_name}
+      />
+      <CreativeIntelligenceSection
+        ciScores={entrepreneur.ci_category_scores}
         archetypeAvgCiScores={archetypeAvgCiScores}
         corpusMax={corpusMax}
         entrepreneurId={entrepreneur.id}
