@@ -6,6 +6,7 @@ import { PI_STYLES, CI_STYLES } from "@/lib/schemas/entrepreneurs";
 import { ArchetypeBadge } from "@/components/entrepreneurs/ArchetypeBadge";
 import { Button } from "@/components/ui/button";
 import { PracticalIntelligenceSection, CreativeIntelligenceSection } from "./EntrepreneurProfileVisuals";
+import { CommunicationStyleSection } from "@/components/entrepreneurs/CommunicationStyleSection";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -22,12 +23,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+function SectionCTA({ heading, subtext }: { heading: string; subtext: string }) {
+  return (
+    <section className="relative px-6 py-16 md:py-20">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgb(77_163_255/0.04),transparent)]" aria-hidden="true" />
+      <div className="relative mx-auto max-w-2xl text-center">
+        <h2 className="text-xl font-bold tracking-tight bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent pb-1" style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}>
+          {heading}
+        </h2>
+        <p className="mt-2 text-sm text-text-secondary/90 font-light">{subtext}</p>
+        <div className="mt-6">
+          <Button as={Link} href="/assess/overview" size="md" variant="outline" className="rounded-full">
+            Take the Assessment
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default async function EntrepreneurProfilePage({ params }: PageProps) {
   const { id } = await params;
   const data = await getEntrepreneurProfile(id);
   if (!data) notFound();
 
-  const { entrepreneur, archetypeAvgPiScores, archetypeAvgCiScores, corpusMax, allEntrepreneurs } = data;
+  const { entrepreneur, archetypeAvgPiScores, archetypeAvgCiScores, corpusMax, allEntrepreneurs, personalityVector, corpusAvgPersonalityVector, communicationNarrative } = data;
 
   const piStyleLabel = PI_STYLES.find((s) => s.key === entrepreneur.pi_style)?.label ?? entrepreneur.pi_style;
   const ciStyleLabel = CI_STYLES.find((s) => s.key === entrepreneur.ci_style)?.label ?? entrepreneur.ci_style;
@@ -107,6 +127,12 @@ export default async function EntrepreneurProfilePage({ params }: PageProps) {
         allEntrepreneurs={allEntrepreneurs}
         archetypeName={entrepreneur.archetype_name}
       />
+
+      <SectionCTA
+        heading="See how you compare"
+        subtext="Take the Builder's Quotient assessment and discover your own reasoning profile."
+      />
+
       <CreativeIntelligenceSection
         ciScores={entrepreneur.ci_category_scores}
         archetypeAvgCiScores={archetypeAvgCiScores}
@@ -116,7 +142,21 @@ export default async function EntrepreneurProfilePage({ params }: PageProps) {
         archetypeName={entrepreneur.archetype_name}
       />
 
-      {/* CTA */}
+      <SectionCTA
+        heading="Discover your creative style"
+        subtext="Find out how your creative intelligence compares to 248 entrepreneurs."
+      />
+
+      {personalityVector && (
+        <CommunicationStyleSection
+          personalityVector={personalityVector}
+          corpusAvgPersonalityVector={corpusAvgPersonalityVector}
+          communicationNarrative={communicationNarrative}
+          entrepreneurName={entrepreneur.name}
+        />
+      )}
+
+      {/* Final CTA */}
       <section className="relative px-6 py-24 md:py-32">
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_60%,rgb(77_163_255/0.06),transparent)]"
