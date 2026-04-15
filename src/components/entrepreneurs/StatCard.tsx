@@ -19,7 +19,7 @@ export function StatCard({ value, label, sublabel }: StatCardProps) {
       </p>
       <p className="mt-1 text-sm font-medium text-text-secondary">{label}</p>
       {sublabel && (
-        <p className="mt-0.5 text-xs text-text-secondary/60">{sublabel}</p>
+        <p className="mt-0.5 text-xs text-text-secondary/80">{sublabel}</p>
       )}
     </div>
   );
