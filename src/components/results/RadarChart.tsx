@@ -66,8 +66,8 @@ function polarToCartesian(
 ): { x: number; y: number } {
   const angleRad = ((angleDeg - 90) * Math.PI) / 180;
   return {
-    x: cx + radius * Math.cos(angleRad),
-    y: cy + radius * Math.sin(angleRad),
+    x: Math.round((cx + radius * Math.cos(angleRad)) * 100) / 100,
+    y: Math.round((cy + radius * Math.sin(angleRad)) * 100) / 100,
   };
 }
 
