@@ -134,15 +134,23 @@ export async function getExplorerData(): Promise<{
   gridCells: ArchetypeGridCell[];
   stats: ExplorerStats;
   corpusMax: CorpusMaxScores;
+  corpusAvgPersonalityVector: Record<string, number> | null;
+  personalityTraitStats: { key: string; mean: number; stddev: number; min: number; max: number }[] | null;
+  personalityVectors: number[][] | null;
 } | null> {
   const supabase = createServiceClient();
 
-  const { data, error } = await supabase
-    .from("entrepreneurs")
-    .select(
-      "id, name, archetype_key, archetype_name, archetype_tagline, pi_style, ci_style, pi_d1_score, pi_d2_score, ci_d1_score, ci_d2_score, pi_category_scores, ci_category_scores, industries"
-    )
-    .not("archetype_key", "is", null);
+  const [{ data, error }, { data: allPersonalityProfiles }] = await Promise.all([
+    supabase
+      .from("entrepreneurs")
+      .select(
+        "id, name, archetype_key, archetype_name, archetype_tagline, pi_style, ci_style, pi_d1_score, pi_d2_score, ci_d1_score, ci_d2_score, pi_category_scores, ci_category_scores, industries"
+      )
+      .not("archetype_key", "is", null),
+    supabase
+      .from("entrepreneur_personality_profiles")
+      .select("personality_vector"),
+  ]);
 
   if (error || !data || data.length === 0) return null;
 
@@ -199,7 +207,45 @@ export async function getExplorerData(): Promise<{
     emptyArchetypeCount,
   };
 
-  return { entrepreneurs, gridCells, stats, corpusMax };
+  const corpusAvgPersonalityVector = computeAvgPersonalityVector(allPersonalityProfiles ?? []);
+
+  // Compute per-trait stats + extract individual vectors for charts
+  const VALID_KEYS = Array.from({ length: 20 }, (_, i) => `pv_${String(i + 1).padStart(2, "0")}`);
+  let personalityTraitStats: { key: string; mean: number; stddev: number; min: number; max: number }[] | null = null;
+  let personalityVectors: number[][] | null = null;
+
+  if (allPersonalityProfiles && allPersonalityProfiles.length > 0) {
+    const validProfiles = allPersonalityProfiles.filter(
+      (p) => p.personality_vector && typeof p.personality_vector === "object"
+    );
+
+    if (validProfiles.length > 0) {
+      // Extract individual vectors as arrays (ordered by VALID_KEYS)
+      personalityVectors = validProfiles.map((p) =>
+        VALID_KEYS.map((k) => {
+          const v = (p.personality_vector as Record<string, number>)[k];
+          return typeof v === "number" && !isNaN(v) ? Math.max(0, Math.min(1, v)) : 0;
+        })
+      );
+
+      // Compute per-trait stats
+      personalityTraitStats = VALID_KEYS.map((key, idx) => {
+        const values = personalityVectors!.map((v) => v[idx]);
+        const n = values.length;
+        const mean = values.reduce((a, b) => a + b, 0) / n;
+        const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / n;
+        return {
+          key,
+          mean: Math.round(mean * 1000) / 1000,
+          stddev: Math.round(Math.sqrt(variance) * 1000) / 1000,
+          min: Math.round(Math.min(...values) * 1000) / 1000,
+          max: Math.round(Math.max(...values) * 1000) / 1000,
+        };
+      });
+    }
+  }
+
+  return { entrepreneurs, gridCells, stats, corpusMax, corpusAvgPersonalityVector, personalityTraitStats, personalityVectors };
 }
 
 /**

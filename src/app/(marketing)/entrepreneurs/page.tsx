@@ -5,6 +5,8 @@ import { StatCard } from "@/components/entrepreneurs/StatCard";
 import { ArchetypeGrid } from "@/components/entrepreneurs/ArchetypeGrid";
 import { ExplorerScatterPlots } from "./ExplorerScatterPlots";
 import { CorpusCommunicationRadar } from "./CorpusCommunicationRadar";
+import TraitScatterChart from "./TraitScatterChart";
+import BeeSwarmChart from "./BeeSwarmChart";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +20,7 @@ export default async function EntrepreneurExplorerPage() {
   const data = await getExplorerData();
   if (!data) notFound();
 
-  const { gridCells, stats, entrepreneurs, corpusAvgPersonalityVector } = data;
+  const { gridCells, stats, entrepreneurs, corpusAvgPersonalityVector, personalityTraitStats, personalityVectors } = data;
   const maxCount = Math.max(...gridCells.map((c) => c.count));
 
   // Prepare scatter plot dots
@@ -138,8 +140,8 @@ export default async function EntrepreneurExplorerPage() {
       </section>
 
       {/* Corpus Communication Style */}
-      {corpusAvgPersonalityVector && (
-        <section className="px-6 py-16 md:py-24">
+      {corpusAvgPersonalityVector && personalityTraitStats && (
+        <section className="px-6 py-16 md:py-24 border-t border-border/50">
           <div className="mx-auto max-w-7xl">
             <h2
               className="text-2xl font-bold text-text-primary mb-2 text-center"
@@ -148,12 +150,85 @@ export default async function EntrepreneurExplorerPage() {
               How Entrepreneurs Communicate
             </h2>
             <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
-              The average communication profile across {stats.totalEntrepreneurs}{" "}
-              entrepreneurs — energy, confidence, warmth, style, and presentation.
+              Communication style across {stats.totalEntrepreneurs} entrepreneurs
+              — what&apos;s universal, what&apos;s polarizing, and where they
+              couldn&apos;t be more different.
             </p>
+
+            {/* Headline stat cards */}
+            <div className="mx-auto mb-12 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-sm">
+                <p
+                  className="text-3xl font-bold text-[#63b3ed]"
+                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                >
+                  89%
+                </p>
+                <p className="mt-2 text-sm text-text-secondary">
+                  Composure Under Pressure
+                </p>
+                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-[#63b3ed]/70">
+                  Nearly universal
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-sm">
+                <p
+                  className="text-3xl font-bold text-[#fbbf24]"
+                  style={{
+                    fontFamily: "'Inter Tight', Inter, sans-serif",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  12–96%
+                </p>
+                <p className="mt-2 text-sm text-text-secondary">
+                  Formality Range
+                </p>
+                <p className="mt-1 text-xs font-medium uppercase tracking-widest text-[#fbbf24]/70">
+                  Most polarizing
+                </p>
+              </div>
+            </div>
+
+            {/* Radar chart */}
             <CorpusCommunicationRadar
               corpusAvgPersonalityVector={corpusAvgPersonalityVector}
             />
+
+            {/* Trait scatter: mean vs spread */}
+            <div className="mt-16">
+              <h3
+                className="text-lg font-semibold text-text-primary mb-2 text-center"
+                style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+              >
+                Consensus vs. Controversy
+              </h3>
+              <p className="text-text-secondary/70 text-center mb-8 max-w-md mx-auto text-sm">
+                Each dot is a trait. Bottom-right means everyone scores high.
+                Top-left means low and all over the map.
+              </p>
+              <TraitScatterChart traitStats={personalityTraitStats} />
+            </div>
+
+            {/* Bee swarm: individual distributions */}
+            {personalityVectors && (
+              <div className="mt-16">
+                <h3
+                  className="text-lg font-semibold text-text-primary mb-2 text-center"
+                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                >
+                  The Actual Distributions
+                </h3>
+                <p className="text-text-secondary/70 text-center mb-8 max-w-md mx-auto text-sm">
+                  Every dot is a real entrepreneur. See the tight clusters
+                  and the wide spreads for yourself.
+                </p>
+                <BeeSwarmChart
+                  personalityVectors={personalityVectors}
+                  traitStats={personalityTraitStats}
+                />
+              </div>
+            )}
           </div>
         </section>
       )}
