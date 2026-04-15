@@ -71,7 +71,7 @@ export default async function EntrepreneurExplorerPage() {
             />
             <StatCard
               value={`${stats.dominantArchetype.pct}%`}
-              label={`are ${stats.dominantArchetype.name}s`}
+              label={`are ${stats.dominantArchetype.name.replace(/^The /, "")}s`}
               sublabel="Nearly half share one archetype"
             />
             <StatCard
@@ -104,6 +104,18 @@ export default async function EntrepreneurExplorerPage() {
             they solve problems and create opportunities.
           </p>
           <ArchetypeGrid cells={gridCells} maxCount={maxCount} />
+
+          <div className="mt-8 text-center">
+            <Link
+              href="/entrepreneurs/directory"
+              className="inline-flex items-center gap-1.5 text-sm text-primary/80 hover:text-primary transition-colors"
+            >
+              Browse all {stats.totalEntrepreneurs} entrepreneurs
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </section>
 

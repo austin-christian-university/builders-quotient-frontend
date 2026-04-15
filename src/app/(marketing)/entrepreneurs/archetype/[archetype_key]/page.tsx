@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${ref.name} — ${ref.tagline} | Builder's Quotient`,
-    description: `Explore the ${ref.name} entrepreneur archetype. ${ref.tagline}`,
+    description: `Explore the ${ref.name.replace(/^The /, "")} entrepreneur archetype. ${ref.tagline}`,
   };
 }
 
@@ -94,7 +94,7 @@ export default async function ArchetypeDetailPage({ params }: PageProps) {
             className="text-xl font-bold text-text-primary mb-2 text-center"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
-            What makes {archetype.name}s distinct
+            What makes {archetype.name.replace(/^The /, "")}s distinct
           </h2>
           <p className="text-text-secondary/60 text-sm text-center mb-8">
             Compared to the average across all {entrepreneurs.length > 1 ? "248" : "all"} entrepreneurs
@@ -116,7 +116,7 @@ export default async function ArchetypeDetailPage({ params }: PageProps) {
             className="text-xl font-bold text-text-primary mb-8 text-center"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
-            {archetype.name}s
+            {archetype.name.replace(/^The /, "")}s
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {entrepreneurs.map((e) => (
@@ -142,7 +142,7 @@ export default async function ArchetypeDetailPage({ params }: PageProps) {
             className="text-2xl font-bold tracking-tight bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent pb-1"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
-            Are you {archetype.name === "The Anchor" || archetype.name === "The Alchemist" || archetype.name === "The Optimizer" ? "an" : "a"} {archetype.name}?
+            Are you {/^[aeiou]/i.test(archetype.name.replace(/^The /, "")) ? "an" : "a"} {archetype.name.replace(/^The /, "")}?
           </h2>
           <p className="mt-3 text-base text-text-secondary/90 font-light">
             Take the assessment to find out.
