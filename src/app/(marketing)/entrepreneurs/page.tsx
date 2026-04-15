@@ -97,7 +97,7 @@ export default async function EntrepreneurExplorerPage() {
       <section className="px-6 py-16 md:py-24">
         <div className="mx-auto max-w-7xl">
           <h2
-            className="text-2xl font-bold text-text-primary mb-2 text-center"
+            className="text-[clamp(1.5rem,1.15rem+1.75vw,2.25rem)] font-bold text-text-primary mb-2 text-center"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
             16 Archetypes
@@ -126,7 +126,7 @@ export default async function EntrepreneurExplorerPage() {
       <section className="px-6 py-16 md:py-24">
         <div className="mx-auto max-w-7xl">
           <h2
-            className="text-2xl font-bold text-text-primary mb-2 text-center"
+            className="text-[clamp(1.5rem,1.15rem+1.75vw,2.25rem)] font-bold text-text-primary mb-2 text-center"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
             The Data Behind the Archetypes
@@ -144,7 +144,7 @@ export default async function EntrepreneurExplorerPage() {
         <section className="px-6 py-16 md:py-24 border-t border-border/50">
           <div className="mx-auto max-w-7xl">
             <h2
-              className="text-2xl font-bold text-text-primary mb-2 text-center"
+              className="text-[clamp(1.5rem,1.15rem+1.75vw,2.25rem)] font-bold text-text-primary mb-2 text-center"
               style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
             >
               How Entrepreneurs Communicate
