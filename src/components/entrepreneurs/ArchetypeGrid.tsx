@@ -73,7 +73,7 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
                     >
                       {cell.archetype.name}
                     </p>
-                    <p className="mt-1 text-[10px] text-text-secondary/25 leading-tight">
+                    <p className="mt-1 text-xs text-text-secondary/25 leading-tight">
                       No entrepreneurs found
                     </p>
                   </motion.div>
@@ -100,7 +100,7 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
                     >
                       {cell.archetype.name}
                     </p>
-                    <p className="mt-1 text-[11px] text-text-secondary/70 leading-snug line-clamp-2">
+                    <p className="mt-1 text-xs text-text-secondary/70 leading-snug line-clamp-2">
                       {cell.archetype.tagline}
                     </p>
                     <p
