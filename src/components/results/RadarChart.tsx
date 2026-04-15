@@ -498,8 +498,8 @@ export function RadarChart({
         <polygon
           data-radar="corpus"
           points={corpusPoints}
-          fill="rgba(255,255,255,0.04)"
-          stroke="rgba(255,255,255,0.15)"
+          fill="rgba(255,255,255,0.06)"
+          stroke="rgba(255,255,255,0.35)"
           strokeWidth={1.5}
           strokeDasharray="4 4"
           style={{ pointerEvents: "none" }}
