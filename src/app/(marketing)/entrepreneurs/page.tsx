@@ -156,7 +156,7 @@ export default async function EntrepreneurExplorerPage() {
             </p>
 
             {/* Headline stat cards */}
-            <div className="mx-auto mb-12 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="mx-auto mb-8 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-sm">
                 <p
                   className="text-3xl font-bold text-[#63b3ed]"
@@ -196,14 +196,14 @@ export default async function EntrepreneurExplorerPage() {
             />
 
             {/* Trait scatter: mean vs spread */}
-            <div className="mt-16">
+            <div className="mt-10">
               <h3
                 className="text-lg font-semibold text-text-primary mb-2 text-center"
                 style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
               >
                 Consensus vs. Controversy
               </h3>
-              <p className="text-text-secondary/70 text-center mb-8 max-w-md mx-auto text-sm">
+              <p className="text-text-secondary/70 text-center mb-6 max-w-md mx-auto text-sm">
                 Each dot is a trait. Bottom-right means everyone scores high.
                 Top-left means low and all over the map.
               </p>
@@ -214,14 +214,14 @@ export default async function EntrepreneurExplorerPage() {
 
             {/* Bee swarm: individual distributions */}
             {personalityVectors && (
-              <div className="mt-16">
+              <div className="mt-10">
                 <h3
                   className="text-lg font-semibold text-text-primary mb-2 text-center"
                   style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
                 >
                   The Actual Distributions
                 </h3>
-                <p className="text-text-secondary/70 text-center mb-8 max-w-md mx-auto text-sm">
+                <p className="text-text-secondary/70 text-center mb-6 max-w-md mx-auto text-sm">
                   Every dot is a real entrepreneur. See the tight clusters
                   and the wide spreads for yourself.
                 </p>
