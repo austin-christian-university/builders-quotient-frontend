@@ -263,5 +263,8 @@ export async function getEntrepreneurProfile(
       ci_d1_score: e.ci_d1_score,
       ci_d2_score: e.ci_d2_score,
     })),
+    personalityVector: null,
+    corpusAvgPersonalityVector: null,
+    communicationNarrative: null,
   };
 }

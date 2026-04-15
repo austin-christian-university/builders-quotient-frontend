@@ -100,10 +100,32 @@ export type ArchetypeDetailData = {
   corpusMax: CorpusMaxScores;
 };
 
+// --- Communication / Personality types ---
+
+export const signatureMoveSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+});
+
+export const communicationNarrativeSchema = z.object({
+  communication_style: z.string(),
+  signature_moves: z.array(signatureMoveSchema),
+  strengths: z.string(),
+  blindspots: z.string(),
+});
+
+export type CommunicationNarrative = z.infer<typeof communicationNarrativeSchema>;
+
+export type PersonalityVector = Record<string, number>; // pv_01 through pv_20, values 0-1
+
 export type EntrepreneurProfileData = {
   entrepreneur: EntrepreneurDetail;
   archetypeAvgPiScores: Record<string, number>;
   archetypeAvgCiScores: Record<string, number>;
   corpusMax: CorpusMaxScores;
   allEntrepreneurs: { id: string; pi_d1_score: number; pi_d2_score: number; ci_d1_score: number; ci_d2_score: number }[];
+  // Communication style data
+  personalityVector: PersonalityVector | null;
+  corpusAvgPersonalityVector: PersonalityVector | null;
+  communicationNarrative: CommunicationNarrative | null;
 };
