@@ -73,12 +73,12 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
                     className="rounded-2xl border border-border/50 bg-white/[0.01] p-4 flex flex-col justify-center items-center text-center opacity-40"
                   >
                     <p
-                      className="text-sm font-semibold text-text-secondary/40"
+                      className="text-sm font-semibold text-text-secondary/60"
                       style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
                     >
                       {cell.archetype.name}
                     </p>
-                    <p className="mt-1 text-xs text-text-secondary/25 leading-tight">
+                    <p className="mt-1 text-xs text-text-secondary/45 leading-tight">
                       No entrepreneurs found
                     </p>
                   </motion.div>
