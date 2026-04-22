@@ -94,69 +94,23 @@ export default function TraitScatterChart({
           strokeWidth={1}
         />
 
-        {/* Quadrant background labels */}
         <text
-          x={MARGIN.left + PLOT_W * 0.25}
-          y={MARGIN.top + PLOT_H * 0.15}
-          textAnchor="middle"
-          fill="rgba(255,255,255,0.12)"
-          fontSize={11}
-          fontFamily="Inter Tight, Inter, sans-serif"
-          fontWeight={500}
-        >
-          High variability
-        </text>
-        <text
-          x={MARGIN.left + PLOT_W * 0.25}
-          y={MARGIN.top + PLOT_H * 0.85}
-          textAnchor="middle"
-          fill="rgba(255,255,255,0.12)"
-          fontSize={11}
-          fontFamily="Inter Tight, Inter, sans-serif"
-          fontWeight={500}
-        >
-          Low consensus
-        </text>
-        <text
-          x={MARGIN.left + PLOT_W * 0.75}
-          y={MARGIN.top + PLOT_H * 0.15}
-          textAnchor="middle"
-          fill="rgba(255,255,255,0.12)"
-          fontSize={11}
-          fontFamily="Inter Tight, Inter, sans-serif"
-          fontWeight={500}
-        >
-          Polarizing
-        </text>
-        <text
-          x={MARGIN.left + PLOT_W * 0.75}
-          y={MARGIN.top + PLOT_H * 0.85}
-          textAnchor="middle"
-          fill="rgba(255,255,255,0.12)"
-          fontSize={11}
-          fontFamily="Inter Tight, Inter, sans-serif"
-          fontWeight={500}
-        >
-          Shared baseline
-        </text>
-
-        <text
-          x={14}
+          x={6}
           y={MARGIN.top + PLOT_H / 2}
           textAnchor="middle"
           fill="#9aa0ac"
-          fontSize={14}
+          fontSize={13}
           fontFamily="Inter, sans-serif"
-          transform={`rotate(-90, 14, ${MARGIN.top + PLOT_H / 2})`}
+          transform={`rotate(-90, 6, ${MARGIN.top + PLOT_H / 2})`}
         >
           Std Deviation
         </text>
         <text
           x={MARGIN.left + PLOT_W / 2}
-          y={HEIGHT - 4}
+          y={HEIGHT - 1}
           textAnchor="middle"
           fill="#9aa0ac"
-          fontSize={14}
+          fontSize={13}
           fontFamily="Inter, sans-serif"
         >
           Mean Score

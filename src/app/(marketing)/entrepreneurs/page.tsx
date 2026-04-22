@@ -164,8 +164,10 @@ export default async function EntrepreneurExplorerPage() {
             The Data Behind the Archetypes
           </h2>
           <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
-            Each dot is a real entrepreneur. Hover to see who they are, click
-            to explore their profile.
+            Each dot is a real entrepreneur, positioned by the two strongest
+            axes within practical and creative intelligence. Clusters reveal
+            the archetypes. Hover to see who they are; click to explore a
+            profile.
           </p>
           <ExplorerScatterPlots dots={scatterDots} />
         </div>
@@ -187,7 +189,7 @@ export default async function EntrepreneurExplorerPage() {
             </p>
 
             {/* Stat highlights */}
-            <div className="mx-auto mb-12 grid max-w-md grid-cols-2 gap-4">
+            <div className="mx-auto mb-24 grid max-w-md grid-cols-2 gap-4">
               {communicationHighlights.map((highlight) => (
                 <div key={highlight.traitName} className="text-center">
                   <p
@@ -219,21 +221,49 @@ export default async function EntrepreneurExplorerPage() {
             </div>
 
             {/* Charts stacked vertically */}
-            <div className="mx-auto space-y-12" style={{ maxWidth: "min(100%, 48rem)" }}>
+            <div className="mx-auto" style={{ maxWidth: "min(100%, 48rem)" }}>
               <div>
                 <p
-                  className="text-sm font-medium text-text-secondary/70 text-center mb-4"
+                  className="text-sm font-medium text-text-secondary/70 text-center mb-2"
                   style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
                 >
                   Entrepreneurial Average — Communication Profile
+                </p>
+                <p className="text-sm text-text-secondary/60 text-center mb-2 max-w-md mx-auto">
+                  The shape of a typical founder across 20 behavioral
+                  dimensions, averaged from video interviews.
                 </p>
                 <CorpusCommunicationRadar
                   corpusAvgPersonalityVector={corpusAvgPersonalityVector}
                 />
               </div>
-              <TraitScatterChart traitStats={personalityTraitStats} />
+
+              <div className="mt-24">
+                <p
+                  className="text-sm font-medium text-text-secondary/70 text-center mb-2"
+                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                >
+                  Where Founders Agree &amp; Diverge
+                </p>
+                <p className="text-sm text-text-secondary/60 text-center mb-6 max-w-md mx-auto">
+                  Each dot is one trait. High on the chart means founders vary
+                  widely; far right means the group scores high on average.
+                </p>
+                <TraitScatterChart traitStats={personalityTraitStats} />
+              </div>
+
               {personalityVectors && (
-                <div className="mt-20">
+                <div className="mt-24">
+                  <p
+                    className="text-sm font-medium text-text-secondary/70 text-center mb-2"
+                    style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                  >
+                    Five Traits, {stats.totalEntrepreneurs}&nbsp;Founders
+                  </p>
+                  <p className="text-sm text-text-secondary/60 text-center mb-6 max-w-md mx-auto">
+                    Each dot is one entrepreneur. Tight clusters signal a
+                    shared baseline; wide spreads signal personal style.
+                  </p>
                   <BeeSwarmChart
                     personalityVectors={personalityVectors}
                     traitStats={personalityTraitStats}
