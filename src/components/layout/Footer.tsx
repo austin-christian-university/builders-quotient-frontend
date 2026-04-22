@@ -12,7 +12,7 @@ function Footer() {
             <li>
               <Link
                 href="/privacy"
-                className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+                className="inline-flex min-h-11 items-center text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >
                 Privacy
               </Link>
@@ -20,7 +20,7 @@ function Footer() {
             <li>
               <Link
                 href="/biometric-policy"
-                className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+                className="inline-flex min-h-11 items-center text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >
                 Biometric Policy
               </Link>
@@ -28,7 +28,7 @@ function Footer() {
             <li>
               <Link
                 href="/terms"
-                className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+                className="inline-flex min-h-11 items-center text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >
                 Terms
               </Link>
@@ -36,7 +36,7 @@ function Footer() {
             <li>
               <Link
                 href="/contact"
-                className="inline-block py-2 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+                className="inline-flex min-h-11 items-center text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
               >
                 Contact
               </Link>
