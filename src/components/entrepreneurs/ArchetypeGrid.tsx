@@ -21,7 +21,12 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
   }
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div
+      role="region"
+      aria-label="Archetype matrix: 4 practical-intelligence styles by 4 creative-intelligence styles"
+      tabIndex={0}
+      className="w-full overflow-x-auto rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+    >
       <div className="min-w-[640px]">
         {/* Column headers */}
         <div className="grid grid-cols-[140px_repeat(4,1fr)] gap-2 mb-2">
