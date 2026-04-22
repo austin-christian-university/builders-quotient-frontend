@@ -185,10 +185,20 @@ export function ScatterPlot({
                 stroke={isHighlighted ? "#fff" : "none"}
                 strokeWidth={isHighlighted ? 2 : 0}
                 opacity={isHighlighted || isHovered ? 1 : 0.6}
-                style={{ cursor: "pointer", transition: "r 0.15s ease, opacity 0.15s ease" }}
+                style={{ transition: "r 0.15s ease, opacity 0.15s ease", pointerEvents: "none" }}
+              />
+              <circle
+                cx={sx}
+                cy={sy}
+                r={12}
+                fill="transparent"
+                style={{ cursor: "pointer", touchAction: "manipulation" }}
                 onMouseEnter={() => setHoveredId(dot.id)}
                 onMouseLeave={() => setHoveredId(null)}
+                onFocus={() => setHoveredId(dot.id)}
+                onBlur={() => setHoveredId(null)}
                 onClick={() => router.push(`/entrepreneurs/${dot.id}`)}
+                tabIndex={0}
                 role="link"
                 aria-label={`View profile for ${dot.name}`}
               />
