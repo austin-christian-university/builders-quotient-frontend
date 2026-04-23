@@ -37,7 +37,7 @@ export default async function ArchetypeDetailPage({ params }: PageProps) {
   const ciStyleLabel = CI_STYLES.find((s) => s.key === archetype.ciStyle)?.label ?? archetype.ciStyle;
 
   return (
-    <main className="relative min-h-screen bg-bg-base">
+    <main id="main-content" className="relative min-h-screen bg-bg-base">
       {/* Header */}
       <section className="relative px-6 pt-24 pb-12 md:pt-32 md:pb-16">
         <div

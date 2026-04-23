@@ -26,7 +26,7 @@ export default async function EntrepreneurDirectoryPage() {
   }));
 
   return (
-    <main className="relative min-h-screen bg-bg-base">
+    <main id="main-content" className="relative min-h-screen bg-bg-base">
       <section className="relative px-6 pt-24 pb-16 md:pt-32 md:pb-20">
         {/* Background glow */}
         <div

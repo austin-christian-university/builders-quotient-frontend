@@ -53,7 +53,7 @@ export default async function EntrepreneurProfilePage({ params }: PageProps) {
   const ciStyleLabel = CI_STYLES.find((s) => s.key === entrepreneur.ci_style)?.label ?? entrepreneur.ci_style;
 
   return (
-    <main className="relative min-h-screen bg-bg-base">
+    <main id="main-content" className="relative min-h-screen bg-bg-base">
       {/* Hero Header */}
       <section className="relative px-6 pt-24 pb-12 md:pt-32 md:pb-16">
         <div
