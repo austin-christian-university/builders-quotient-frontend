@@ -35,7 +35,8 @@ function valueToX(value: number): number {
 
 function deterministicJitter(index: number, value: number): number {
   const seed = Math.sin(index * 78.233 + value * 437.1) * 43758.5453;
-  return ((seed - Math.floor(seed)) * 2 - 1) * JITTER_RANGE;
+  const raw = ((seed - Math.floor(seed)) * 2 - 1) * JITTER_RANGE;
+  return Math.round(raw * 1000) / 1000;
 }
 
 function formatRange(min: number, max: number): string {
