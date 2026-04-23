@@ -7,6 +7,8 @@ import { EntrepreneurCard } from "@/components/entrepreneurs/EntrepreneurCard";
 import { Button } from "@/components/ui/button";
 import { ArchetypeDetailRadars } from "./ArchetypeDetailRadars";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ archetype_key: string }>;
 }
@@ -20,10 +22,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `${ref.name} — ${ref.tagline} | Builder's Quotient`,
     description: `Explore the ${ref.name.replace(/^The /, "")} entrepreneur archetype. ${ref.tagline}`,
   };
-}
-
-export async function generateStaticParams() {
-  return ARCHETYPES.map((a) => ({ archetype_key: a.key }));
 }
 
 export default async function ArchetypeDetailPage({ params }: PageProps) {

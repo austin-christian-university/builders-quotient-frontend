@@ -4,6 +4,8 @@ import Link from "next/link";
 import { getExplorerData } from "@/lib/queries/entrepreneurs";
 import { DirectoryList } from "./DirectoryList";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Entrepreneur Directory | Builder's Quotient",
   description:

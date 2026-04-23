@@ -10,6 +10,8 @@ import BeeSwarmChart from "./BeeSwarmChart";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "How Do Entrepreneurs Think? | Builder's Quotient",
   description:
