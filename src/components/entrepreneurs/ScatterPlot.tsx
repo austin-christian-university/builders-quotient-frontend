@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { findNearestDot } from "./scatter-utils";
 
 interface ScatterDot {
   id: string;
@@ -51,6 +52,21 @@ function getColor(archetypeKey: string): string {
   return ARCHETYPE_COLORS[archetypeKey] ?? "#4da3ff";
 }
 
+/** Map a mouse/touch event to SVG coordinates. */
+function svgPoint(
+  svg: SVGSVGElement,
+  clientX: number,
+  clientY: number
+): { x: number; y: number } {
+  const pt = svg.createSVGPoint();
+  pt.x = clientX;
+  pt.y = clientY;
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return { x: clientX, y: clientY };
+  const transformed = pt.matrixTransform(ctm.inverse());
+  return { x: transformed.x, y: transformed.y };
+}
+
 export function ScatterPlot({
   dots,
   xLabelNegative,
@@ -64,6 +80,8 @@ export function ScatterPlot({
   const router = useRouter();
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [tappedId, setTappedId] = useState<string | null>(null);
+  const activeId = tappedId ?? hoveredId;
 
   // Compute scale from data range
   const { scaleX, scaleY } = useMemo(() => {
@@ -86,8 +104,43 @@ export function ScatterPlot({
     [scaleY]
   );
 
+  // Pre-compute dot positions in SVG coords for tap hit-testing
+  const dotPositions = useMemo(
+    () =>
+      dots.map((dot) => ({
+        id: dot.id,
+        x: toSvgX(dot.x),
+        y: toSvgY(dot.y),
+      })),
+    [dots, toSvgX, toSvgY]
+  );
+
+  // Hit threshold in SVG units (~28px visual — generous for touch)
+  const hitThreshold = 20;
+
+  // Tap empty space on SVG → dismiss
+  const handleSvgClick = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+      // Only dismiss when tapping outside dot hit-circles (they stop propagation)
+      const { x, y } = svgPoint(svg, e.clientX, e.clientY);
+      const nearest = findNearestDot(x, y, dotPositions, hitThreshold);
+      if (nearest === null) {
+        setTappedId(null);
+        setHoveredId(null);
+      }
+    },
+    [dotPositions]
+  );
+
   const cx = SIZE / 2;
   const cy = SIZE / 2;
+
+  const activeDot = activeId ? dots.find((d) => d.id === activeId) : null;
+  const activeDotSvg = activeId
+    ? dotPositions.find((d) => d.id === activeId)
+    : null;
 
   return (
     <div className={className}>
@@ -101,7 +154,8 @@ export function ScatterPlot({
         ref={svgRef}
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         className="w-full h-auto"
-        style={{ maxWidth: 400 }}
+        style={{ maxWidth: 400, overflow: "visible" }}
+        onClick={handleSvgClick}
       >
         {/* Quadrant background */}
         <rect
@@ -169,22 +223,22 @@ export function ScatterPlot({
           const sx = toSvgX(dot.x);
           const sy = toSvgY(dot.y);
           const isHighlighted = dot.id === highlightId;
-          const isHovered = dot.id === hoveredId;
+          const isActive = dot.id === activeId;
           const color = getColor(dot.archetypeKey);
 
           return (
             <g key={dot.id}>
-              {(isHighlighted || isHovered) && (
+              {(isHighlighted || isActive) && (
                 <circle cx={sx} cy={sy} r={12} fill={color} opacity={0.2} />
               )}
               <circle
                 cx={sx}
                 cy={sy}
-                r={isHighlighted ? 6 : isHovered ? 5 : 3.5}
+                r={isHighlighted ? 6 : isActive ? 5 : 3.5}
                 fill={color}
                 stroke={isHighlighted ? "#fff" : "none"}
                 strokeWidth={isHighlighted ? 2 : 0}
-                opacity={isHighlighted || isHovered ? 1 : 0.6}
+                opacity={isHighlighted || isActive ? 1 : 0.6}
                 style={{ transition: "r 0.15s ease, opacity 0.15s ease", pointerEvents: "none" }}
               />
               <circle
@@ -193,11 +247,27 @@ export function ScatterPlot({
                 r={12}
                 fill="transparent"
                 style={{ cursor: "pointer", touchAction: "manipulation" }}
-                onMouseEnter={() => setHoveredId(dot.id)}
-                onMouseLeave={() => setHoveredId(null)}
+                onMouseEnter={() => {
+                  if (tappedId === null) setHoveredId(dot.id);
+                }}
+                onMouseLeave={() => {
+                  if (tappedId === null) setHoveredId(null);
+                }}
                 onFocus={() => setHoveredId(dot.id)}
-                onBlur={() => setHoveredId(null)}
-                onClick={() => router.push(`/entrepreneurs/${dot.id}`)}
+                onBlur={() => {
+                  if (tappedId === null) setHoveredId(null);
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // On mobile: first tap sticks (shows name pill); on desktop we also accept
+                  // the tap pattern, but a subsequent tap on the same dot opens the profile.
+                  if (tappedId === dot.id || hoveredId === dot.id) {
+                    router.push(`/entrepreneurs/${dot.id}`);
+                  } else {
+                    setTappedId(dot.id);
+                    setHoveredId(dot.id);
+                  }
+                }}
                 tabIndex={0}
                 role="link"
                 aria-label={`View profile for ${dot.name}`}
@@ -206,37 +276,104 @@ export function ScatterPlot({
           );
         })}
 
-        {/* Tooltip */}
-        {hoveredId && (() => {
-          const dot = dots.find((d) => d.id === hoveredId);
-          if (!dot) return null;
-          const sx = toSvgX(dot.x);
-          const sy = toSvgY(dot.y);
-          const tooltipY = sy - 18;
+        {/* Name pill with outlink arrow */}
+        {activeDot && activeDotSvg && (() => {
+          const name = activeDot.name.length > 22 ? activeDot.name.slice(0, 20) + "\u2026" : activeDot.name;
+          const charW = 6.2; // approx px per char at 11px Inter
+          const textW = name.length * charW;
+          const arrowBoxW = 22;
+          const padX = 10;
+          const pillH = 24;
+          const pillW = textW + padX * 2 + arrowBoxW;
+
+          // Position above the dot, clamp horizontally to viewBox
+          let pillX = activeDotSvg.x - pillW / 2;
+          pillX = Math.max(4, Math.min(SIZE - 4 - pillW, pillX));
+          const pillY = Math.max(4, activeDotSvg.y - 28);
+
           return (
-            <g style={{ pointerEvents: "none" }}>
+            <g>
               <rect
-                x={sx - 60}
-                y={tooltipY - 10}
-                width={120}
-                height={20}
-                rx={10}
-                fill="rgba(10,10,12,0.92)"
-                stroke="rgba(255,255,255,0.15)"
+                x={pillX}
+                y={pillY}
+                width={pillW}
+                height={pillH}
+                rx={12}
+                fill="rgba(10,10,12,0.94)"
+                stroke="rgba(255,255,255,0.18)"
                 strokeWidth={1}
+                style={{ pointerEvents: "none" }}
               />
               <text
-                x={sx}
-                y={tooltipY}
-                textAnchor="middle"
+                x={pillX + padX}
+                y={pillY + pillH / 2 + 0.5}
                 dominantBaseline="middle"
                 fontSize={11}
                 fill="#f5f6fa"
                 fontWeight={500}
                 fontFamily="Inter, sans-serif"
+                style={{ pointerEvents: "none" }}
               >
-                {dot.name.length > 18 ? dot.name.slice(0, 16) + "\u2026" : dot.name}
+                {name}
               </text>
+              {/* Divider */}
+              <line
+                x1={pillX + pillW - arrowBoxW}
+                y1={pillY + 5}
+                x2={pillX + pillW - arrowBoxW}
+                y2={pillY + pillH - 5}
+                stroke="rgba(255,255,255,0.15)"
+                strokeWidth={1}
+                style={{ pointerEvents: "none" }}
+              />
+              {/* Tappable arrow — navigates to profile */}
+              <g
+                style={{ cursor: "pointer", touchAction: "manipulation" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/entrepreneurs/${activeDot.id}`);
+                }}
+                role="link"
+                aria-label={`Open ${activeDot.name}'s profile`}
+              >
+                <rect
+                  x={pillX + pillW - arrowBoxW}
+                  y={pillY}
+                  width={arrowBoxW}
+                  height={pillH}
+                  rx={12}
+                  fill="transparent"
+                />
+                <g
+                  transform={`translate(${pillX + pillW - arrowBoxW / 2 - 6}, ${pillY + pillH / 2 - 6})`}
+                  style={{ pointerEvents: "none" }}
+                >
+                  {/* External-link icon: 12x12 */}
+                  <path
+                    d="M4.5 1.5 H10.5 V7.5"
+                    stroke="#4da3ff"
+                    strokeWidth={1.4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                  <path
+                    d="M10.5 1.5 L5 7"
+                    stroke="#4da3ff"
+                    strokeWidth={1.4}
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path
+                    d="M9 6.5 V10.5 H1.5 V3 H5.5"
+                    stroke="#4da3ff"
+                    strokeWidth={1.4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </g>
+              </g>
             </g>
           );
         })()}

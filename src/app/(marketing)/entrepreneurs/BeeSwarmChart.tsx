@@ -1,5 +1,20 @@
 "use client";
 
+import {
+  BEE_SWARM_WIDTH as WIDTH,
+  BEE_SWARM_HEIGHT as HEIGHT,
+  BEE_SWARM_MARGIN as MARGIN,
+  X_MIN,
+  X_RANGE,
+  JITTER_RANGE,
+  MOBILE_STRIP_VIEWBOX_W,
+  MOBILE_STRIP_VIEWBOX_H,
+  valueToX,
+  mobileValueToX,
+  deterministicJitter,
+  formatRange,
+} from "./bee-swarm-utils";
+
 interface BeeSwarmChartProps {
   personalityVectors: number[][];
   traitStats: {
@@ -19,29 +34,11 @@ const TRAITS = [
   { key: "pv_16", index: 15, label: "Conciseness", color: "#b79cff" },
 ] as const;
 
-const WIDTH = 860;
-const HEIGHT = 360;
-const MARGIN = { top: 32, right: 78, bottom: 44, left: 120 };
-const X_MIN = MARGIN.left;
-const X_MAX = WIDTH - MARGIN.right;
-const X_RANGE = X_MAX - X_MIN;
 const ROW_START_Y = 62;
 const ROW_SPACING = 54;
-const JITTER_RANGE = 14;
 
-function valueToX(value: number): number {
-  return X_MIN + Math.max(0, Math.min(1, value)) * X_RANGE;
-}
-
-function deterministicJitter(index: number, value: number): number {
-  const seed = Math.sin(index * 78.233 + value * 437.1) * 43758.5453;
-  const raw = ((seed - Math.floor(seed)) * 2 - 1) * JITTER_RANGE;
-  return Math.round(raw * 1000) / 1000;
-}
-
-function formatRange(min: number, max: number): string {
-  return `${Math.round(min * 100)}\u2013${Math.round(max * 100)}%`;
-}
+const MOBILE_STRIP_CENTER_Y = MOBILE_STRIP_VIEWBOX_H / 2;
+const MOBILE_JITTER = 18;
 
 export default function BeeSwarmChart({
   personalityVectors,
@@ -52,138 +49,232 @@ export default function BeeSwarmChart({
 
   return (
     <div className="w-full" style={{ overflow: "visible" }}>
-      <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        width="100%"
-        style={{ overflow: "visible" }}
-        role="img"
-        aria-label="Distribution strips showing selected communication traits across entrepreneurs"
-      >
-        {/* Box outline around data area */}
-        <rect
-          x={X_MIN}
-          y={24}
-          width={X_RANGE}
-          height={HEIGHT - 24 - MARGIN.bottom}
-          fill="none"
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth={1}
-        />
-
-        <text
-          x={X_MIN - 18}
-          y={18}
-          textAnchor="end"
-          fill="rgba(255,255,255,0.42)"
-          fontSize={12}
-          fontWeight={500}
-          fontFamily="Inter Tight, Inter, sans-serif"
-          letterSpacing="0.22em"
+      {/* Desktop: wide multi-row SVG */}
+      <div className="hidden md:block" style={{ overflow: "visible" }}>
+        <svg
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          width="100%"
+          style={{ overflow: "visible" }}
+          role="img"
+          aria-label="Distribution strips showing selected communication traits across entrepreneurs"
         >
-          SELECTED TRAITS
-        </text>
-        <text
-          x={WIDTH - 4}
-          y={18}
-          textAnchor="end"
-          fill="rgba(255,255,255,0.42)"
-          fontSize={12}
-          fontWeight={500}
-          fontFamily="Inter Tight, Inter, sans-serif"
-          letterSpacing="0.22em"
-        >
-          OBSERVED RANGE
-        </text>
+          <rect
+            x={X_MIN}
+            y={24}
+            width={X_RANGE}
+            height={HEIGHT - 24 - MARGIN.bottom}
+            fill="none"
+            stroke="rgba(255,255,255,0.1)"
+            strokeWidth={1}
+          />
 
-        {ticks.map((tick) => {
-          const x = valueToX(tick);
-          return (
-            <g key={tick}>
-              <text
-                x={x}
-                y={HEIGHT - 10}
-                textAnchor="middle"
-                fill="#9aa0ac"
-                fontSize={14}
-                fontFamily="Inter, sans-serif"
-              >
-                {Math.round(tick * 100)}%
-              </text>
-            </g>
-          );
-        })}
+          <text
+            x={X_MIN - 18}
+            y={18}
+            textAnchor="end"
+            fill="rgba(255,255,255,0.42)"
+            fontSize={12}
+            fontWeight={500}
+            fontFamily="Inter Tight, Inter, sans-serif"
+            letterSpacing="0.22em"
+          >
+            SELECTED TRAITS
+          </text>
+          <text
+            x={WIDTH - 4}
+            y={18}
+            textAnchor="end"
+            fill="rgba(255,255,255,0.42)"
+            fontSize={12}
+            fontWeight={500}
+            fontFamily="Inter Tight, Inter, sans-serif"
+            letterSpacing="0.22em"
+          >
+            OBSERVED RANGE
+          </text>
 
-        {TRAITS.map((trait, rowIndex) => {
-          const rowY = ROW_START_Y + rowIndex * ROW_SPACING;
+          {ticks.map((tick) => {
+            const x = valueToX(tick);
+            return (
+              <g key={tick}>
+                <text
+                  x={x}
+                  y={HEIGHT - 10}
+                  textAnchor="middle"
+                  fill="#9aa0ac"
+                  fontSize={14}
+                  fontFamily="Inter, sans-serif"
+                >
+                  {Math.round(tick * 100)}%
+                </text>
+              </g>
+            );
+          })}
+
+          {TRAITS.map((trait, rowIndex) => {
+            const rowY = ROW_START_Y + rowIndex * ROW_SPACING;
+            const stat = statsByKey.get(trait.key);
+            const meanX = stat ? valueToX(stat.mean) : null;
+
+            return (
+              <g key={trait.key}>
+                <text
+                  x={X_MIN - 14}
+                  y={rowY + 5}
+                  textAnchor="end"
+                  fill="#f5f6fa"
+                  fontSize={14}
+                  fontWeight={500}
+                  fontFamily="Inter, sans-serif"
+                >
+                  {trait.label}
+                </text>
+
+                {personalityVectors.map((vector, dotIndex) => {
+                  const value = vector[trait.index];
+                  if (value === undefined || value === null) return null;
+
+                  return (
+                    <circle
+                      key={`${trait.key}-${dotIndex}`}
+                      cx={valueToX(value)}
+                      cy={rowY + deterministicJitter(dotIndex, value)}
+                      r={2.6}
+                      fill={trait.color}
+                      opacity={0.22 + (dotIndex % 5) * 0.05}
+                    />
+                  );
+                })}
+
+                {meanX !== null && (
+                  <>
+                    <line
+                      x1={meanX}
+                      y1={rowY - JITTER_RANGE - 4}
+                      x2={meanX}
+                      y2={rowY + JITTER_RANGE + 4}
+                      stroke="rgba(255,255,255,0.5)"
+                      strokeWidth={1.1}
+                    />
+                    <circle
+                      cx={meanX}
+                      cy={rowY}
+                      r={4}
+                      fill="transparent"
+                      stroke="rgba(255,255,255,0.68)"
+                      strokeWidth={1.2}
+                    />
+                  </>
+                )}
+
+                <text
+                  x={WIDTH - 4}
+                  y={rowY + 4}
+                  textAnchor="end"
+                  fill={trait.color}
+                  fontSize={12}
+                  fontWeight={600}
+                  fontFamily="Inter Tight, Inter, sans-serif"
+                >
+                  {stat ? formatRange(stat.min, stat.max) : "\u2014"}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Mobile: stacked strip cards, one per trait */}
+      <div className="md:hidden flex flex-col gap-3">
+        {TRAITS.map((trait) => {
           const stat = statsByKey.get(trait.key);
-          const meanX = stat ? valueToX(stat.mean) : null;
+          const meanX = stat ? mobileValueToX(stat.mean) : null;
 
           return (
-            <g key={trait.key}>
-              <text
-                x={X_MIN - 14}
-                y={rowY + 5}
-                textAnchor="end"
-                fill="#f5f6fa"
-                fontSize={14}
-                fontWeight={500}
-                fontFamily="Inter, sans-serif"
+            <div
+              key={trait.key}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-xl"
+              role="img"
+              aria-label={`Distribution of ${trait.label} across entrepreneurs`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  className="text-sm font-semibold text-text-primary"
+                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                >
+                  {trait.label}
+                </span>
+                <span
+                  className="rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tabular-nums"
+                  style={{
+                    color: trait.color,
+                    borderColor: `${trait.color}55`,
+                    fontFamily: "'Inter Tight', Inter, sans-serif",
+                  }}
+                >
+                  {stat ? formatRange(stat.min, stat.max) : "\u2014"}
+                </span>
+              </div>
+
+              <svg
+                viewBox={`0 0 ${MOBILE_STRIP_VIEWBOX_W} ${MOBILE_STRIP_VIEWBOX_H}`}
+                preserveAspectRatio="none"
+                className="h-14 w-full"
+                aria-hidden="true"
               >
-                {trait.label}
-              </text>
+                {personalityVectors.map((vector, dotIndex) => {
+                  const value = vector[trait.index];
+                  if (value === undefined || value === null) return null;
 
-              {personalityVectors.map((vector, dotIndex) => {
-                const value = vector[trait.index];
-                if (value === undefined || value === null) return null;
+                  return (
+                    <circle
+                      key={`${trait.key}-m-${dotIndex}`}
+                      cx={mobileValueToX(value)}
+                      cy={
+                        MOBILE_STRIP_CENTER_Y +
+                        deterministicJitter(dotIndex, value, MOBILE_JITTER)
+                      }
+                      r={2.4}
+                      fill={trait.color}
+                      opacity={0.3 + (dotIndex % 5) * 0.05}
+                    />
+                  );
+                })}
 
-                return (
-                  <circle
-                    key={`${trait.key}-${dotIndex}`}
-                    cx={valueToX(value)}
-                    cy={rowY + deterministicJitter(dotIndex, value)}
-                    r={2.6}
-                    fill={trait.color}
-                    opacity={0.22 + (dotIndex % 5) * 0.05}
-                  />
-                );
-              })}
+                {meanX !== null && (
+                  <>
+                    <line
+                      x1={meanX}
+                      y1={6}
+                      x2={meanX}
+                      y2={MOBILE_STRIP_VIEWBOX_H - 6}
+                      stroke="rgba(255,255,255,0.55)"
+                      strokeWidth={1}
+                    />
+                    <circle
+                      cx={meanX}
+                      cy={MOBILE_STRIP_CENTER_Y}
+                      r={3.5}
+                      fill="transparent"
+                      stroke="rgba(255,255,255,0.75)"
+                      strokeWidth={1.2}
+                    />
+                  </>
+                )}
+              </svg>
 
-              {meanX !== null && (
-                <>
-                  <line
-                    x1={meanX}
-                    y1={rowY - JITTER_RANGE - 4}
-                    x2={meanX}
-                    y2={rowY + JITTER_RANGE + 4}
-                    stroke="rgba(255,255,255,0.5)"
-                    strokeWidth={1.1}
-                  />
-                  <circle
-                    cx={meanX}
-                    cy={rowY}
-                    r={4}
-                    fill="transparent"
-                    stroke="rgba(255,255,255,0.68)"
-                    strokeWidth={1.2}
-                  />
-                </>
-              )}
-
-              <text
-                x={WIDTH - 4}
-                y={rowY + 4}
-                textAnchor="end"
-                fill={trait.color}
-                fontSize={12}
-                fontWeight={600}
-                fontFamily="Inter Tight, Inter, sans-serif"
+              <div
+                className="mt-1 flex justify-between text-[10px] tabular-nums text-text-secondary/60"
+                style={{ fontFamily: "Inter, sans-serif" }}
               >
-                {stat ? formatRange(stat.min, stat.max) : "\u2014"}
-              </text>
-            </g>
+                <span>0%</span>
+                <span>50%</span>
+                <span>100%</span>
+              </div>
+            </div>
           );
         })}
-      </svg>
+      </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-text-secondary/65">
         <div className="flex items-center gap-2">

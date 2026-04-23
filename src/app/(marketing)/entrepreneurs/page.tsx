@@ -163,11 +163,17 @@ export default async function EntrepreneurExplorerPage() {
           >
             The Data Behind the Archetypes
           </h2>
-          <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
+          <p className="hidden md:block text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
             Each dot is a real entrepreneur, positioned by the two strongest
             axes within practical and creative intelligence. Clusters reveal
             the archetypes. Hover to see who they are; click to explore a
             profile.
+          </p>
+          <p className="md:hidden text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
+            Each dot is a real entrepreneur, positioned by the two strongest
+            axes within practical and creative intelligence. Clusters reveal
+            the archetypes. Tap a dot to see who they are, then tap the arrow
+            to open their profile.
           </p>
           <ExplorerScatterPlots dots={scatterDots} />
         </div>
@@ -261,8 +267,9 @@ export default async function EntrepreneurExplorerPage() {
                     Five Traits, {stats.totalEntrepreneurs}&nbsp;Founders
                   </p>
                   <p className="text-sm text-text-secondary/60 text-center mb-6 max-w-md mx-auto">
-                    Each dot is one entrepreneur. Tight clusters signal a
-                    shared baseline; wide spreads signal personal style.
+                    Each dot is one entrepreneur. On some traits founders
+                    converge on a shared baseline; on others they spread wide
+                    open&mdash;style over consensus.
                   </p>
                   <BeeSwarmChart
                     personalityVectors={personalityVectors}
