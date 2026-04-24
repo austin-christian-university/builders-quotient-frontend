@@ -2,6 +2,24 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.7.0] - 2026-04-24
+
+### Added
+- Public `/entrepreneurs` explorer — see how 248+ real founders across 220 industries actually think, laid out as a 4×4 archetype matrix
+- Browse any of the 16 archetypes on its own page — average PI/CI profile with corpus overlay, member list, and a description of who fits
+- Tap any entrepreneur to get a profile page — PI → CI → Communication Style sections, each with their own radar chart and a call to take the assessment
+- Scatter plots on the overview plot every founder against the two strongest axes of practical and creative intelligence — clusters reveal the archetypes at a glance
+- Communication Style section on profile pages — 20-dimension radar against the corpus average, plus the founder's signature moves, strengths, and blindspots (when video analysis is available)
+- Corpus-level communication charts on the overview — bee swarm of five polarizing traits (Composure, Formality, Vulnerability, Humor, Conciseness) and a "Where Founders Agree & Diverge" trait scatter
+- Searchable entrepreneur directory at `/entrepreneurs/directory` — filter by name, see archetype badges, jump to any profile
+- Mobile-first charts throughout — tap-to-focus pills on scatter plots, stacked strip cards for the bee swarm, and the 4×4 grid reflows for small screens
+- Entry point from the marketing hero — new "Explore the archetypes" link opens the explorer from the homepage
+
+### For contributors
+- New query module `src/lib/queries/entrepreneurs.ts` (server-only, service-role) powers all three entrepreneur surfaces
+- Pure helpers extracted to `entrepreneurs-helpers.ts`, `scatter-utils.ts`, `bee-swarm-utils.ts` — 44 new unit tests cover averaging, clamping, hit-testing, and jitter math without pulling React/Next into the harness
+- All four entrepreneur routes force dynamic rendering (`export const dynamic = "force-dynamic"`) — matches the pattern in `assess/[step]/page.tsx`, prevents Vercel preview builds from failing when service-role env vars are not set at build time
+
 ## [0.2.6.0] - 2026-03-25
 
 ### Changed
