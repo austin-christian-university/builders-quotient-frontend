@@ -12,6 +12,7 @@ This is a standalone Next.js 16 app using the App Router with `src/app/`. Shared
 src/
 ├── app/                    # Routes (App Router)
 │   ├── (marketing)/        # Public landing / lead-gen pages
+│   │   └── entrepreneurs/  # Public explorer: overview, profile, archetype, directory
 │   ├── (assessment)/       # Assessment flow (warmup → intelligence → personality)
 │   │   ├── layout.tsx      # Assessment session provider
 │   │   ├── start/          # Intake form
@@ -25,11 +26,12 @@ src/
 │   ├── ui/                 # Base primitives (button, card, input, etc.)
 │   ├── layout/             # Header, footer, nav
 │   ├── assessment/         # Assessment-specific components
+│   ├── entrepreneurs/      # Archetype grid, scatter plot, entrepreneur cards, comm-style radar
 │   └── marketing/          # Landing page sections
 └── lib/
     ├── supabase/           # Server + browser client factories
     ├── actions/            # Server Actions (mutations)
-    ├── queries/            # Data fetching functions
+    ├── queries/            # Data fetching functions (entrepreneurs.ts + helpers)
     ├── schemas/            # Zod schemas and inferred types
     ├── assessment/         # Scoring logic, personality bank, fingerprinting, warmup/vignette state machines
     └── utils.ts            # cn() helper, shared utilities
