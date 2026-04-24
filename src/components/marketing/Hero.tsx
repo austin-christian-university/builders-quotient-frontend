@@ -129,6 +129,25 @@ function Hero() {
           <p className="text-[length:var(--text-fluid-xs)] text-neutral-500 tracking-wider font-light">
             ~20&nbsp;min &middot; Camera required &middot; No&nbsp;retakes
           </p>
+          <Link
+            href="/entrepreneurs"
+            className="mt-2 inline-flex items-center gap-1.5 text-[length:var(--text-fluid-xs)] text-text-secondary/50 tracking-wider font-light transition-colors hover:text-primary/80"
+          >
+            Or explore how 274 entrepreneurs think
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </Link>
         </motion.div>
       </motion.div>
 

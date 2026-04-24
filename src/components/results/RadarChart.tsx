@@ -66,8 +66,8 @@ function polarToCartesian(
 ): { x: number; y: number } {
   const angleRad = ((angleDeg - 90) * Math.PI) / 180;
   return {
-    x: cx + radius * Math.cos(angleRad),
-    y: cy + radius * Math.sin(angleRad),
+    x: Math.round((cx + radius * Math.cos(angleRad)) * 100) / 100,
+    y: Math.round((cy + radius * Math.sin(angleRad)) * 100) / 100,
   };
 }
 
@@ -498,8 +498,8 @@ export function RadarChart({
         <polygon
           data-radar="corpus"
           points={corpusPoints}
-          fill="rgba(255,255,255,0.04)"
-          stroke="rgba(255,255,255,0.15)"
+          fill="rgba(255,255,255,0.06)"
+          stroke="rgba(255,255,255,0.35)"
           strokeWidth={1.5}
           strokeDasharray="4 4"
           style={{ pointerEvents: "none" }}
