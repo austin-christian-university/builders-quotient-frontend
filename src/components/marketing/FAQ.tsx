@@ -14,7 +14,7 @@ const faqs = [
   {
     question: "Can I retake the assessment?",
     answer:
-      "No. The assessment is designed to capture your authentic first reactions. Each participant gets one attempt to ensure the integrity of the results.",
+      "Yes, as many times as you like. We actually find repeat attempts useful — comparing them shows how stable your reasoning profile is over time. There's a two-hour wait between attempts so each one captures a fresh reaction rather than a rehearsal.",
   },
   {
     question: "Do I need to prepare anything?",
