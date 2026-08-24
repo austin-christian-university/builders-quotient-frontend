@@ -14,7 +14,7 @@ const faqs = [
   {
     question: "Can I retake the assessment?",
     answer:
-      "Yes, as many times as you like. Every attempt gets its own permanent results link, so retaking never overwrites what you got before — you can compare them side by side. We actually find repeat attempts useful: they show how stable your reasoning profile is over time. There's a two-hour wait between attempts so each one captures a fresh reaction rather than a rehearsal.",
+      "Yes, as many times as you like. Every attempt gets its own permanent results link, so retaking never overwrites what you got before — your earlier results stay right where they were. We actually find repeat attempts useful: they show how stable your reasoning profile is over time. There's a two-hour wait between attempts so each one captures a fresh reaction rather than a rehearsal.",
   },
   {
     question: "Do I need to prepare anything?",
