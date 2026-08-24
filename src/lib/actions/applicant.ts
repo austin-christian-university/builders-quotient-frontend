@@ -1,7 +1,6 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { nanoid } from "nanoid";
 import { createServiceClient } from "@/lib/supabase/server";
 import { readSessionCookie } from "@/lib/assessment/session-cookie";
 import { getSessionById } from "@/lib/queries/session";
@@ -56,7 +55,7 @@ async function findDuplicateApplicant(
  * Merge the current session under an existing applicant:
  * 1. Re-point assessment_sessions.applicant_id
  * 2. Re-point consent_records.applicant_id
- * 3. Update existing applicant with new info (don't overwrite email/phone/token)
+ * 3. Update existing applicant with new info (don't overwrite email/phone)
  * 4. Delete orphaned anonymous applicant (only if email IS NULL for safety)
  */
 async function mergeIntoExistingApplicant(
@@ -89,7 +88,8 @@ async function mergeIntoExistingApplicant(
 
   if (consentErr) throw new Error("Failed to re-point consent records");
 
-  // Update existing applicant with new info (preserve email, phone, results_token)
+  // Update existing applicant with new info (preserve email and phone).
+  // The results token lives on assessment_sessions — each attempt keeps its own.
   const updates: Record<string, unknown> = {
     lead_type: data.leadType,
   };
@@ -188,7 +188,6 @@ export async function captureEmail(
   }
 
   // --- No duplicate: normal flow ---
-  const resultsToken = nanoid(21);
   const supabase = createServiceClient();
 
   const { error: updateError } = await supabase
@@ -198,7 +197,6 @@ export async function captureEmail(
       display_name: parsed.data.firstName ?? null,
       phone: parsed.data.phone,
       sms_consent_at: new Date().toISOString(),
-      results_token: resultsToken,
       lead_type: parsed.data.leadType,
       ...(parsed.data.smsMarketingConsent && {
         sms_marketing_consent_at: new Date().toISOString(),
