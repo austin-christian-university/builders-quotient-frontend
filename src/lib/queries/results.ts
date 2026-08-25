@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/server";
+import { resolveSessionByResultsToken } from "@/lib/queries/result-token";
 import {
   FACET_LABELS,
   ENTREPRENEURIAL_FACETS,
@@ -319,39 +320,27 @@ export async function getResultsByToken(
 ): Promise<ResultsPageData | null> {
   const supabase = createServiceClient();
 
-  // 1. Look up applicant by results_token
-  const { data: applicant, error: applicantError } = await supabase
-    .from("applicants")
-    .select("id, display_name, lead_type")
-    .eq("results_token", token)
-    .single();
+  // 1. Resolve the token directly to its attempt. One token, one attempt —
+  //    a retake mints its own token instead of re-pointing this one.
+  const resolved = await resolveSessionByResultsToken(supabase, token);
+  if (!resolved) return null;
 
-  if (applicantError || !applicant) return null;
+  const applicant = {
+    id: resolved.applicantId,
+    display_name: resolved.applicant.displayName,
+    lead_type: resolved.applicant.leadType,
+  };
 
-  // 2. Find their scored/completed session (prefer "scored" over "completed")
-  const { data: scoredSession } = await supabase
-    .from("assessment_sessions")
-    .select("id, assessment_type, personality_completed_at, archetype_name, archetype_tagline, archetype_description, archetype_based_on_category, archetype_variant")
-    .eq("applicant_id", applicant.id)
-    .eq("status", "scored")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-
-  const session =
-    scoredSession ??
-    (
-      await supabase
-        .from("assessment_sessions")
-        .select("id, assessment_type, personality_completed_at, archetype_name, archetype_tagline, archetype_description, archetype_based_on_category, archetype_variant")
-        .eq("applicant_id", applicant.id)
-        .eq("status", "completed")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single()
-    ).data;
-
-  if (!session) return null;
+  const session = {
+    id: resolved.id,
+    assessment_type: resolved.assessmentType,
+    personality_completed_at: resolved.personalityCompletedAt,
+    archetype_name: resolved.archetypeName,
+    archetype_tagline: resolved.archetypeTagline,
+    archetype_description: resolved.archetypeDescription,
+    archetype_based_on_category: resolved.archetypeBasedOnCategory,
+    archetype_variant: resolved.archetypeVariant,
+  };
 
   // 3. Fetch scored responses (phase 1 only — pipeline writes combined score there)
   const { data: responses, error: responsesError } = await supabase

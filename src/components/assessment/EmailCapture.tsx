@@ -491,8 +491,9 @@ function DuplicateModal({
         <p className="mt-2 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
           The {matchedField === "email" ? "email address" : "phone number"}{" "}
           <strong className="text-text-primary">{matchedValue}</strong> is
-          already linked to an existing profile. Would you like to save this
-          assessment to that profile, or go back and use different details?
+          already linked to an existing profile. We&apos;ll add this attempt to
+          that profile and send you a new results link &mdash; your earlier
+          results stay exactly where they are, at their own link.
         </p>
 
         {linkError && (

@@ -2,6 +2,7 @@
 
 import { createServiceClient } from "@/lib/supabase/server";
 import { createSessionCookie } from "@/lib/assessment/session-cookie";
+import { resolveSessionByResultsToken } from "@/lib/queries/result-token";
 
 /**
  * Re-establishes a session cookie from a results token so the user can
@@ -20,46 +21,14 @@ export async function establishSessionFromToken(
 
   const supabase = createServiceClient();
 
-  // 1. Look up applicant by results_token
-  const { data: applicant, error: applicantError } = await supabase
-    .from("applicants")
-    .select("id")
-    .eq("results_token", token)
-    .single();
+  const session = await resolveSessionByResultsToken(supabase, token);
 
-  if (applicantError || !applicant) {
+  if (!session) {
     return { success: false, error: "Token not found" };
   }
 
-  // 2. Find their session — prefer "scored" over "completed" (matches getResultsByToken)
-  const { data: scoredSession } = await supabase
-    .from("assessment_sessions")
-    .select("id, personality_completed_at")
-    .eq("applicant_id", applicant.id)
-    .eq("status", "scored")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-
-  const session =
-    scoredSession ??
-    (
-      await supabase
-        .from("assessment_sessions")
-        .select("id, personality_completed_at")
-        .eq("applicant_id", applicant.id)
-        .eq("status", "completed")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single()
-    ).data;
-
-  if (!session) {
-    return { success: false, error: "No completed session found" };
-  }
-
   // 3. Verify personality quiz hasn't been completed
-  if (session.personality_completed_at) {
+  if (session.personalityCompletedAt) {
     return { success: false, error: "Personality quiz already completed" };
   }
 

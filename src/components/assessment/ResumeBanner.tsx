@@ -22,7 +22,8 @@ export function ResumeBanner() {
       <p className="mt-1 text-primary/80">
         We noticed you were in the middle of your assessment. Even if you feel
         unsure about your responses so far, keep going &mdash; finish this
-        attempt and you can retake it tomorrow with a fresh&nbsp;start.
+        attempt and you can take it again in two&nbsp;hours with a
+        fresh&nbsp;start.
       </p>
       <button
         type="button"

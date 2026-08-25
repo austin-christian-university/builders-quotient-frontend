@@ -51,10 +51,10 @@ describe("ResumeBanner", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("mentions retaking tomorrow", () => {
+  it("mentions retaking in two hours", () => {
     mockSearchParams.set("resume", "true");
     render(<ResumeBanner />);
 
-    expect(screen.getByText(/retake it tomorrow/i)).toBeInTheDocument();
+    expect(screen.getByText(/take it again in two/i)).toBeInTheDocument();
   });
 });

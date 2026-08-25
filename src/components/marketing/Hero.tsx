@@ -127,7 +127,7 @@ function Hero() {
             </Button>
           </div>
           <p className="text-[length:var(--text-fluid-xs)] text-neutral-500 tracking-wider font-light">
-            ~20&nbsp;min &middot; Camera required &middot; No&nbsp;retakes
+            ~20&nbsp;min &middot; Camera required &middot; Retake&nbsp;anytime
           </p>
           <Link
             href="/entrepreneurs"
