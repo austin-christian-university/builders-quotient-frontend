@@ -5,13 +5,20 @@ import { createServiceClient } from "@/lib/supabase/server";
 /**
  * Creates a presigned upload URL for the responses storage bucket.
  * Returns the upload URL and the storage path for later reference.
+ *
+ * `upsert: true` is required, not an optimisation. Storage paths are derived
+ * deterministically from (session, vignette, phase), so any re-record or upload
+ * retry targets a path that may already hold an object. With the default
+ * `upsert: false`, Supabase rejects the signing request with a 400 and the
+ * retry can never succeed — in August 2026 a student re-recorded a vignette
+ * after an error, and all three phase uploads failed permanently this way.
  */
 export async function createSignedUploadUrl(storagePath: string) {
   const supabase = createServiceClient();
 
   const { data, error } = await supabase.storage
     .from("responses")
-    .createSignedUploadUrl(storagePath);
+    .createSignedUploadUrl(storagePath, { upsert: true });
 
   if (error || !data) {
     throw new Error(`Failed to create upload URL: ${error?.message}`);

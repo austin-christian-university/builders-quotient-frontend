@@ -26,6 +26,8 @@ export type UploadJob = {
   status: UploadJobStatus;
   progress: number;
   retryCount: number;
+  /** Epoch ms before which this job must not be retried (backoff). */
+  nextAttemptAt?: number;
   error?: string;
 };
 
@@ -58,6 +60,8 @@ const BACKOFF_BASE_MS = 2000;
 
 export function UploadQueueProvider({ children }: { children: ReactNode }) {
   const [jobs, setJobs] = useState<UploadJob[]>([]);
+  // Bumped when a backoff timer expires, to re-run the queue effect.
+  const [tick, setTick] = useState(0);
   const blobMapRef = useRef<Map<string, Blob>>(new Map());
   const processingRef = useRef(false);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
@@ -111,18 +115,50 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
     setJobs((prev) =>
       prev.map((j) =>
         j.id === jobId
-          ? { ...j, status: "queued" as const, progress: 0, error: undefined }
+          ? {
+              ...j,
+              status: "queued" as const,
+              progress: 0,
+              error: undefined,
+              nextAttemptAt: undefined,
+            }
           : j
       )
     );
   }, []);
 
   // --- Process queue sequentially ---
+  //
+  // Picks the first job that is queued AND past its backoff. Selecting purely
+  // on `status === "queued"` head-of-line blocks: a job that keeps failing is
+  // re-queued at the front, so every later phase starves behind it and never
+  // attempts even once. In August 2026 a student's vignette-4 phase-1 upload
+  // hit a permanent 400; phases 2 and 3 were never tried, and all three
+  // recordings were lost while the UI reported the vignette complete.
   useEffect(() => {
     if (processingRef.current) return;
 
-    const nextJob = jobs.find((j) => j.status === "queued");
-    if (!nextJob) return;
+    const now = Date.now();
+    const nextJob = jobs.find(
+      (j) => j.status === "queued" && (j.nextAttemptAt ?? 0) <= now
+    );
+
+    if (!nextJob) {
+      // Nothing runnable now. If something is merely backing off, wake up when
+      // the soonest one becomes eligible — otherwise it waits for an unrelated
+      // state change that may never come.
+      const soonest = jobs
+        .filter((j) => j.status === "queued" && (j.nextAttemptAt ?? 0) > now)
+        .reduce<number | null>(
+          (min, j) => (min === null ? j.nextAttemptAt! : Math.min(min, j.nextAttemptAt!)),
+          null
+        );
+      if (soonest !== null) {
+        const timer = setTimeout(() => setTick((t) => t + 1), soonest - now);
+        return () => clearTimeout(timer);
+      }
+      return;
+    }
 
     processingRef.current = true;
 
@@ -278,14 +314,16 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
                     status: "queued" as const,
                     progress: 0,
                     retryCount: currentRetry + 1,
+                    nextAttemptAt: Date.now() + delay,
                   }
                 : j
             )
           );
 
-          setTimeout(() => {
-            processingRef.current = false;
-          }, delay);
+          // Release the worker immediately. The backoff now lives on the job
+          // itself, so other phases can upload while this one waits instead of
+          // the whole queue idling.
+          processingRef.current = false;
         } else {
           // All retries exhausted
           console.error(
@@ -320,7 +358,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-  }, [jobs]);
+  }, [jobs, tick]);
 
   return (
     <UploadQueueContext.Provider
