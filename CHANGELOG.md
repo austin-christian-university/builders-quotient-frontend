@@ -2,6 +2,15 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.7.2] - 2026-08-31
+
+### Fixed
+- A student whose upload failed could get stuck bouncing between the finish screen and the assessment, unable to reach either. Introduced in 0.2.7.1 and caught by adversarial review before anyone hit it: the finish screen sent them back to the incomplete step, and the step page sent them straight to the finish screen, forever. The step page now only bounces you forward when every step actually has video behind it.
+
+### For contributors
+- `session.status = "completed"` is set by `reserveResponse` when the last recording STOPS, before its upload finishes — it means "done recording", not "we have every video". Any redirect keyed on it must also consult `getCompletedSteps()`, or it deadlocks against `complete/page.tsx`.
+- `completion-redirect-loop.test.ts` pins the routing decision exhaustively: for every completion state, the two pages can never both redirect at once.
+
 ## [0.2.7.1] - 2026-08-31
 
 ### Fixed

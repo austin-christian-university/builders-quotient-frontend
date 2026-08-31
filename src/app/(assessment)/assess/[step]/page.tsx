@@ -50,12 +50,18 @@ export default async function StepPage({
     redirect("/assess/setup");
   }
 
-  if (session.status === "completed") {
-    redirect("/assess/complete");
-  }
-
   // 4. Enforce linear progression
   const completedSteps = await getCompletedSteps(sessionId, session);
+
+  // `status === "completed"` is set by reserveResponse when the LAST recording
+  // stops — before its upload finishes. So "completed" means "finished
+  // recording", not "we have every video". Redirecting on it unconditionally
+  // deadlocks a student whose upload failed: /complete sends them here because
+  // a step is incomplete, and this sends them straight back. Only bounce them
+  // to the finish line when every step actually has video behind it.
+  if (session.status === "completed" && completedSteps.size >= TOTAL_STEPS) {
+    redirect("/assess/complete");
+  }
 
   if (completedSteps.has(step)) {
     // Already completed this step — redirect to next incomplete or complete page
