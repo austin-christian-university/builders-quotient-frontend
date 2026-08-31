@@ -2,6 +2,17 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.7.1] - 2026-08-31
+
+### Fixed
+- Re-recording a vignette after an error no longer silently loses the video. Upload URLs are now signed with `upsert: true` — previously a re-record targeted a storage path that already existed, so the signing request was rejected with a 400 and the upload could never succeed no matter how many times it retried.
+- All three phases of a vignette now upload even when one of them keeps failing. The queue picked work with `jobs.find(j => j.status === "queued")` and a failing job is re-queued in place, so a stuck phase 1 was chosen on every pass and phases 2 and 3 were never attempted at all. Backoff now lives on the job, so a waiting phase steps aside instead of blocking the queue.
+- Finishing a vignette whose uploads failed no longer counts as completing it. Progress was gated on `response_submitted_at`, which is set when recording stops — before the upload. A student could walk past a vignette that had no video behind it and reach the finish screen believing they were done.
+
+### For contributors
+- `getCompletedSteps()` now excludes phases with `upload_status = 'failed'`. `'pending'` still counts on purpose: uploads are async, and blocking on in-flight ones would stall the assessment on a slow connection. Only definitive failures gate progress.
+- 11 new tests in `upload-queue-selection.test.ts` and `completed-steps-upload.test.ts` cover the queue selection rule and the completion gate, including the three-phase starvation shape that caused the incident.
+
 ## [0.2.7.0] - 2026-04-24
 
 ### Added

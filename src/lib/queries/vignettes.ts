@@ -131,15 +131,23 @@ export async function getCompletedSteps(
 
   const { data, error } = await supabase
     .from("student_responses")
-    .select("vignette_id, response_phase")
+    .select("vignette_id, response_phase, upload_status")
     .eq("session_id", sessionId)
     .not("response_submitted_at", "is", null);
 
   if (error || !data) return new Set();
 
-  // Group by vignette_id, collect which phases are submitted
+  // Group by vignette_id, collect which phases are submitted.
+  //
+  // A phase counts as submitted once the recording is reserved, so a student is
+  // never blocked while an upload is still in flight ('pending'). But a phase
+  // whose upload definitively FAILED does not count: there is no video behind
+  // it, so treating it as done sends the student past a vignette that can never
+  // be scored. In August 2026 a student walked through three failed uploads to
+  // the finish screen with the UI reporting the vignette complete.
   const phasesByVignette = new Map<string, Set<number>>();
   for (const r of data) {
+    if (r.upload_status === "failed") continue;
     const existing = phasesByVignette.get(r.vignette_id) ?? new Set();
     existing.add(r.response_phase);
     phasesByVignette.set(r.vignette_id, existing);
