@@ -43,6 +43,19 @@ const MAX_BLOB_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB Supabase bucket limit
 type Buffer2SubStage = "transition" | "prompting" | "thinking";
 type Buffer3SubStage = "transition" | "prompting" | "thinking";
 
+const SUPPORT_EMAIL = "enrollment@austinchristianu.org";
+
+/**
+ * Student-facing copy for a failed save. Deliberately does not say "try again":
+ * the take is timed and one-shot, so retrying is not something the student can
+ * do. The recording has already been handed to the upload queue by the time
+ * this shows, so the honest message is "we have it, we're retrying, don't
+ * re-record".
+ */
+const SAVE_FAILED_MESSAGE =
+  "We hit a problem saving that response. Your recording is safe and we're still uploading it \u2014 please don't re-record.";
+
+
 // --- Props ---
 type VignetteExperienceProps = {
   step: number;
@@ -86,6 +99,11 @@ export function VignetteExperience({
     retryCount: 0,
   });
 
+  // A phase 1/2 save failed. Non-blocking on purpose: the recording is already
+  // queued for upload and the student still has later phases to record, so
+  // this must not tear the vignette down.
+  const [saveWarning, setSaveWarning] = useState(false);
+
   // Audio narrator lives here (not in VignetteNarrator) so the Audio element
   // survives the ready->narrating phase transition without being destroyed.
   const audio = useAudioNarrator(audioUrl, audioTiming);
@@ -112,6 +130,14 @@ export function VignetteExperience({
   const [countdownNumber, setCountdownNumber] = useState(3);
   const prefersReducedMotion = usePrefersReducedMotion();
   const phaseContainerRef = useRef<HTMLDivElement>(null);
+
+  // Move focus to the alert when the vignette errors out. The container is
+  // already tabIndex={-1} + role="alert"; nothing was focusing it, so keyboard
+  // and screen-reader users were left on the UI that just disappeared.
+  useEffect(() => {
+    if (state.phase === "error") phaseContainerRef.current?.focus();
+  }, [state.phase]);
+
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioPlayRef = useRef(audio.play);
   audioPlayRef.current = audio.play;
@@ -332,7 +358,14 @@ export function VignetteExperience({
           responsePhase: 1,
           videoDurationSeconds: phase1DurationRef.current,
           recordingStartedAt: phase1StartTimeRef.current ?? new Date().toISOString(),
-        }).then(() => {
+        }).catch((err) => {
+          // Reserving only writes the timing row. Losing it must not cost the
+          // recording, and it must not end the vignette: phases 2 and 3 have
+          // not been recorded yet, so tearing down here would throw away takes
+          // the student never got to give.
+          console.error("[BQ] Failed to reserve phase 1:", err);
+          setSaveWarning(true);
+        }).finally(() => {
           uploadQueue.enqueue({
             blob: phase1Blob,
             sessionId,
@@ -342,9 +375,6 @@ export function VignetteExperience({
             step,
             responsePhase: 1,
           });
-        }).catch((err) => {
-          console.error("[BQ] Failed to reserve phase 1:", err);
-          dispatch({ type: "ERROR", message: "Failed to save recording. Please try again." });
         });
       } else {
         const sizeMB = (phase1Blob.size / (1024 * 1024)).toFixed(2);
@@ -520,7 +550,14 @@ export function VignetteExperience({
           responsePhase: 2,
           videoDurationSeconds: phase2DurationRef.current,
           recordingStartedAt: phase2StartTimeRef.current ?? new Date().toISOString(),
-        }).then(() => {
+        }).catch((err) => {
+          // Reserving only writes the timing row. Losing it must not cost the
+          // recording, and it must not end the vignette: phases 2 and 3 have
+          // not been recorded yet, so tearing down here would throw away takes
+          // the student never got to give.
+          console.error("[BQ] Failed to reserve phase 2:", err);
+          setSaveWarning(true);
+        }).finally(() => {
           uploadQueue.enqueue({
             blob: phase2Blob,
             sessionId,
@@ -530,9 +567,6 @@ export function VignetteExperience({
             step,
             responsePhase: 2,
           });
-        }).catch((err) => {
-          console.error("[BQ] Failed to reserve phase 2:", err);
-          dispatch({ type: "ERROR", message: "Failed to save recording. Please try again." });
         });
       } else {
         const sizeMB = (phase2Blob.size / (1024 * 1024)).toFixed(2);
@@ -705,6 +739,22 @@ export function VignetteExperience({
         return;
       }
 
+      // Hand the recording to the upload queue no matter how the reserve goes.
+      // The queue owns retries and has its own visible retry control; a failed
+      // timing row must never be the reason a one-shot take is discarded.
+      const enqueueRecording = () => {
+        uploadQueue.enqueue({
+          blob,
+          sessionId,
+          writeToken,
+          vignetteId,
+          vignetteType,
+          step,
+          responsePhase: 3,
+        });
+        phase3BlobRef.current = null;
+      };
+
       try {
         const result = await reserveResponse({
           sessionId,
@@ -719,17 +769,7 @@ export function VignetteExperience({
 
         if (cancelled) return;
 
-        uploadQueue.enqueue({
-          blob,
-          sessionId,
-          writeToken,
-          vignetteId,
-          vignetteType,
-          step,
-          responsePhase: 3,
-        });
-
-        phase3BlobRef.current = null;
+        enqueueRecording();
 
         // Fire-and-forget: report any suspicion events (don't block navigation)
         const suspicionEvents = getSuspicionEvents();
@@ -759,8 +799,12 @@ export function VignetteExperience({
         }, 800);
       } catch (err) {
         if (cancelled) return;
-        const errMsg = err instanceof Error ? err.message : String(err);
-        dispatch({ type: "ERROR", message: errMsg || "Failed to save response" });
+        // Log the real error; never render it. Server-action messages are
+        // developer diagnostics (and in a production build React replaces them
+        // with an opaque digest anyway).
+        console.error("[BQ] Failed to reserve phase 3:", err);
+        enqueueRecording();
+        dispatch({ type: "ERROR", message: SAVE_FAILED_MESSAGE });
       }
     }
 
@@ -829,6 +873,20 @@ export function VignetteExperience({
                 >
                   Retry camera access
                 </button>
+              </div>
+            )}
+
+            {/* Non-blocking save warning. A phase 1/2 timing row failed to
+                save; the recording itself is queued for upload, and the
+                student still has phases left to record, so this informs
+                without interrupting. */}
+            {saveWarning && state.phase !== "error" && (
+              <div
+                className="mx-auto mb-2 w-full max-w-md rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-sm text-text-secondary"
+                role="status"
+                aria-live="polite"
+              >
+                {SAVE_FAILED_MESSAGE}
               </div>
             )}
 
@@ -1084,8 +1142,20 @@ export function VignetteExperience({
                   >
                     <p className="text-text-primary">{state.errorMessage}</p>
                     <p className="text-sm text-text-secondary">
-                      Please try again or contact support if the problem persists.
+                      If this screen stays up, email Admissions and include the
+                      reference below \u2014 they can pick your assessment up from here.
                     </p>
+                    <p className="font-mono text-xs break-all text-text-secondary">
+                      {sessionId.slice(0, 8)} / step {step}
+                    </p>
+                    <a
+                      className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
+                      href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
+                        `Assessment issue \u2014 session ${sessionId.slice(0, 8)} step ${step}`
+                      )}`}
+                    >
+                      Email Admissions
+                    </a>
                   </div>
                 </motion.div>
               )}

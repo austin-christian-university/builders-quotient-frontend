@@ -276,3 +276,16 @@ export function findNextIncomplete(
   }
   return null;
 }
+
+/**
+ * The vignette id a session assigns to a given step, without loading the
+ * vignette itself. Used to check a write token's `vid` claim against the step
+ * a caller is asking to upload for.
+ */
+export function vignetteIdForStep(
+  session: SessionRow,
+  step: number
+): string | null {
+  if (step <= 2) return session.practical_vignette_ids[step - 1] ?? null;
+  return session.creative_vignette_ids[step - 3] ?? null;
+}

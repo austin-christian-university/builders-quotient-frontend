@@ -28,8 +28,9 @@ export type ReportSuspicionEvents = z.infer<typeof reportSuspicionEventsSchema>;
 export const confirmUploadSchema = z.object({
   sessionId: z.string().uuid(),
   vignetteId: z.string().uuid(),
+  vignetteType: z.enum(["practical", "creative"]),
+  step: z.number().int().min(1).max(4),
   responsePhase: z.number().int().min(1).max(3),
-  storagePath: z.string().min(1),
 });
 
 export type ConfirmUpload = z.infer<typeof confirmUploadSchema>;

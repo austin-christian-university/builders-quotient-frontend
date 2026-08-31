@@ -2,49 +2,43 @@ import "server-only";
 
 import { SignJWT, jwtVerify } from "jose";
 
+import { getJwtSecret, JWT_ALG, JWT_ISSUER } from "@/lib/assessment/jwt-secret";
+
 /**
  * Vignette write token — a capability token that authorizes saving the
  * recordings for ONE vignette of ONE session.
  *
- * Why this exists: the session cookie is the only credential the recording
+ * Why this exists: the session cookie was the only credential the recording
  * flow had, and a student who loses that cookie mid-vignette (expiry, a
  * privacy extension, a managed device clearing cookies) loses the recording
- * outright — reserveResponse throws "Session mismatch", the blob is never
- * handed to the upload queue, and the take cannot be repeated because the
- * recording is timed and one-shot.
+ * outright — the take is timed and one-shot, so there is nothing to retry.
  *
  * The token is minted during the /assess/[step] render, only after the
  * session cookie has already been validated, and it lives in JS memory for
  * the life of that page. It is strictly narrower than the cookie: it names
  * the session AND the vignette, so it can only authorize writes to the
  * vignette the student was legitimately served.
+ *
+ * It is a bearer credential readable by any script on the page, so treat it
+ * accordingly: every surface that accepts it MUST check the `vid` claim, and
+ * it can only ever mint a degraded session cookie (see session-cookie.ts).
  */
 
-const ISSUER = "bq:assess";
 const AUDIENCE = "bq:vignette-write";
 
 /**
- * Long enough to cover a full vignette (three recordings plus the buffers)
- * with slack for a slow upload retrying in the background.
+ * Deliberately shorter than SESSION_COOKIE_MAX_AGE_SECONDS (2h). A vignette is
+ * three recordings plus buffers — minutes, not hours — and the slack here is
+ * for a slow background upload retrying, nothing more. Keeping it under the
+ * cookie's lifetime stops the token from becoming a way to renew a session
+ * past the point the cookie would have expired.
  */
-const MAX_AGE_SECONDS = 4 * 60 * 60;
+export const VIGNETTE_TOKEN_MAX_AGE_SECONDS = 45 * 60;
 
 export type VignetteTokenClaims = {
   sessionId: string;
   vignetteId: string;
 };
-
-/**
- * Resolved outside any try/catch so a missing secret is a loud configuration
- * failure rather than a silent "not authorized".
- */
-function getSecret() {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret) {
-    throw new Error("Missing SESSION_SECRET environment variable");
-  }
-  return new TextEncoder().encode(secret);
-}
 
 /** Signs a capability token for (session, vignette). */
 export async function mintVignetteToken(
@@ -52,12 +46,12 @@ export async function mintVignetteToken(
   vignetteId: string
 ): Promise<string> {
   return new SignJWT({ sid: sessionId, vid: vignetteId })
-    .setProtectedHeader({ alg: "HS256" })
+    .setProtectedHeader({ alg: JWT_ALG })
     .setIssuedAt()
-    .setIssuer(ISSUER)
+    .setIssuer(JWT_ISSUER)
     .setAudience(AUDIENCE)
-    .setExpirationTime(`${MAX_AGE_SECONDS}s`)
-    .sign(getSecret());
+    .setExpirationTime(`${VIGNETTE_TOKEN_MAX_AGE_SECONDS}s`)
+    .sign(getJwtSecret());
 }
 
 /** Verifies a capability token. Returns its claims, or null if unusable. */
@@ -68,12 +62,13 @@ export async function verifyVignetteToken(
 
   // Resolve the secret before the try so a config error propagates instead of
   // being reported as an invalid token.
-  const secret = getSecret();
+  const secret = getJwtSecret();
 
   try {
     const { payload } = await jwtVerify(token, secret, {
-      issuer: ISSUER,
+      issuer: JWT_ISSUER,
       audience: AUDIENCE,
+      algorithms: [JWT_ALG],
     });
 
     const sessionId = payload.sid;

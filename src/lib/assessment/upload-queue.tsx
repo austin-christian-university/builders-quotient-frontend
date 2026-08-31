@@ -196,6 +196,9 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            // The job's own session, so the route cannot sign a path for a
+            // different session than confirmUpload will record.
+            sessionId: job.sessionId,
             vignetteType: job.vignetteType,
             step: job.step,
             responsePhase: job.responsePhase,
@@ -207,7 +210,9 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           throw new Error(`Failed to get upload URL (${presignRes.status})`);
         }
 
-        const { uploadUrl, storagePath, token } = await presignRes.json();
+        // storagePath intentionally ignored: confirmUpload derives it from
+        // (session, type, step, phase) server-side rather than trusting the client.
+        const { uploadUrl, token } = await presignRes.json();
 
         // Step 2: XHR PUT with progress tracking + stall detection
         await new Promise<void>((resolve, reject) => {
@@ -286,8 +291,9 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           sessionId: job.sessionId,
           writeToken: job.writeToken,
           vignetteId: job.vignetteId,
+          vignetteType: job.vignetteType,
+          step: job.step,
           responsePhase: job.responsePhase,
-          storagePath,
         });
 
         // Success — release blob, mark completed

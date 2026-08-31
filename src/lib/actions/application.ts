@@ -1,7 +1,7 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase/server";
-import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import { readTrustedSessionCookie } from "@/lib/assessment/session-cookie";
 import { getSessionById } from "@/lib/queries/session";
 
 /**
@@ -13,7 +13,10 @@ export async function markBqComplete(): Promise<{
   success: boolean;
   error?: string;
 }> {
-  const sessionId = await readSessionCookie();
+  // Writes applicants.bq_completed_at, so full trust only. A student recovering
+  // on a degraded cookie reaches this through their emailed results link, which
+  // mints a full cookie.
+  const sessionId = await readTrustedSessionCookie();
   if (!sessionId) {
     return { success: false, error: "No session" };
   }

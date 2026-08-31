@@ -7,6 +7,10 @@ const mockReadSessionCookie = vi.fn<() => Promise<string | null>>();
 vi.mock("@/lib/assessment/session-cookie", () => ({
   readSessionCookie: (...args: unknown[]) =>
     mockReadSessionCookie(...(args as [])),
+  // captureEmail/linkToExistingProfile require a FULL-trust cookie: a cookie
+  // rebuilt from a vignette write token must not attach a session to a person.
+  readTrustedSessionCookie: (...args: unknown[]) =>
+    mockReadSessionCookie(...(args as [])),
 }));
 
 const mockGetSessionById = vi.fn<

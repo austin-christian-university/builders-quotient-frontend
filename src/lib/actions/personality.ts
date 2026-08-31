@@ -2,7 +2,7 @@
 
 import { createServiceClient } from "@/lib/supabase/server";
 import {
-  readSessionCookie,
+  readTrustedSessionCookie,
   refreshSessionCookie,
 } from "@/lib/assessment/session-cookie";
 import {
@@ -27,7 +27,9 @@ export async function savePersonalityPage(input: unknown): Promise<{
 
   const { sessionId, responses } = parsed.data;
 
-  const cookieSessionId = await readSessionCookie();
+  // Full trust only: the personality quiz produces scored results and drives
+  // application completion. The degraded cookie exists to finish the vignettes.
+  const cookieSessionId = await readTrustedSessionCookie();
   if (cookieSessionId !== sessionId) {
     return { success: false, error: "Session mismatch" };
   }
@@ -77,7 +79,9 @@ export async function submitPersonalityQuiz(input: unknown): Promise<{
 
   const { sessionId } = parsed.data;
 
-  const cookieSessionId = await readSessionCookie();
+  // Full trust only: the personality quiz produces scored results and drives
+  // application completion. The degraded cookie exists to finish the vignettes.
+  const cookieSessionId = await readTrustedSessionCookie();
   if (cookieSessionId !== sessionId) {
     return { success: false, error: "Session mismatch" };
   }

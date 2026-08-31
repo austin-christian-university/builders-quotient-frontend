@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
-import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import { readTrustedSessionCookie } from "@/lib/assessment/session-cookie";
 import { getSessionById } from "@/lib/queries/session";
 import {
   emailCaptureSchema,
@@ -126,7 +126,9 @@ async function mergeIntoExistingApplicant(
 export async function captureEmail(
   formData: FormData
 ): Promise<CaptureEmailResult> {
-  const sessionId = await readSessionCookie();
+  // Full trust only: a cookie rebuilt from a vignette write token must not
+  // be able to attach this session to a real person.
+  const sessionId = await readTrustedSessionCookie();
   if (!sessionId) {
     return { success: false, error: "Session expired. Please start over." };
   }
@@ -233,7 +235,9 @@ export async function linkToExistingProfile(
   smsMarketingConsent?: boolean,
   emailMarketingConsent?: boolean,
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const sessionId = await readSessionCookie();
+  // Full trust only: a cookie rebuilt from a vignette write token must not
+  // be able to attach this session to a real person.
+  const sessionId = await readTrustedSessionCookie();
   if (!sessionId) {
     return { success: false, error: "Session expired. Please start over." };
   }
