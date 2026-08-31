@@ -19,6 +19,8 @@ export type UploadJobStatus = "queued" | "uploading" | "completed" | "failed";
 export type UploadJob = {
   id: string;
   sessionId: string;
+  /** Capability token for (session, vignette); see lib/assessment/vignette-token.ts */
+  writeToken: string;
   vignetteId: string;
   vignetteType: "practical" | "creative";
   step: number;
@@ -34,6 +36,7 @@ export type UploadJob = {
 type EnqueuePayload = {
   blob: Blob;
   sessionId: string;
+  writeToken: string;
   vignetteId: string;
   vignetteType: "practical" | "creative";
   step: number;
@@ -98,6 +101,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         {
           id,
           sessionId: payload.sessionId,
+          writeToken: payload.writeToken,
           vignetteId: payload.vignetteId,
           vignetteType: payload.vignetteType,
           step: payload.step,
@@ -192,9 +196,13 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            // The job's own session, so the route cannot sign a path for a
+            // different session than confirmUpload will record.
+            sessionId: job.sessionId,
             vignetteType: job.vignetteType,
             step: job.step,
             responsePhase: job.responsePhase,
+            writeToken: job.writeToken,
           }),
         });
 
@@ -202,7 +210,9 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           throw new Error(`Failed to get upload URL (${presignRes.status})`);
         }
 
-        const { uploadUrl, storagePath, token } = await presignRes.json();
+        // storagePath intentionally ignored: confirmUpload derives it from
+        // (session, type, step, phase) server-side rather than trusting the client.
+        const { uploadUrl, token } = await presignRes.json();
 
         // Step 2: XHR PUT with progress tracking + stall detection
         await new Promise<void>((resolve, reject) => {
@@ -279,9 +289,11 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         // Step 3: Confirm upload via server action
         await confirmUpload({
           sessionId: job.sessionId,
+          writeToken: job.writeToken,
           vignetteId: job.vignetteId,
+          vignetteType: job.vignetteType,
+          step: job.step,
           responsePhase: job.responsePhase,
-          storagePath,
         });
 
         // Success — release blob, mark completed
@@ -336,6 +348,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           // Report failure to server
           reportUploadFailure({
             sessionId: job.sessionId,
+            writeToken: job.writeToken,
             vignetteId: job.vignetteId,
             responsePhase: job.responsePhase,
           }).catch(() => {

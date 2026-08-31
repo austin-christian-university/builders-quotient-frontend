@@ -2,6 +2,14 @@ import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/server";
 
+/**
+ * Session statuses that still accept writes for an accepted response.
+ * "completed" is included because the final phase's upload confirms just after
+ * reserveResponse completes the session; "scored" and "abandoned" are not, so a
+ * durable credential cannot reopen a graded submission.
+ */
+export const UNSCORED_STATUSES = ["assigned", "in_progress", "completed"];
+
 /** Fetches an active session by ID. Returns null if not found or completed. */
 export async function getActiveSession(sessionId: string) {
   const supabase = createServiceClient();

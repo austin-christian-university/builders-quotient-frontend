@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import { readSessionCookieDetails } from "@/lib/assessment/session-cookie";
 import { getSessionById } from "@/lib/queries/session";
 import {
   getCompletedSteps,
@@ -18,10 +18,11 @@ const TOTAL_STEPS = 4;
 
 export default async function CompletePage() {
   // 1. Validate session cookie
-  const sessionId = await readSessionCookie();
-  if (!sessionId) {
+  const cookie = await readSessionCookieDetails();
+  if (!cookie) {
     redirect("/assess/setup");
   }
+  const sessionId = cookie.sessionId;
 
   // 2. Validate completed session
   const session = await getSessionById(sessionId);
@@ -54,6 +55,42 @@ export default async function CompletePage() {
     const path =
       applicant.lead_type === "prospective_student" ? "student" : "general";
     redirect(`/assess/thank-you?path=${path}`);
+  }
+
+  // A degraded cookie means this student lost their session cookie mid-exam and
+  // finished on a vignette write token. Their responses are saved, but email
+  // capture requires full trust — showing the form would hand them a field that
+  // can only fail. Tell them what actually happened instead.
+  if (cookie.trust === "degraded") {
+    return (
+      <UploadGate>
+        <div className="mx-auto max-w-md space-y-4 p-6 text-center">
+          <h1 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+            Your responses are saved
+          </h1>
+          <p className="text-text-secondary">
+            Your browser dropped its session part-way through, so we can&rsquo;t
+            attach your results to an email address from here. Everything you
+            recorded is safe.
+          </p>
+          <p className="text-text-secondary">
+            Email Admissions with the reference below and they&rsquo;ll send your
+            results.
+          </p>
+          <p className="font-mono text-xs break-all text-text-secondary">
+            {sessionId.slice(0, 8)}
+          </p>
+          <a
+            className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
+            href={`mailto:enrollment@austinchristianu.org?subject=${encodeURIComponent(
+              `Assessment results \u2014 session ${sessionId.slice(0, 8)}`
+            )}`}
+          >
+            Email Admissions
+          </a>
+        </div>
+      </UploadGate>
+    );
   }
 
   return (

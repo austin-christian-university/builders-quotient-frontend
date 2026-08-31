@@ -2,6 +2,28 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.2.7.3] - 2026-08-31
+
+### Fixed
+- A student whose browser dropped its session cookie mid-vignette lost the recording outright. On 2026-08-29 this happened to a real applicant three minutes into scenario 1: saving threw "Session mismatch", the video was never handed to the upload queue, and the take is timed and one-shot so there was nothing to retry. They started over and quit two scenarios later. Recordings now reach the upload queue no matter how the save goes, and a page whose cookie has died can still save its work using a capability token minted when the scenario was served.
+- A failure on scenario phase 1 or 2 no longer cancels the phases after it. The error state was terminal from any point in the state machine with no way out, so one failed save silently ended the whole scenario — including the two responses the student had not recorded yet. Those failures are now a non-blocking banner and recording continues.
+- The error screen no longer tells students to "try again" at something they cannot repeat, and no longer prints raw server error text at them. It carries a session reference and a link to Admissions.
+- Long assessments can no longer age out mid-run. The session cookie's two-hour TTL now slides, which the personality quiz already did and the four-scenario flow — the longer half — did not.
+
+### Security
+- Identity-bearing surfaces (email capture, profile merge, personality scoring, application completion) now require a full-trust session cookie. A cookie rebuilt from a write token is marked degraded and cannot reach them.
+- Upload URLs are scoped to the scenario their credential names. Signed URLs use `upsert: true`, so an unscoped credential could have overwritten an already-submitted recording.
+- Finished sessions refuse new responses, and scored sessions refuse all writes, including presigned uploads.
+
+### Performance
+- Saving a response no longer forces a full re-render of the scenario page. Sliding the session cookie on every write was costing roughly 28 extra page renders and 150 Supabase round trips per assessment.
+
+### For contributors
+- Writing a cookie inside a Server Action sets `pathWasRevalidated`, which keeps `skipPageRendering` false and forces Next to re-render the current page after the action — including that page's own DB writes. Never refresh a cookie unconditionally on a hot path; gate it on remaining TTL.
+- The vignette write token is passed to a client component, so it is in the RSC payload and readable by any script on the page. It must never mint a full-trust cookie, and `refreshSessionCookie` preserves trust rather than defaulting to full — a default of "full" silently launders a degraded cookie at any TTL-extension call site.
+- `reserveResponse` and `confirmUpload` race by design now that the blob is enqueued regardless of the save. The upload-state reset carries its own `upload_status <> 'uploaded'` filter: a preceding SELECT would not fix this, it would only move the window.
+- `confirmUpload` accepts no client storage path. Both it and `/api/upload` derive it from `responseStoragePath()` so the two cannot drift.
+
 ## [0.2.7.2] - 2026-08-31
 
 ### Fixed

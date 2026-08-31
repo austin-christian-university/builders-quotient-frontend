@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import { mintVignetteToken } from "@/lib/assessment/vignette-token";
 import { getSessionById } from "@/lib/queries/session";
 import {
   getVignetteForStep,
@@ -104,11 +105,17 @@ export default async function StepPage({
     ? await createSignedDownloadUrl("vignette-audio", vignette.audio_storage_path)
     : null;
 
+  // 9. Mint a capability token for this (session, vignette). The client keeps
+  // it in memory so an already-captured recording can still be saved if the
+  // session cookie is lost part-way through the vignette.
+  const writeToken = await mintVignetteToken(sessionId, vignette.id);
+
   const vignetteElement = (
     <VignetteExperience
       step={step}
       totalSteps={TOTAL_STEPS}
       sessionId={sessionId}
+      writeToken={writeToken}
       vignetteId={vignette.id}
       vignetteType={vignette.vignette_type}
       vignetteText={vignette.vignette_text}
