@@ -19,6 +19,8 @@ export type UploadJobStatus = "queued" | "uploading" | "completed" | "failed";
 export type UploadJob = {
   id: string;
   sessionId: string;
+  /** Capability token for (session, vignette); see lib/assessment/vignette-token.ts */
+  writeToken: string;
   vignetteId: string;
   vignetteType: "practical" | "creative";
   step: number;
@@ -34,6 +36,7 @@ export type UploadJob = {
 type EnqueuePayload = {
   blob: Blob;
   sessionId: string;
+  writeToken: string;
   vignetteId: string;
   vignetteType: "practical" | "creative";
   step: number;
@@ -98,6 +101,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         {
           id,
           sessionId: payload.sessionId,
+          writeToken: payload.writeToken,
           vignetteId: payload.vignetteId,
           vignetteType: payload.vignetteType,
           step: payload.step,
@@ -195,6 +199,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
             vignetteType: job.vignetteType,
             step: job.step,
             responsePhase: job.responsePhase,
+            writeToken: job.writeToken,
           }),
         });
 
@@ -279,6 +284,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         // Step 3: Confirm upload via server action
         await confirmUpload({
           sessionId: job.sessionId,
+          writeToken: job.writeToken,
           vignetteId: job.vignetteId,
           responsePhase: job.responsePhase,
           storagePath,
@@ -336,6 +342,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           // Report failure to server
           reportUploadFailure({
             sessionId: job.sessionId,
+            writeToken: job.writeToken,
             vignetteId: job.vignetteId,
             responsePhase: job.responsePhase,
           }).catch(() => {

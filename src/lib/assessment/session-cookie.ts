@@ -44,8 +44,13 @@ export async function readSessionCookie(): Promise<string | null> {
   const token = jar.get(COOKIE_NAME)?.value;
   if (!token) return null;
 
+  // Resolve the secret before the try. getSecret() throws when SESSION_SECRET
+  // is unset, and inside the try that config failure would be swallowed and
+  // reported as "no session" — indistinguishable from a logged-out student.
+  const secret = getSecret();
+
   try {
-    const { payload } = await jwtVerify(token, getSecret(), {
+    const { payload } = await jwtVerify(token, secret, {
       issuer: ISSUER,
       audience: AUDIENCE,
     });

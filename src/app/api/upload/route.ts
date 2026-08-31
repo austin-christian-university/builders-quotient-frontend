@@ -1,14 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import { verifyVignetteToken } from "@/lib/assessment/vignette-token";
 import { getSessionById } from "@/lib/queries/session";
 import { createSignedUploadUrl } from "@/lib/supabase/storage";
 
 export async function POST(request: NextRequest) {
   console.log("[BQ Upload API] POST /api/upload — request received");
 
-  const sessionId = await readSessionCookie();
+  let body: {
+    vignetteType?: string;
+    step?: number;
+    responsePhase?: number;
+    warmupIndex?: number;
+    writeToken?: string;
+  };
+  try {
+    body = await request.json();
+  } catch {
+    console.error("[BQ Upload API] Invalid JSON body");
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  // The session cookie is the primary credential. The vignette write token is
+  // the fallback that keeps an already-recorded response uploadable when the
+  // cookie is lost mid-vignette (see lib/assessment/vignette-token.ts).
+  const cookieSessionId = await readSessionCookie();
+  const tokenClaims = cookieSessionId
+    ? null
+    : await verifyVignetteToken(body.writeToken);
+  const sessionId = cookieSessionId ?? tokenClaims?.sessionId ?? null;
+
   if (!sessionId) {
-    console.warn("[BQ Upload API] No session cookie");
+    console.warn("[BQ Upload API] No session cookie and no valid write token");
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
@@ -16,19 +39,6 @@ export async function POST(request: NextRequest) {
   if (!session) {
     console.warn(`[BQ Upload API] Session not found for id: ${sessionId.slice(0, 8)}...`);
     return NextResponse.json({ error: "Session not found" }, { status: 401 });
-  }
-
-  let body: {
-    vignetteType?: string;
-    step?: number;
-    responsePhase?: number;
-    warmupIndex?: number;
-  };
-  try {
-    body = await request.json();
-  } catch {
-    console.error("[BQ Upload API] Invalid JSON body");
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
   let storagePath: string;

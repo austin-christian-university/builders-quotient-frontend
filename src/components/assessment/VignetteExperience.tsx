@@ -48,6 +48,8 @@ type VignetteExperienceProps = {
   step: number;
   totalSteps: number;
   sessionId: string;
+  /** Capability token for this (session, vignette); see lib/assessment/vignette-token.ts */
+  writeToken: string;
   vignetteId: string;
   vignetteType: "practical" | "creative";
   vignetteText: string;
@@ -64,6 +66,7 @@ export function VignetteExperience({
   step,
   totalSteps,
   sessionId,
+  writeToken,
   vignetteId,
   vignetteType,
   vignetteText,
@@ -322,6 +325,7 @@ export function VignetteExperience({
       if (phase1Blob.size <= MAX_BLOB_SIZE_BYTES) {
         reserveResponse({
           sessionId,
+          writeToken,
           vignetteId,
           vignetteType,
           step,
@@ -332,6 +336,7 @@ export function VignetteExperience({
           uploadQueue.enqueue({
             blob: phase1Blob,
             sessionId,
+            writeToken,
             vignetteId,
             vignetteType,
             step,
@@ -508,6 +513,7 @@ export function VignetteExperience({
       if (phase2Blob.size <= MAX_BLOB_SIZE_BYTES) {
         reserveResponse({
           sessionId,
+          writeToken,
           vignetteId,
           vignetteType,
           step,
@@ -518,6 +524,7 @@ export function VignetteExperience({
           uploadQueue.enqueue({
             blob: phase2Blob,
             sessionId,
+            writeToken,
             vignetteId,
             vignetteType,
             step,
@@ -701,6 +708,7 @@ export function VignetteExperience({
       try {
         const result = await reserveResponse({
           sessionId,
+          writeToken,
           vignetteId,
           vignetteType,
           step,
@@ -714,6 +722,7 @@ export function VignetteExperience({
         uploadQueue.enqueue({
           blob,
           sessionId,
+          writeToken,
           vignetteId,
           vignetteType,
           step,
@@ -727,6 +736,7 @@ export function VignetteExperience({
         if (suspicionEvents.length > 0) {
           reportSuspicionEvents({
             sessionId,
+            writeToken,
             events: suspicionEvents,
           }).catch((err) => {
             console.error("[BQ] Failed to report suspicion events:", err);

@@ -27,6 +27,7 @@ function selectNextJob(jobs: UploadJob[], now: number): UploadJob | undefined {
 function job(overrides: Partial<UploadJob> & { id: string }): UploadJob {
   return {
     sessionId: "s1",
+    writeToken: "t1",
     vignetteId: "v4",
     vignetteType: "creative",
     step: 4,

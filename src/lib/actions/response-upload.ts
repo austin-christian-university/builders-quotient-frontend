@@ -1,7 +1,10 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase/server";
-import { readSessionCookie } from "@/lib/assessment/session-cookie";
+import {
+  authorizeVignetteWrite,
+  authorizeSessionWrite,
+} from "@/lib/assessment/vignette-auth";
 import {
   reserveResponseSchema,
   confirmUploadSchema,
@@ -22,11 +25,13 @@ export async function reserveResponse(data: {
   responsePhase: number;
   videoDurationSeconds: number;
   recordingStartedAt: string;
+  writeToken?: string;
 }): Promise<{ success: true; nextStep?: number; complete?: boolean }> {
-  const cookieSessionId = await readSessionCookie();
-  if (cookieSessionId !== data.sessionId) {
-    throw new Error("Session mismatch");
-  }
+  await authorizeVignetteWrite({
+    sessionId: data.sessionId,
+    vignetteId: data.vignetteId,
+    writeToken: data.writeToken,
+  });
 
   const parsed = reserveResponseSchema.parse(data);
   const supabase = createServiceClient();
@@ -85,11 +90,13 @@ export async function confirmUpload(data: {
   vignetteId: string;
   responsePhase: number;
   storagePath: string;
+  writeToken?: string;
 }): Promise<{ success: true }> {
-  const cookieSessionId = await readSessionCookie();
-  if (cookieSessionId !== data.sessionId) {
-    throw new Error("Session mismatch");
-  }
+  await authorizeVignetteWrite({
+    sessionId: data.sessionId,
+    vignetteId: data.vignetteId,
+    writeToken: data.writeToken,
+  });
 
   const parsed = confirmUploadSchema.parse(data);
   const supabase = createServiceClient();
@@ -120,11 +127,13 @@ export async function reportUploadFailure(data: {
   sessionId: string;
   vignetteId: string;
   responsePhase: number;
+  writeToken?: string;
 }): Promise<{ success: true }> {
-  const cookieSessionId = await readSessionCookie();
-  if (cookieSessionId !== data.sessionId) {
-    throw new Error("Session mismatch");
-  }
+  await authorizeVignetteWrite({
+    sessionId: data.sessionId,
+    vignetteId: data.vignetteId,
+    writeToken: data.writeToken,
+  });
 
   const supabase = createServiceClient();
 
@@ -152,11 +161,12 @@ export async function reportUploadFailure(data: {
 export async function reportSuspicionEvents(data: {
   sessionId: string;
   events: { type: string; timestamp: string; phase: string }[];
+  writeToken?: string;
 }): Promise<void> {
-  const cookieSessionId = await readSessionCookie();
-  if (cookieSessionId !== data.sessionId) {
-    throw new Error("Session mismatch");
-  }
+  await authorizeSessionWrite({
+    sessionId: data.sessionId,
+    writeToken: data.writeToken,
+  });
 
   const parsed = reportSuspicionEventsSchema.parse(data);
   const supabase = createServiceClient();
