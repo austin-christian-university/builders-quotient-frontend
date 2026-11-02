@@ -6,7 +6,7 @@ import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
 import { SplashSequence } from "@/components/assessment/SplashSequence";
 import { CooldownBanner } from "@/components/assessment/CooldownBanner";
-import { ACU_URLS } from "@/lib/constants";
+import { ACU_URLS, PERSONALITY_QUIZ_ENABLED } from "@/lib/constants";
 import * as analytics from "@/lib/analytics/events";
 
 type Variant = "student" | "general" | "default";
@@ -229,7 +229,8 @@ function StudentVariant() {
         </p>
       </motion.div>
 
-      {/* Section B: Personality CTA */}
+      {/* Section B: Personality CTA (archived — see PERSONALITY_QUIZ_ENABLED) */}
+      {PERSONALITY_QUIZ_ENABLED && (
       <motion.div
         variants={fadeUp}
         transition={transition}
@@ -274,6 +275,7 @@ function StudentVariant() {
           </div>
         </div>
       </motion.div>
+      )}
 
       {/* Section C: Explore Cards */}
       <motion.div

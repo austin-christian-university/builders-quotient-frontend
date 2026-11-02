@@ -29,10 +29,10 @@ const SAMPLE = {
 } as const;
 
 const FAQS = [
-  ["How long does it take?", "About 20 minutes — the vignettes, your recorded responses, and a short personality quiz."],
+  ["How long does it take?", "About 20 minutes — the vignettes and your recorded responses."],
   ["Can I retake it?", "As many times as you like. Every attempt gets its own permanent results link. There's a two-hour wait between attempts."],
   ["Do I need to prepare?", "No."],
-  ["How is it scored?", "By AI trained on data from 274 real entrepreneurs. The personality quiz is scored against entrepreneurial trait benchmarks."],
+  ["How is it scored?", "By AI trained on data from {count} real entrepreneurs."],
   ["What happens to my video?", "It's processed securely, used solely for your profile, and never shared with third parties."],
   ["What devices work?", "A laptop or desktop, in Chrome, Firefox or Safari."],
 ] as const;
@@ -75,7 +75,8 @@ function BeginButton() {
   );
 }
 
-function SwissLanding() {
+function SwissLanding({ founderCount }: { founderCount: number }) {
+  const count = founderCount.toLocaleString("en-US");
   return (
     <div className={s.root}>
       <header className={s.nav}>
@@ -138,7 +139,7 @@ function SwissLanding() {
         <Section n="02" label="The data">
           <div className={s.stats}>
             {[
-              ["274", "entrepreneurs studied"],
+              [count, "entrepreneurs studied"],
               ["350,000+", "videos evaluated"],
               ["5,000+", "real decisions extracted"],
             ].map(([num, what]) => (
@@ -201,7 +202,7 @@ function SwissLanding() {
         <Section n="05" label="What you get back" id="results">
           <h2>Find out which founder thinks like you.</h2>
           <p className={s.lede}>
-            Twenty minutes of your reasoning, matched against 274 real entrepreneurs. This is
+            Twenty minutes of your reasoning, matched against {count} real entrepreneurs. This is
             what comes back.
           </p>
 
@@ -297,7 +298,9 @@ function SwissLanding() {
         <Section n="07" label="FAQ" id="faq">
           <h2>Questions.</h2>
           <div className={s.faq}>
-            {FAQS.map(([q, a]) => (
+            {FAQS.map(([q, raw]) => {
+              const a = raw.replace("{count}", count);
+              return (
               <details key={q}>
                 <summary>
                   {q}
@@ -305,7 +308,8 @@ function SwissLanding() {
                 </summary>
                 <div className={s.answer}>{a}</div>
               </details>
-            ))}
+              );
+            })}
           </div>
         </Section>
       </main>

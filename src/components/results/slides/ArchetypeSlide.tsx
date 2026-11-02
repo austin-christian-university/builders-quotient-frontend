@@ -7,65 +7,32 @@ type Props = {
     data: Archetype;
 };
 
+const ease = [0.16, 1, 0.3, 1] as const;
+
+/**
+ * The reveal. Built like the landing's sample profile sheet: a 2px ink frame,
+ * ruled rows, and the archetype name set as giant display type.
+ */
 export function ArchetypeSlide({ data }: Props) {
-    const variantBg =
-        data.variant === "pi"
-            ? "bg-primary"
-            : data.variant === "ci"
-              ? "bg-secondary"
-              : "bg-gradient-to-r from-primary to-secondary";
-
-    const variantGradient =
-        data.variant === "pi"
-            ? "from-primary"
-            : data.variant === "ci"
-              ? "from-secondary"
-              : "from-primary via-secondary";
-
     return (
-        <section className="flex min-h-full md:h-full flex-col items-center justify-center px-6 py-8 md:py-16 relative md:overflow-hidden">
-            {/* Domain-colored background glow: blue for PI, gold for CI, blended for balanced */}
-            <motion.div
-                aria-hidden="true"
-                className={`absolute w-[100vw] h-[100vw] max-w-[800px] max-h-[800px] rounded-full blur-[120px] bottom-0 left-1/2 -translate-x-1/2 mix-blend-screen opacity-30 ${variantBg}`}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 0.3, scale: 1 }}
-                transition={{ duration: 2, ease: "easeOut" }}
-            />
+        <section className="flex min-h-full md:h-full flex-col items-center justify-center px-5 py-16 md:px-10 md:py-16">
+            <motion.article
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease }}
+                className="w-full max-w-4xl border-2 border-ink bg-[#fbfaf6]"
+            >
+                <header className="flex items-center justify-between gap-4 border-b border-ink px-4 py-3 text-sm font-semibold text-ink md:px-6">
+                    <span>Your Archetype</span>
+                    <span aria-hidden="true" className="block h-2.5 w-2.5 bg-vermilion" />
+                </header>
 
-            <div className="z-10 text-center flex flex-col items-center w-full max-w-sm">
-                <motion.p
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="text-text-secondary uppercase tracking-widest text-sm mb-6 font-semibold"
-                >
-                    Your Archetype
-                </motion.p>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 1.2, type: "spring", bounce: 0.4, delay: 0.2 }}
-                    className="relative w-full border-2 border-ink bg-[#fbfaf6] overflow-hidden flex flex-col items-center justify-center p-8 group"
-                >
-                    {/* Inner glow */}
-                    <div
-                        aria-hidden="true"
-                        className={`absolute inset-0 opacity-20 bg-gradient-to-br ${variantGradient} to-transparent`}
-                    />
-
-                    {/* Gloss reflection overlay */}
-                    <div
-                        aria-hidden="true"
-                        className="absolute inset-0 bg-gradient-to-tr from-transparent via-ink/5 to-ink/20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"
-                    />
-
+                <div className="px-4 pt-7 pb-8 md:px-6 md:pt-10 md:pb-12">
                     <motion.h2
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.6 }}
-                        className="font-display text-[length:var(--text-fluid-4xl)] font-bold text-ink mb-4 text-center leading-tight tracking-[-0.04em] relative z-10"
+                        initial={{ opacity: 0, y: 24 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.9, delay: 0.25, ease }}
+                        className="font-display text-[clamp(46px,10.5vw,124px)] font-semibold leading-[0.9] tracking-[-0.055em] text-ink [overflow-wrap:anywhere]"
                     >
                         {data.name}
                     </motion.h2>
@@ -73,22 +40,22 @@ export function ArchetypeSlide({ data }: Props) {
                     <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 1 }}
-                        className="text-[length:var(--text-fluid-base)] text-ink/80 text-center italic relative z-10"
+                        transition={{ duration: 0.6, delay: 0.8 }}
+                        className="mt-5 max-w-[40ch] text-[clamp(18px,1.8vw,22px)] font-medium leading-[1.35] tracking-[-0.01em] text-ink md:mt-7"
                     >
                         &ldquo;{data.tagline}&rdquo;
                     </motion.p>
+                </div>
 
-                    <motion.p
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 1.4 }}
-                        className="mt-6 text-sm text-ink/60 text-center leading-relaxed relative z-10"
-                    >
-                        {data.description}
-                    </motion.p>
-                </motion.div>
-            </div>
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 1.15 }}
+                    className="border-t border-ink px-4 py-5 text-[15px] leading-[1.55] text-[#3d3c39] md:px-6 md:py-6 md:text-base"
+                >
+                    <span className="block max-w-[62ch]">{data.description}</span>
+                </motion.p>
+            </motion.article>
         </section>
     );
 }

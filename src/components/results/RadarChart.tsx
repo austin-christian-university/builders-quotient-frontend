@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo, useLayoutEffect, useId } from "react";
+import { useState, useCallback, useRef, useMemo, useLayoutEffect } from "react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -168,7 +168,6 @@ export function RadarChart({
   containerWidth = 0,
   interactive = true,
 }: RadarChartProps) {
-  const uid = useId();
   const n = categories.length;
   const hasSectors = !!sectorGroups && sectorGroups.length > 0;
   const isInteractive =
@@ -191,7 +190,8 @@ export function RadarChart({
   const arcRadius = maxRadius + 8;
   const sectorLabelRadius = arcRadius + 20;
   const gridRings = [25, 50, 75, 100];
-  const subtleStroke = "rgba(17,17,17,0.06)";
+  // Swiss Ink: hairline grid in warm grey, ink for the outer frame.
+  const subtleStroke = "#d9d5cb";
   const step = 360 / n;
 
   // Scale-compensated font size for category labels
@@ -347,28 +347,6 @@ export function RadarChart({
       onMouseLeave={isInteractive ? handleMouseLeave : undefined}
       onClick={isInteractive ? handleSvgClick : undefined}
     >
-      {/* Glow filters */}
-      {hasSectors && (
-        <defs>
-          {sectorGroups!.map((group) => (
-            <filter
-              key={`glow-${group.label}`}
-              id={`${uid}-arc-glow-${group.label.replace(/\s+/g, "-")}`}
-              x="-50%"
-              y="-50%"
-              width="200%"
-              height="200%"
-            >
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          ))}
-        </defs>
-      )}
-
       {/* Grid rings (full mode only) */}
       {gridStyle === "full" &&
         gridRings.map((pct) => {
@@ -384,7 +362,7 @@ export function RadarChart({
               data-radar="grid"
               points={ringPoints}
               fill="none"
-              stroke={subtleStroke}
+              stroke={pct === 100 ? "#111111" : subtleStroke}
               strokeWidth={1}
             />
           );
@@ -446,8 +424,6 @@ export function RadarChart({
           const isGroupActive =
             activeIndex !== null && group.indices.includes(activeIndex);
 
-          const glowFilterId = `${uid}-arc-glow-${group.label.replace(/\s+/g, "-")}`;
-
           return (
             <g key={group.label}>
               {/* Visible arc */}
@@ -455,10 +431,9 @@ export function RadarChart({
                 d={describeArc(cx, cy, arcRadius, startAngle, endAngle)}
                 fill="none"
                 stroke={group.color}
-                strokeWidth={isGroupActive ? 4 : 2.5}
-                strokeLinecap="round"
-                opacity={isGroupActive ? 0.85 : 0.2}
-                filter={isGroupActive ? `url(#${glowFilterId})` : undefined}
+                strokeWidth={isGroupActive ? 4 : 2}
+                strokeLinecap="butt"
+                opacity={isGroupActive ? 1 : 0.45}
                 style={{
                   transition: "opacity 0.15s ease, stroke-width 0.15s ease",
                   pointerEvents: "none",
@@ -473,10 +448,9 @@ export function RadarChart({
                 dominantBaseline="middle"
                 fontSize={16}
                 fontFamily="'Inter Tight', Inter, sans-serif"
-                fontWeight={700}
-                letterSpacing="0.1em"
-                fill={group.color}
-                opacity={isGroupActive ? 1 : 0.5}
+                fontWeight={600}
+                letterSpacing="-0.01em"
+                fill={isGroupActive ? "#111111" : "#6b6963"}
                 style={{
                   transition: "opacity 0.15s ease",
                   cursor: "pointer",
@@ -498,8 +472,8 @@ export function RadarChart({
         <polygon
           data-radar="corpus"
           points={corpusPoints}
-          fill="rgba(17,17,17,0.06)"
-          stroke="rgba(17,17,17,0.35)"
+          fill="none"
+          stroke="#8c8a84"
           strokeWidth={1.5}
           strokeDasharray="4 4"
           style={{ pointerEvents: "none" }}
@@ -524,13 +498,13 @@ export function RadarChart({
         return (
           <g key={i} style={{ pointerEvents: "none" }}>
             {isActive && (
-              <circle cx={x} cy={y} r={14} fill={dotColor} opacity={0.18} />
+              <circle cx={x} cy={y} r={11} fill="none" stroke={dotColor} strokeWidth={1.5} />
             )}
             <circle
               data-radar="dot"
               cx={x}
               cy={y}
-              r={isActive ? 6 : 4}
+              r={isActive ? 5 : 3.5}
               fill={dotColor}
               stroke="#f4f1ea"
               strokeWidth={2}
@@ -560,8 +534,6 @@ export function RadarChart({
           const isActive = activeIndex === i || activeCategoryIndex === i;
           const isLabelClickable = !!onCategoryHover || isInteractive;
 
-          const labelColor = dotColors?.[i] ?? accentColor;
-
           const lines = splitLabel(label.toUpperCase());
           const lineHeight = compensatedFontSize * 1.25;
           const baseY = y - ((lines.length - 1) * lineHeight) / 2;
@@ -575,13 +547,12 @@ export function RadarChart({
               textAnchor={anchor}
               dominantBaseline="middle"
               fontSize={compensatedFontSize}
-              fill={isActive ? "#111111" : labelColor}
-              opacity={isActive ? 0.85 : 0.55}
+              fill={isActive ? "#111111" : "#6b6963"}
               fontFamily="'Inter Tight', Inter, sans-serif"
               fontWeight={600}
-              letterSpacing="0.08em"
+              letterSpacing="0.02em"
               style={{
-                transition: "all 0.2s ease",
+                transition: "fill 0.15s ease",
                 cursor: isLabelClickable ? "pointer" : "default",
                 pointerEvents: isLabelClickable ? "all" : "none",
               }}
@@ -655,11 +626,14 @@ export function RadarChart({
               y={tooltipY - pillH / 2}
               width={pillW}
               height={pillH}
-              rx={pillH / 2}
               fill="#111111"
-              stroke={tooltipContent.groupColor}
-              strokeWidth={1}
-              strokeOpacity={0.5}
+            />
+            <rect
+              x={tooltipX - pillW / 2}
+              y={tooltipY + pillH / 2 - 3}
+              width={pillW}
+              height={3}
+              fill={tooltipContent.groupColor}
             />
             <text
               ref={tooltipTextRef}
@@ -670,7 +644,7 @@ export function RadarChart({
               fontSize={tooltipFontSize}
               fontWeight={600}
               fill="#f4f1ea"
-              fontFamily="Inter, sans-serif"
+              fontFamily="'Inter Tight', Inter, sans-serif"
             >
               {tooltipContent.label}
             </text>

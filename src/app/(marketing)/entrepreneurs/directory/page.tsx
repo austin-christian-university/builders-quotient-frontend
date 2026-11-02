@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Entrepreneur Directory | Builder's Quotient",
   description:
-    "Browse and search 248+ entrepreneurs by name or archetype. See how real founders think and create.",
+    "Browse and search 248 entrepreneurs by name or archetype. See how real founders think and create.",
 };
 
 export default async function EntrepreneurDirectoryPage() {

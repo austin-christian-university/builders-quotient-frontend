@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, useMemo, useSyncExternalStore } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import type { ResultsPageData } from "@/lib/schemas/results";
 import { RadarChart } from "@/components/results/RadarChart";
 import { getShortLabel } from "@/components/results/short-labels";
@@ -9,7 +9,8 @@ import {
     PERSONALITY_DIMENSION_CATEGORIES,
 } from "@/lib/assessment/personality-dimensions";
 import { useShareCardCache } from "@/lib/hooks/use-share-card-cache";
-import { ACU_WORDMARK_DATA_URL } from "@/lib/wordmark-data-url";
+import { BqMark } from "@/components/brand/BqMark";
+import { cn } from "@/lib/utils";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -17,31 +18,31 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 // SVG Icons
 // ---------------------------------------------------------------------------
 const ChevronLeft = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true">
         <path d="m15 18-6-6 6-6" />
     </svg>
 );
 
 const ChevronRight = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true">
         <path d="m9 18 6-6-6-6" />
     </svg>
 );
 
 const DownloadIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" />
     </svg>
 );
 
 const LinkIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </svg>
 );
 
 const ShareIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" x2="12" y1="2" y2="15" />
     </svg>
 );
@@ -82,8 +83,52 @@ function useIsMobile() {
 }
 
 // ---------------------------------------------------------------------------
-// Card Components
+// Card Components — Swiss Ink share sheets. Paper ground, ink hairlines,
+// BqMark lockup up top, ACU line in the footer. The 2px ink frame lives on
+// CardFrame (the captured node) so it is part of every exported PNG.
 // ---------------------------------------------------------------------------
+
+const VERMILION = "#E8452C";
+const INK = "#111111";
+
+function CardShell({
+    isExporting,
+    label,
+    cta,
+    children,
+}: {
+    isExporting: boolean;
+    label?: string;
+    cta: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <div
+            className="flex h-full flex-col bg-paper text-left text-ink"
+            style={{ transform: isExporting ? "translateZ(0)" : "none" }}
+        >
+            {/* Header — BqMark lockup */}
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-ink px-4 py-3">
+                <span className="flex items-center gap-2">
+                    <BqMark className="h-5 w-5 text-ink" />
+                    <span className="text-[13px] font-semibold tracking-[-0.02em]">Builder&rsquo;s Quotient</span>
+                </span>
+                {label && <span className="text-[11px] text-text-secondary">{label}</span>}
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+
+            {/* Footer — CTA, URL, ACU */}
+            <div className="shrink-0 border-t border-ink px-4 pt-2.5 pb-3">
+                <div className="flex items-baseline justify-between gap-3">
+                    <p className="text-[12px] font-semibold tracking-[-0.01em]">{cta}</p>
+                    <p className="text-[10px] text-text-secondary">bq.austinchristianu.org</p>
+                </div>
+                <p className="mt-0.5 text-[10px] text-ink">Austin Christian University</p>
+            </div>
+        </div>
+    );
+}
 
 interface MatchupCardProps {
     data: ResultsPageData;
@@ -96,77 +141,42 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
     const primary = match?.primary;
     if (!primary) return null;
 
-    const accentColor = matchType === "reasoning" ? "#e8452c" : "#111111";
-    const label = matchType === "reasoning" ? "Reasoning Match" : "Communication Match";
-    const founderLabel = matchType === "reasoning" ? "Thinks Like" : "Communicates Like";
+    const isReasoning = matchType === "reasoning";
+    const label = isReasoning ? "Reasoning Match" : "Communication Match";
+    const founderLabel = isReasoning ? "Thinks Like" : "Communicates Like";
     const displayName = data.applicant.displayName || "You";
 
     return (
-        <div className="flex flex-col h-full bg-[#f4f1ea] px-6 pt-3 pb-6 relative overflow-hidden" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            {/* Glow — radial gradient instead of blur() for iOS perf */}
-            <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 pointer-events-none"
-                style={{ background: `radial-gradient(circle, ${accentColor}18 0%, transparent 70%)` }}
-            />
-
-            <div className="relative z-10 flex flex-col h-full">
-                {/* Header — ACU wordmark */}
-                <div className="flex justify-center mb-3">
-                    <div className="h-32 opacity-60">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={ACU_WORDMARK_DATA_URL} alt="Austin Christian University" className="h-full w-auto object-contain" />
-                    </div>
-                </div>
-
-                {/* Eyebrow */}
-                <span className="uppercase tracking-[0.2em] text-[9px] text-ink/40 font-semibold text-center mb-auto">
-                    {label}
-                </span>
-
-                {/* Match area */}
-                <div className="flex flex-col items-center gap-3 my-auto text-center">
-                    {/* You */}
-                    <div>
-                        <p className="text-[8px] uppercase tracking-[0.2em] text-ink/35 font-semibold mb-1">You</p>
-                        <p className="font-display text-lg font-bold text-ink leading-tight">{displayName}</p>
-                        <p className="text-[10px] font-semibold mt-1" style={{ color: accentColor }}>
-                            {data.archetype.name}
-                        </p>
-                    </div>
-
-                    {/* Connector */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-px bg-ink/12" />
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink/20">
-                            <path d="M8 3l4 4-4 4" /><path d="M16 21l-4-4 4-4" /><line x1="12" y1="7" x2="12" y2="17" />
-                        </svg>
-                        <div className="w-8 h-px bg-ink/12" />
-                    </div>
-
-                    {/* Founder */}
-                    <div>
-                        <p className="text-[8px] uppercase tracking-[0.2em] text-ink/35 font-semibold mb-1">{founderLabel}</p>
-                        <p className="font-display text-2xl font-extrabold text-ink leading-tight">
-                            {primary.entrepreneurName}
-                        </p>
-                        {primary.companies && primary.companies.length > 0 && (
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] mt-1" style={{ color: `${accentColor}CC` }}>
-                                {primary.companies.join(", ")}
-                            </p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="mt-auto">
-                    <div className="h-px w-full bg-gradient-to-r from-ink/15 to-transparent mb-3" />
-                    <div className="flex flex-col items-center gap-1.5">
-                        <p className="text-[8px] text-ink/35 uppercase tracking-[0.15em] font-semibold">Find Your Match</p>
-                        <p className="text-[7px] text-ink/25 tracking-[0.1em]">bq.austinchristianu.org</p>
-                    </div>
-                </div>
+        <CardShell isExporting={isExporting} label={label} cta="Find Your Match">
+            {/* You */}
+            <div className="px-4 pt-5 pb-4">
+                <p className="mb-1.5 text-[11px] text-text-secondary">You</p>
+                <p className="text-[24px] font-semibold leading-[1] tracking-[-0.04em] [overflow-wrap:anywhere]">
+                    {displayName}
+                </p>
+                <p className="mt-1.5 text-[12px] font-semibold tracking-[-0.01em] text-[#3d3c39]">
+                    {data.archetype.name}
+                </p>
             </div>
-        </div>
+
+            {/* Founder — the one vermilion label on the reasoning card */}
+            <div className="mt-auto border-t border-ink px-4 pt-4 pb-5">
+                <p
+                    className={cn("mb-2 text-[11px]", isReasoning ? "font-semibold" : "text-text-secondary")}
+                    style={isReasoning ? { color: VERMILION } : undefined}
+                >
+                    {founderLabel}
+                </p>
+                <p className="text-[clamp(30px,10vw,40px)] font-semibold leading-[0.92] tracking-[-0.05em] [overflow-wrap:anywhere]">
+                    {primary.entrepreneurName}
+                </p>
+                {primary.companies && primary.companies.length > 0 && (
+                    <p className="mt-2 text-[12px] leading-snug text-[#3d3c39]">
+                        {primary.companies.join(", ")}
+                    </p>
+                )}
+            </div>
+        </CardShell>
     );
 }
 
@@ -180,7 +190,7 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
     const radar = variant === "pi" ? data.piRadar : data.ciRadar;
     if (radar.length === 0) return null;
 
-    const accentColor = variant === "pi" ? "#e8452c" : "#111111";
+    const accentColor = variant === "pi" ? VERMILION : INK;
 
     const categories = radar.map((c) => getShortLabel(c.category));
     const rawScores = radar.map((c) => c.studentScore);
@@ -188,58 +198,32 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
     const studentScores = rawScores.map((s) => (s / maxScore) * 100);
 
     return (
-        <div className="flex flex-col h-full bg-[#f4f1ea] px-5 pt-3 pb-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            {/* Glow — radial gradient instead of blur() for iOS perf */}
-            <div
-                className="absolute -top-16 -right-16 w-56 h-56 pointer-events-none"
-                style={{ background: `radial-gradient(circle, ${accentColor}20 0%, transparent 70%)` }}
-            />
+        <CardShell isExporting={isExporting} cta="Find Your Profile">
+            <p className="px-4 pt-4 text-[22px] font-semibold leading-[1] tracking-[-0.04em]">
+                {variant === "pi" ? "How You Solve" : "How You Create"}
+            </p>
 
-            <div className="relative z-10 flex flex-col h-full">
-                {/* Header — ACU wordmark */}
-                <div className="flex justify-center mb-1">
-                    <div className="h-28 opacity-60">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={ACU_WORDMARK_DATA_URL} alt="Austin Christian University" className="h-full w-auto object-contain" />
-                    </div>
-                </div>
-
-                {/* Eyebrow */}
-                <span className="uppercase tracking-[0.2em] text-[9px] text-ink/40 font-semibold mb-2">
-                    {variant === "pi" ? "How You Solve" : "How You Create"}
-                </span>
-
-                {/* Radar */}
-                <div className="flex-1 flex items-center justify-center min-h-0">
-                    <RadarChart
-                        categories={categories}
-                        studentScores={studentScores}
-                        accentColor={accentColor}
-                        size={320}
-                        maxValue={100}
-                        gridStyle="axesOnly"
-                    />
-                </div>
-
-                {/* Footer */}
-                <div className="mt-auto">
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-ink/15 to-transparent mb-3" />
-                    <div className="flex flex-col items-center gap-1.5">
-                        <p className="text-[8px] text-ink/35 uppercase tracking-[0.15em] font-semibold">Find Your Profile</p>
-                        <p className="text-[7px] text-ink/25 tracking-[0.1em]">bq.austinchristianu.org</p>
-                    </div>
-                </div>
+            {/* Radar */}
+            <div className="flex min-h-0 flex-1 items-center justify-center px-2">
+                <RadarChart
+                    categories={categories}
+                    studentScores={studentScores}
+                    accentColor={accentColor}
+                    size={320}
+                    maxValue={100}
+                    gridStyle="axesOnly"
+                />
             </div>
-        </div>
+        </CardShell>
     );
 }
 
 const COMM_SECTOR_COLORS: Record<string, string> = {
-    "Energy & Dynamism": "#2dd4bf",
-    "Confidence & Authority": "#63b3ed",
-    "Warmth & Interpersonal": "#f87171",
-    "Communication Style": "#a78bfa",
-    "Self-Presentation": "#fbbf24",
+    "Energy & Dynamism": "#111111",
+    "Confidence & Authority": "#4a4844",
+    "Warmth & Interpersonal": "#6b6963",
+    "Communication Style": "#8c8a84",
+    "Self-Presentation": "#b5b1a7",
 };
 const COMM_ACCENT = "#2dd4bf";
 
@@ -281,200 +265,65 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
     });
 
     return (
-        <div className="flex flex-col h-full bg-[#f4f1ea] px-5 pt-3 pb-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            {/* Glow — radial gradient instead of blur() for iOS perf */}
-            <div
-                className="absolute -top-16 -right-16 w-56 h-56 pointer-events-none"
-                style={{ background: `radial-gradient(circle, ${COMM_ACCENT}20 0%, transparent 70%)` }}
-            />
+        <CardShell isExporting={isExporting} label="Communication Style" cta="Find Your Style">
+            <p className="px-4 pt-4 text-[22px] font-semibold leading-[1] tracking-[-0.04em]">
+                How You Present &amp; Connect
+            </p>
 
-            <div className="relative z-10 flex flex-col h-full">
-                {/* Header — ACU wordmark */}
-                <div className="flex justify-center mb-1">
-                    <div className="h-28 opacity-60">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={ACU_WORDMARK_DATA_URL} alt="Austin Christian University" className="h-full w-auto object-contain" />
-                    </div>
-                </div>
-
-                {/* Eyebrow + subtitle */}
-                <div className="mb-2">
-                    <span className="uppercase tracking-[0.2em] text-[9px] text-ink/40 font-semibold">Communication Style</span>
-                    <p className="text-[10px] font-semibold mt-1" style={{ color: `${COMM_ACCENT}AA` }}>
-                        How You Present &amp; Connect
-                    </p>
-                </div>
-
-                {/* Radar */}
-                <div className="flex-1 flex items-center justify-center min-h-0">
-                    <RadarChart
-                        categories={categoryNames}
-                        studentScores={studentScores}
-                        accentColor={COMM_ACCENT}
-                        size={320}
-                        maxValue={100}
-                        gridStyle="axesOnly"
-                        sectorGroups={sectorGroups}
-                        dotColors={dotColors}
-                        interactive={false}
-                    />
-                </div>
-
-                {/* Footer */}
-                <div className="mt-auto">
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-ink/15 to-transparent mb-3" />
-                    <div className="flex flex-col items-center gap-1.5">
-                        <p className="text-[8px] text-ink/35 uppercase tracking-[0.15em] font-semibold">Find Your Style</p>
-                        <p className="text-[7px] text-ink/25 tracking-[0.1em]">bq.austinchristianu.org</p>
-                    </div>
-                </div>
+            {/* Radar */}
+            <div className="flex min-h-0 flex-1 items-center justify-center px-2">
+                <RadarChart
+                    categories={categoryNames}
+                    studentScores={studentScores}
+                    accentColor={INK}
+                    size={320}
+                    maxValue={100}
+                    gridStyle="axesOnly"
+                    sectorGroups={sectorGroups}
+                    dotColors={dotColors}
+                    interactive={false}
+                />
             </div>
-        </div>
+        </CardShell>
     );
 }
 
 function ArchetypeCard({ data, isExporting }: { data: ResultsPageData, isExporting: boolean }) {
     return (
-        <div className="flex flex-col h-full bg-[#f4f1ea] px-6 pt-3 pb-6 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-ink/5 via-transparent to-transparent pointer-events-none" />
-            {/* subtle noise - conditionally hide if exporting to optimize capture or keep for vibe, html-to-image handles SVGs fine usually */}
-            {!isExporting && (
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-            )}
-
-            <div className="relative z-10 flex flex-col h-full items-center">
-                {/* Header — ACU wordmark */}
-                <div className="flex justify-center mb-3">
-                    <div className="h-32 opacity-60">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={ACU_WORDMARK_DATA_URL} alt="Austin Christian University" className="h-full w-auto object-contain" />
-                    </div>
-                </div>
-
-                <div className="flex flex-col items-center justify-center flex-1">
-                    <p className="uppercase tracking-[0.3em] text-[10px] text-ink/50 font-medium mb-4 font-mono">Builder Profile</p>
-
-                    <h2 className="font-display text-4xl font-bold text-ink leading-tight mb-3">
-                        {data.archetype.name}
-                    </h2>
-
-                    <p className="text-sm text-ink/60 italic font-serif px-4">
-                        &ldquo;{data.archetype.tagline}&rdquo;
-                    </p>
-                </div>
-
-                <div className="mt-auto w-full pt-6">
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-ink/20 to-transparent mb-4" />
-                    <div className="flex flex-col items-center gap-1.5">
-                        <p className="text-[8px] text-ink/35 uppercase tracking-[0.15em] font-semibold">Find Your Archetype</p>
-                        <p className="text-[7px] text-ink/25 tracking-[0.1em]">bq.austinchristianu.org</p>
-                    </div>
-                </div>
+        <CardShell isExporting={isExporting} label="Builder Profile" cta="Find Your Archetype">
+            <div className="flex flex-1 flex-col justify-end px-4 pt-5 pb-5">
+                <h2 className="text-[clamp(38px,12vw,52px)] font-semibold leading-[0.9] tracking-[-0.055em] [overflow-wrap:anywhere]">
+                    {data.archetype.name}
+                </h2>
+                <p className="mt-4 border-t border-ink pt-3 text-[14px] leading-[1.4] text-[#3d3c39]">
+                    &ldquo;{data.archetype.tagline}&rdquo;
+                </p>
             </div>
-        </div>
+        </CardShell>
     );
 }
 
 
 // ---------------------------------------------------------------------------
-// 3D Tilt Wrapper
+// Card frame — the captured node. Square, 2px ink, no tilt, sheen or shadow.
 // ---------------------------------------------------------------------------
 
-function TiltWrapper({
+function CardFrame({
     children,
     cardRef,
-    isExporting
 }: {
     children: React.ReactNode;
     cardRef: React.RefObject<HTMLDivElement | null>;
-    isExporting: boolean;
 }) {
-    const [isCoarse, setIsCoarse] = useState(false);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe: must read window in effect
-        setIsCoarse(window.matchMedia("(pointer: coarse)").matches);
-    }, []);
-
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-
-    const mouseXSpring = useSpring(x, { stiffness: 100, damping: 20 });
-    const mouseYSpring = useSpring(y, { stiffness: 100, damping: 20 });
-
-    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
-    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
-
-    const sheenPositionX = useTransform(mouseXSpring, [-0.5, 0.5], ["100%", "0%"]);
-    const sheenPositionY = useTransform(mouseYSpring, [-0.5, 0.5], ["100%", "0%"]);
-    const sheenOpacity = useTransform(() => Math.abs(x.get()) + Math.abs(y.get()));
-
-    // Derive sheen styles unconditionally (hooks can't be inside conditional JSX)
-    const sheenBgPosition = useTransform(() => `${sheenPositionX.get()} ${sheenPositionY.get()}`);
-    const sheenBgOpacity = useTransform(() => Math.min(sheenOpacity.get() * 2, 0.5));
-
-    const disabled = isExporting || isCoarse;
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (disabled) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const width = rect.width;
-        const height = rect.height;
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        const xPct = mouseX / width - 0.5;
-        const yPct = mouseY / height - 0.5;
-        x.set(xPct);
-        y.set(yPct);
-    };
-
-    const handleMouseLeave = () => {
-        x.set(0);
-        y.set(0);
-    };
-
-    // Turn off perspective during export or on mobile (no hover = no tilt)
-    const currentRotateX = disabled ? "0deg" : rotateX;
-    const currentRotateY = disabled ? "0deg" : rotateY;
-
     return (
-        <motion.div
-            className="relative w-full aspect-[9/16] max-w-[300px] perspective-[1000px] max-h-[55vh] md:max-h-[60vh] mx-auto select-none touch-manipulation"
-            style={{ perspective: disabled ? "none" : 1000 }}
-            onMouseMove={disabled ? undefined : handleMouseMove}
-            onMouseLeave={disabled ? undefined : handleMouseLeave}
-        >
-            <motion.div
-                className="w-full h-full relative"
-                style={{
-                    rotateX: currentRotateX,
-                    rotateY: currentRotateY,
-                    transformStyle: disabled ? undefined : "preserve-3d"
-                }}
+        <div className="relative mx-auto aspect-[9/16] w-full max-w-[min(300px,calc(55vh*0.5625))] select-none touch-manipulation md:max-w-[min(300px,calc(54vh*0.5625))]">
+            <div
+                ref={cardRef}
+                className="absolute inset-0 overflow-hidden border-2 border-ink bg-paper"
             >
-                <div
-                    ref={cardRef}
-                    className="w-full h-full absolute inset-0 rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] bg-[#f4f1ea] border border-ink/10"
-                    style={{
-                        willChange: disabled ? 'auto' : 'transform',
-                    }}
-                >
-                    {children}
-
-                    {/* Holographic Sheen Overlay — hidden on mobile (no hover) and during export */}
-                    {!disabled && (
-                        <motion.div
-                            className="absolute inset-0 pointer-events-none mix-blend-screen rounded-2xl bg-gradient-to-tr from-ink/0 via-ink/30 to-ink/0"
-                            style={{
-                                backgroundPosition: sheenBgPosition,
-                                backgroundSize: '200% 200%',
-                                opacity: sheenBgOpacity,
-                            }}
-                        />
-                    )}
-                </div>
-            </motion.div>
-        </motion.div>
+                {children}
+            </div>
+        </div>
     );
 }
 
@@ -652,31 +501,24 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
         prevIndexRef.current = currentIndex;
     }, [currentIndex]);
 
-    return (
-        <section className="flex min-h-full md:h-full flex-col items-center justify-center px-4 py-8 md:py-16 relative overflow-x-hidden">
-            {/* Background glow — radial gradient instead of blur() for iOS perf */}
-            <motion.div
-                aria-hidden="true"
-                className="absolute w-[100vw] h-[100vw] max-w-[700px] max-h-[700px] bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
-                style={{ background: "radial-gradient(circle, rgba(232,69,44,0.22) 0%, rgba(232,69,44,0.08) 40%, transparent 70%)" }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 2, ease: "easeOut", delay: 0.5 }}
-            />
+    const navBtn =
+        "flex h-11 w-11 shrink-0 select-none items-center justify-center border border-ink text-ink transition-colors duration-150 hover:bg-ink hover:text-paper touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-paper";
 
+    return (
+        <section className="relative flex min-h-full flex-col items-center justify-center overflow-x-hidden px-4 pt-14 pb-24 md:h-full md:pt-16 md:pb-6">
             {/* Header */}
             <motion.div
-                initial={{ opacity: 0, y: -16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.4, ease: EASE, delay: 0.5 }}
-                className="text-center z-10 mb-4 shrink-0 mt-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                className="z-10 mb-4 flex w-full max-w-[300px] shrink-0 items-center justify-between gap-4"
             >
-                <p className="text-ink/50 uppercase tracking-[0.3em] text-xs font-semibold">Share Your Profile</p>
-                <div className="flex justify-center gap-1.5 mt-4">
+                <p className="text-sm text-[#8c8a84]">Share Your Profile</p>
+                <div className="flex gap-1" aria-hidden="true">
                     {cards.map((_, i) => (
                         <div
                             key={i}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-ink' : 'w-1.5 bg-ink/20'}`}
+                            className={`h-[3px] w-4 transition-colors duration-200 ${i === currentIndex ? "bg-ink" : "bg-border"}`}
                         />
                     ))}
                 </div>
@@ -684,29 +526,25 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
 
             {/* Carousel & Card wrapper */}
             <motion.div
-                initial={{ opacity: 0, y: 32 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.8, ease: EASE, delay: 0.8 }}
-                className="z-10 w-full max-w-md flex items-center justify-between gap-1 md:gap-4 relative"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
+                className="relative z-10 flex w-full max-w-md items-center justify-between gap-2 md:gap-4"
             >
                 {/* Left Nav */}
                 {cards.length > 1 && (
-                    <button
-                        onClick={handlePrev}
-                        className="p-1 md:p-2 text-ink/40 hover:text-ink transition-colors h-12 w-12 flex items-center justify-center shrink-0 select-none touch-manipulation hover:bg-ink/5 rounded-full active:scale-95"
-                        aria-label="Previous card"
-                    >
+                    <button type="button" onClick={handlePrev} className={navBtn} aria-label="Previous card">
                         <ChevronLeft />
                     </button>
                 )}
 
                 {/* The Card */}
-                <div className="flex-1 w-full flex justify-center py-2">
-                    <TiltWrapper cardRef={printRef} isExporting={isExporting}>
+                <div className="flex w-full min-w-0 flex-1 justify-center">
+                    <CardFrame cardRef={printRef}>
                         {cards.map((card, i) => {
                             const isActive = i === currentIndex;
                             const isExiting = i === prevIndex && prevIndex !== currentIndex;
-                            const targetX = isActive ? 0 : isExiting ? -direction * 50 : direction * 50;
+                            const targetX = isActive ? 0 : isExiting ? -direction * 40 : direction * 40;
                             return (
                                 <motion.div
                                     key={card.id}
@@ -715,9 +553,8 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                                     animate={{
                                         opacity: isActive ? 1 : 0,
                                         x: targetX,
-                                        scale: isActive ? 1 : 0.95,
                                     }}
-                                    transition={{ duration: 0.35, ease: EASE }}
+                                    transition={{ duration: 0.3, ease: EASE }}
                                     aria-hidden={!isActive}
                                     style={{ pointerEvents: isActive ? "auto" : "none" }}
                                 >
@@ -725,16 +562,12 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                                 </motion.div>
                             );
                         })}
-                    </TiltWrapper>
+                    </CardFrame>
                 </div>
 
                 {/* Right Nav */}
                 {cards.length > 1 && (
-                    <button
-                        onClick={handleNext}
-                        className="p-1 md:p-2 text-ink/40 hover:text-ink transition-colors h-12 w-12 flex items-center justify-center shrink-0 select-none touch-manipulation hover:bg-ink/5 rounded-full active:scale-95"
-                        aria-label="Next card"
-                    >
+                    <button type="button" onClick={handleNext} className={navBtn} aria-label="Next card">
                         <ChevronRight />
                     </button>
                 )}
@@ -742,22 +575,23 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
 
             {/* Actions */}
             <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.4, ease: EASE, delay: 1.2 }}
-                className="z-10 w-full max-w-[280px] mt-6 flex flex-col gap-2 relative"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, ease: EASE, delay: 0.2 }}
+                className="relative z-10 mt-5 flex w-full max-w-[300px] flex-col gap-2"
             >
                 {/* Save / Share */}
                 <button
+                    type="button"
                     onClick={handleDownloadImage}
                     disabled={isExporting}
-                    className="w-full rounded-full border border-ink/20 bg-ink/5 backdrop-blur-sm py-3.5 px-6 text-sm font-semibold text-ink/90 hover:border-ink/40 hover:bg-ink/10 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                    className="flex min-h-12 w-full items-center justify-center gap-2 border border-ink bg-ink px-6 text-[15px] font-semibold text-paper transition-colors duration-150 hover:bg-[#2a2a2a] disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
                 >
                     {isExporting ? (
-                        <div className="flex items-center gap-2 text-ink/70">
-                            <div className="w-4 h-4 border-2 border-ink/20 border-t-white rounded-full animate-spin" />
+                        <span className="flex items-center gap-2">
+                            <span className="h-4 w-4 animate-spin border-2 border-paper/30 border-t-paper" />
                             <span>Preparing image{"\u2026"}</span>
-                        </div>
+                        </span>
                     ) : isMobile ? (
                         <>
                             <ShareIcon />
@@ -773,9 +607,10 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
 
                 {/* Copy Link */}
                 <button
+                    type="button"
                     onClick={handleCopyLink}
                     disabled={isExporting}
-                    className="w-full py-2.5 px-6 text-xs font-medium text-ink/50 hover:text-ink flex items-center justify-center gap-1.5 transition-colors"
+                    className="flex min-h-11 w-full items-center justify-center gap-1.5 border border-ink px-6 text-sm font-semibold text-ink transition-colors duration-150 hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
                 >
                     <LinkIcon />
                     {copied ? "Link Copied!" : "Copy Link to Results"}
@@ -784,19 +619,14 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 {/* Apply CTA — admissions only */}
                 {showApply && (
                     <>
-                        <div className="flex items-center gap-3 w-full mt-2 mb-1" aria-hidden="true">
-                            <div className="flex-1 h-px bg-ink/5" />
-                            <span className="text-ink/30 text-[9px] uppercase tracking-[0.2em] font-medium">What&rsquo;s next</span>
-                            <div className="flex-1 h-px bg-ink/5" />
-                        </div>
+                        <p className="mt-4 border-t border-ink pt-3 text-sm text-[#8c8a84]">What&rsquo;s next</p>
                         <a
                             href="https://www.austinchristianuniversity.org/apply"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full inline-flex items-center justify-center rounded-full py-3.5 px-8 text-sm font-bold text-[#f4f1ea] uppercase tracking-[0.1em] transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(17,17,17,0.3)] touch-manipulation"
-                            style={{ background: "#111111" }}
+                            className="inline-flex min-h-12 w-full items-center justify-between gap-2 border border-vermilion bg-vermilion px-5 text-[15px] font-semibold text-ink transition-colors duration-150 hover:border-[#d93d25] hover:bg-[#d93d25] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
                         >
-                            Apply to ACU
+                            Apply to ACU <span aria-hidden="true">&rarr;</span>
                         </a>
                     </>
                 )}
@@ -840,7 +670,7 @@ function SharePreviewOverlay({
 
     return (
         <motion.div
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm px-6"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-ink/95 px-6"
             style={{ overscrollBehavior: "contain" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -850,25 +680,26 @@ function SharePreviewOverlay({
             {/* Preview image */}
             {objectUrl && (
                 <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full max-w-[260px] mb-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="mb-6 w-full max-w-[260px]"
                 >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={objectUrl}
                         alt="Your builder profile card"
-                        className="w-full rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-ink/10"
+                        className="w-full"
                     />
                 </motion.div>
             )}
 
             {/* Share button — fresh gesture */}
             <button
+                type="button"
                 onClick={onShare}
-                className="w-full max-w-[260px] rounded-full border border-ink/20 bg-ink/10 backdrop-blur-sm py-3.5 px-6 text-sm font-semibold text-ink flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:bg-ink/15 mb-3"
+                className="mb-3 flex min-h-12 w-full max-w-[260px] items-center justify-center gap-2 border border-vermilion bg-vermilion px-6 text-[15px] font-semibold text-ink transition-colors duration-150 hover:bg-[#d93d25]"
             >
                 <ShareIcon />
                 <span>Share Image</span>
@@ -876,12 +707,12 @@ function SharePreviewOverlay({
 
             {/* Cancel */}
             <button
+                type="button"
                 onClick={onDismiss}
-                className="text-ink/50 text-sm py-2 px-4 hover:text-ink transition-colors"
+                className="min-h-11 px-4 text-sm text-[#bdbab2] transition-colors hover:text-paper"
             >
                 Cancel
             </button>
         </motion.div>
     );
 }
-

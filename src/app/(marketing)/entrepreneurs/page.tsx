@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "How Do Entrepreneurs Think? | Builder's Quotient",
   description:
-    "Explore 16 entrepreneur archetypes derived from real cognitive data. See how 248+ entrepreneurs across 220 industries reason and create.",
+    "Explore 16 entrepreneur archetypes derived from real cognitive data. See how 248 entrepreneurs across 220 industries reason and create.",
 };
 
 export default async function EntrepreneurExplorerPage() {

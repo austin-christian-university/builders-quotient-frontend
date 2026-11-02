@@ -12,7 +12,7 @@ interface PersonalityRadarSlideProps {
   data: PersonalityData;
 }
 
-const ACCENT_COLOR = "#a78bfa";
+const ACCENT_COLOR = "#e8452c";
 
 export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
   const [containerRef, containerWidth] = useContainerWidth();
@@ -34,29 +34,23 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
     : null;
 
   return (
-    <section className="min-h-full md:h-full flex flex-col md:overflow-hidden px-6 py-8 md:py-16">
+    <section className="min-h-full md:h-full flex flex-col md:overflow-hidden px-5 py-14 md:px-10 md:py-16">
       {/* Header */}
-      <div className="shrink-0 text-center">
+      <div className="shrink-0 w-full max-w-3xl mx-auto">
         <motion.p
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-xs uppercase tracking-[0.3em] mb-2 text-center"
-          style={{ color: "#6b6963" }}
+          className="border-t border-ink pt-3 text-sm text-[#8c8a84]"
         >
           Entrepreneur Personality
         </motion.p>
 
         <motion.h2
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-2xl font-semibold text-center mb-1"
-          style={{
-            color: "#111111",
-            fontFamily: "'Inter Tight', Inter, sans-serif",
-            letterSpacing: "-0.01em",
-          }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-3 font-display text-[clamp(28px,3.6vw,44px)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink"
         >
           Your Entrepreneurial Traits
         </motion.h2>
@@ -65,8 +59,7 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="text-sm text-center italic"
-          style={{ color: "#6b6963" }}
+          className="mt-2 text-sm text-[#6b6963]"
         >
           Based on peer-reviewed research on traits correlated with
           entrepreneurial success
@@ -75,10 +68,10 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
 
       {/* Chart — flexes to fill available space */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="flex-1 min-h-0 flex items-center justify-center py-2"
+        className="flex-1 min-h-0 flex items-center justify-center py-3"
       >
         <div ref={containerRef} className="w-full max-w-md mx-auto max-h-full px-2">
           <RadarChart
@@ -96,7 +89,7 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
       {/* Footer — tooltip description + legend */}
       <div className="shrink-0">
         {/* Facet description tooltip */}
-        <div className="h-16 flex items-center justify-center px-8 md:px-0">
+        <div className="w-full max-w-3xl mx-auto h-16 flex items-center justify-start">
           <AnimatePresence mode="wait">
             {activeFacet && activeDescription ? (
               <motion.div
@@ -105,11 +98,10 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
-                className="text-center max-w-md mx-auto"
+                className="text-left max-w-xl"
               >
                 <p
-                  className="text-xs font-semibold uppercase tracking-[0.2em] mb-1"
-                  style={{ color: ACCENT_COLOR }}
+                  className="text-sm font-semibold text-ink mb-1"
                 >
                   {activeFacet.label}
                 </p>
@@ -123,8 +115,8 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1, transition: { duration: 0.8, delay: 0.6, ease: "easeOut" } }}
                 exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                className="text-center text-base"
-                style={{ color: "rgba(154,160,172,0.85)" }}
+                className="text-left text-sm"
+                style={{ color: "#8c8a84" }}
               >
                 <span className="hidden [@media(hover:hover)]:inline">Hover or click any point to see its definition</span>
                 <span className="[@media(hover:hover)]:hidden">Tap any point to see its definition</span>

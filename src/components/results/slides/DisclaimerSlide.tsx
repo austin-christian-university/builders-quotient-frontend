@@ -4,48 +4,44 @@ import { motion } from "motion/react";
 
 const stagger = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.15, delayChildren: 0.3 } },
+  show: { transition: { staggerChildren: 0.12, delayChildren: 0.2 } },
 };
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
 export function DisclaimerSlide() {
   return (
-    <section className="flex min-h-full md:h-full flex-col items-center justify-center px-6 py-8 md:py-16 relative md:overflow-hidden">
-      {/* Soft ambient glow */}
-      <motion.div
-        className="absolute w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] rounded-full bg-secondary/10 blur-[120px]"
-        animate={{ scale: [1, 1.06, 1], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-
+    <section className="flex min-h-full md:h-full flex-col items-center justify-center px-5 py-16 md:px-10 md:py-20">
       <motion.div
         variants={stagger}
         initial="hidden"
         animate="show"
-        className="z-10 max-w-lg text-center flex flex-col items-center gap-8"
+        className="w-full max-w-3xl"
       >
         <motion.p
           variants={fadeUp}
-          className="uppercase tracking-[0.3em] text-xs text-secondary font-medium"
+          className="border-t border-ink pt-3 text-sm text-[#8c8a84]"
         >
           A note from&nbsp;us
         </motion.p>
 
         <motion.h2
           variants={fadeUp}
-          className="font-display font-bold text-[length:var(--text-fluid-2xl)] text-ink leading-tight text-balance"
+          className="mt-6 max-w-[16ch] font-display text-[clamp(38px,6.5vw,76px)] font-semibold leading-[0.95] tracking-[-0.05em] text-ink md:mt-8"
         >
           This is a snapshot, not a verdict.
         </motion.h2>
 
-        <motion.div variants={fadeUp} className="flex flex-col gap-4 text-text-secondary text-[length:var(--text-fluid-base)] leading-relaxed text-balance">
+        <motion.div
+          variants={fadeUp}
+          className="mt-8 grid gap-5 border-t border-ink pt-6 text-[clamp(16px,1.4vw,18px)] leading-[1.55] text-[#3d3c39] md:mt-12 md:grid-cols-2 md:gap-8"
+        >
           <p>
             Your Builder Profile captures how you reason, communicate, and
-            approach problems{" "}<em>right now</em>. It measures where you are
+            approach problems{" "}<em className="not-italic font-semibold text-ink">right now</em>. It measures where you are
             today&mdash;not your ceiling.
           </p>
 
@@ -54,17 +50,20 @@ export function DisclaimerSlide() {
             Strengths can be sharpened. Growth areas can be developed.
             What matters most is what you do next.
           </p>
-
-          <p className="text-ink/50 text-[length:var(--text-fluid-sm)] italic">
-            Questions? Reach out to{" "}
-            <a
-              href="mailto:enrollment@austinchristianu.org"
-              className="underline underline-offset-2 decoration-ink/30 hover:decoration-ink/60 transition-colors text-ink/60 hover:text-ink/80"
-            >
-              enrollment@austinchristianu.org
-            </a>
-          </p>
         </motion.div>
+
+        <motion.p
+          variants={fadeUp}
+          className="mt-8 text-sm text-[#6b6963]"
+        >
+          Questions? Reach out to{" "}
+          <a
+            href="mailto:enrollment@austinchristianu.org"
+            className="font-semibold text-ink underline decoration-1 underline-offset-[3px] hover:text-vermilion"
+          >
+            enrollment@austinchristianu.org
+          </a>
+        </motion.p>
       </motion.div>
     </section>
   );

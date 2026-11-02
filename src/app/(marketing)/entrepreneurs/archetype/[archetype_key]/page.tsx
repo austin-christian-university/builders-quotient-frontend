@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getArchetypeDetail } from "@/lib/queries/entrepreneurs";
+import { getArchetypeDetail, getProfiledEntrepreneurCount } from "@/lib/queries/entrepreneurs";
 import { ARCHETYPES, PI_STYLES, CI_STYLES } from "@/lib/schemas/entrepreneurs";
 import { EntrepreneurCard } from "@/components/entrepreneurs/EntrepreneurCard";
 import { PageHeader, Section, EndCta } from "@/components/swiss/Swiss";
@@ -26,7 +26,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ArchetypeDetailPage({ params }: PageProps) {
   const { archetype_key } = await params;
-  const data = await getArchetypeDetail(archetype_key);
+  const [data, founderCount] = await Promise.all([
+    getArchetypeDetail(archetype_key),
+    getProfiledEntrepreneurCount(),
+  ]);
   if (!data) notFound();
 
   const { archetype, description, entrepreneurs, avgPiScores, avgCiScores, corpusAvgPiScores, corpusAvgCiScores, corpusMax } = data;
@@ -79,7 +82,7 @@ export default async function ArchetypeDetailPage({ params }: PageProps) {
         n="01"
         label="Profile"
         title={<>What makes {shortName}s distinct</>}
-        lede={`Compared to the average across all ${count > 1 ? "248" : "all"} entrepreneurs`}
+        lede={`Compared to the average across all${founderCount ? ` ${founderCount}` : ""} entrepreneurs`}
       >
         <ArchetypeDetailRadars
           avgPiScores={avgPiScores}

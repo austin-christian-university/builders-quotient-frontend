@@ -21,6 +21,7 @@ import { PersonalityCTASlide } from "./slides/PersonalityCTASlide";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { useSwipeNavigation } from "@/lib/hooks/use-swipe-navigation";
 import * as analytics from "@/lib/analytics/events";
+import { PERSONALITY_QUIZ_ENABLED } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -83,50 +84,31 @@ type NavArrowProps = {
   direction: "forward" | "back";
   onClick: () => void;
   isDesktop: boolean;
-  /** Prominent glassmorphism style with infinite bounce */
+  /** Solid ink on the first slide so the way forward is obvious */
   prominent?: boolean;
 };
 
 function NavArrow({ direction, onClick, isDesktop, prominent }: NavArrowProps) {
   const isForward = direction === "forward";
 
-  // Mobile: left/right edges. Desktop: top/bottom center, tight to edge.
+  // Mobile: bottom corners. Desktop: top/bottom center, tight to edge.
   const position = isForward
-    ? "right-2 top-[85%] -translate-y-1/2 md:right-auto md:top-auto md:translate-y-0 md:bottom-3 md:left-1/2 md:-translate-x-1/2"
-    : "left-2 top-[85%] -translate-y-1/2 md:top-3 md:translate-y-0 md:left-1/2 md:-translate-x-1/2";
+    ? "right-4 bottom-4 md:right-auto md:left-1/2 md:-translate-x-1/2"
+    : "left-4 bottom-4 md:bottom-auto md:top-4 md:left-1/2 md:-translate-x-1/2";
 
   const label = isForward ? "Next section" : "Previous section";
 
+  // Square, ink-hairline, no blur or shadow (Swiss Ink).
   const baseStyle = prominent
-    ? "h-11 w-11 rounded-full border border-ink/15 bg-ink/10 backdrop-blur-md text-ink/70 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:bg-ink/20 hover:text-ink/90"
-    : "h-10 w-10 rounded-full border border-ink/8 bg-ink/5 backdrop-blur-md text-ink/40 shadow-[0_2px_12px_rgba(0,0,0,0.2)] hover:bg-ink/10 hover:text-ink/60";
-
-  // Bounce: vertical on desktop, horizontal on mobile
-  const bounceAxis = isDesktop ? "y" : "x";
-  const bounceDir = isForward ? 1 : -1;
+    ? "h-11 w-11 border border-ink bg-ink text-paper hover:bg-[#2a2a2a]"
+    : "h-11 w-11 border border-ink bg-paper text-ink hover:bg-ink hover:text-paper";
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`absolute z-10 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:rounded-full ${baseStyle} ${position}`}
-      animate={
-        prominent
-          ? { [bounceAxis]: [0, 6 * bounceDir, 0] }
-          : undefined
-      }
-      transition={
-        prominent
-          ? {
-              delay: 2,
-              duration: 1.2,
-              ease: "easeInOut",
-              repeat: Infinity,
-              repeatDelay: 0.8,
-            }
-          : undefined
-      }
+      className={`absolute z-10 flex items-center justify-center transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${baseStyle} ${position}`}
     >
       <svg
         width="16"
@@ -144,15 +126,9 @@ function NavArrow({ direction, onClick, isDesktop, prominent }: NavArrowProps) {
               : "rotate-180"
         }
       >
-        <path
-          d="M7.5 4L13.5 10L7.5 16"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <path d="M7 4L13 10L7 16" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" />
       </svg>
-    </motion.button>
+    </button>
   );
 }
 
@@ -225,7 +201,7 @@ export function ResultsExperience({ data, token }: Props) {
         key="pi-radar"
         data={{ radar: data.piRadar }}
         title="Your Reasoning Profile"
-        eyebrow="PRACTICAL INTELLIGENCE"
+        eyebrow="Practical intelligence"
         variant="pi"
         hideCorpus
       />,
@@ -235,7 +211,7 @@ export function ResultsExperience({ data, token }: Props) {
         key="ci-radar"
         data={{ radar: data.ciRadar }}
         title="Your Thinking Profile"
-        eyebrow="CREATIVE INTELLIGENCE"
+        eyebrow="Creative intelligence"
         variant="ci"
         hideCorpus
       />,
@@ -293,8 +269,10 @@ export function ResultsExperience({ data, token }: Props) {
     // 12. Disclaimer
     s.push(<DisclaimerSlide key="disclaimer" />);
 
-    // 13. Personality CTA (prospective students who haven't taken quiz yet)
+    // 13. Personality CTA (prospective students who haven't taken quiz yet).
+    // The quiz is archived; existing personality results above still show.
     const needsPersonality =
+      PERSONALITY_QUIZ_ENABLED &&
       data.applicant.leadType === "prospective_student" &&
       !data.applicant.personalityCompleted;
 
@@ -404,11 +382,20 @@ export function ResultsExperience({ data, token }: Props) {
         initial={{ opacity: 0 }}
         animate={{ opacity: splashComplete ? 1 : 0 }}
         transition={reducedMotion ? { duration: 0.15 } : { duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="relative h-[100svh] overflow-hidden bg-bg-base touch-manipulation"
+        className="relative h-[100svh] overflow-hidden bg-paper text-ink touch-manipulation"
       >
-        {/* Progress indicator */}
-        <div className="absolute right-4 top-4 z-10 text-xs text-text-secondary md:bottom-4 md:left-4 md:right-auto md:top-auto">
-          {currentSection + 1}&thinsp;/&thinsp;{sections.length}
+        {/* Progress indicator — counter plus an ink rule that fills as you go */}
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2.5 text-xs tabular-nums text-text-secondary md:bottom-5 md:left-5 md:right-auto md:top-auto">
+          <span>
+            <b className="font-semibold text-ink">{String(currentSection + 1).padStart(2, "0")}</b>
+            &thinsp;/&thinsp;{String(sections.length).padStart(2, "0")}
+          </span>
+          <span aria-hidden="true" className="relative hidden h-px w-24 bg-border md:block">
+            <span
+              className="absolute inset-y-0 left-0 bg-ink transition-[width] duration-300"
+              style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
+            />
+          </span>
         </div>
 
         {/* Section content */}
@@ -438,22 +425,16 @@ export function ResultsExperience({ data, token }: Props) {
           </AnimatePresence>
         )}
 
-        {/* Mobile scroll indicators */}
+        {/* Mobile scroll indicators — ink hairlines */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-0 right-0 z-10 h-px transition-opacity duration-300 md:hidden"
-          style={{
-            opacity: canScrollUp ? 1 : 0,
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)",
-          }}
+          className="pointer-events-none absolute top-0 left-0 right-0 z-10 h-px bg-ink transition-opacity duration-200 md:hidden"
+          style={{ opacity: canScrollUp ? 1 : 0 }}
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-px transition-opacity duration-300 md:hidden"
-          style={{
-            opacity: canScrollDown ? 1 : 0,
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)",
-          }}
+          className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-px bg-ink transition-opacity duration-200 md:hidden"
+          style={{ opacity: canScrollDown ? 1 : 0 }}
         />
 
         {/* Navigation arrows */}

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getEntrepreneurProfile } from "@/lib/queries/entrepreneurs";
+import { getEntrepreneurProfile, getProfiledEntrepreneurCount } from "@/lib/queries/entrepreneurs";
 import { PI_STYLES, CI_STYLES } from "@/lib/schemas/entrepreneurs";
 import { PageHeader, EndCta } from "@/components/swiss/Swiss";
 import { PracticalIntelligenceSection, CreativeIntelligenceSection } from "./EntrepreneurProfileVisuals";
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EntrepreneurProfilePage({ params }: PageProps) {
   const { id } = await params;
-  const data = await getEntrepreneurProfile(id);
+  const [data, founderCount] = await Promise.all([getEntrepreneurProfile(id), getProfiledEntrepreneurCount()]);
   if (!data) notFound();
 
   const { entrepreneur, archetypeAvgPiScores, archetypeAvgCiScores, corpusMax, allEntrepreneurs, personalityVector, corpusAvgPersonalityVector, communicationNarrative } = data;
@@ -118,7 +118,7 @@ export default async function EntrepreneurProfilePage({ params }: PageProps) {
         body={
           <>
             Take the Builder&apos;s Quotient assessment and discover your own cognitive profile, including how
-            your creative intelligence compares to 248 entrepreneurs.
+            your creative intelligence compares to {founderCount ?? "our"} entrepreneurs.
           </>
         }
         cta="Begin Assessment"

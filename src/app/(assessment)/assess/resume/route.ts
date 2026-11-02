@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { createSessionCookie } from "@/lib/assessment/session-cookie";
 import { resolveSessionByResultsToken } from "@/lib/queries/result-token";
+import { PERSONALITY_QUIZ_ENABLED } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");
@@ -18,8 +19,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/404", request.url));
   }
 
-  // Already completed personality → send to results
-  if (session.personalityCompletedAt) {
+  // Already completed personality, or the quiz is archived → send to results
+  if (session.personalityCompletedAt || !PERSONALITY_QUIZ_ENABLED) {
     return NextResponse.redirect(new URL(`/results/${token}`, request.url));
   }
 

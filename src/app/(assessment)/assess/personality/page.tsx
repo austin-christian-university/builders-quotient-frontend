@@ -4,12 +4,18 @@ import { getSessionById } from "@/lib/queries/session";
 import { getPersonalityProgress } from "@/lib/queries/personality";
 import { createServiceClient } from "@/lib/supabase/server";
 import { PersonalityClient } from "./personality-client";
+import { PERSONALITY_QUIZ_ENABLED } from "@/lib/constants";
 
 export const metadata = {
   title: "Personality Profile \u2014 Builders Quotient",
 };
 
 export default async function PersonalityPage() {
+  // Archived: nobody is sent here any more, and a stale link lands on the wrap-up page.
+  if (!PERSONALITY_QUIZ_ENABLED) {
+    redirect("/assess/thank-you");
+  }
+
   // 1. Validate session cookie
   const sessionId = await readSessionCookie();
   if (!sessionId) {
