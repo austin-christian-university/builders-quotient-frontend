@@ -12,7 +12,7 @@ const STEPS = [
 ] as const;
 
 const GETS = [
-  ["How you hold up", "Your problem-solving when the pressure's on."],
+  ["How you hold up", "Your problem-solving when the pressure is on."],
   ["What you see", "Your eye for opportunity when resources are thin."],
   ["Who to study", "A real entrepreneur who thinks like you."],
 ] as const;
