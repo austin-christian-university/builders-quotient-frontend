@@ -133,6 +133,14 @@
   background: #d93d25;
   border-color: #d93d25;
 }
+.secondary {
+  background: transparent;
+  color: var(--ink);
+}
+.secondary:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
 .small {
   height: 38px;
   padding-inline: 14px;
@@ -390,11 +398,7 @@
   padding-top: 2px;
 }
 .example {
-  display: inline-block;
-  margin-top: 20px;
-  font-size: 15px;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  margin-top: 28px;
 }
 .arch {
   border-top: 1px solid var(--ink);

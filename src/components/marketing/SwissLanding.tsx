@@ -83,7 +83,7 @@ function SwissLanding() {
             <a className={s.navLink} href="#results">Results</a>
             <a className={s.navLink} href="#faq">FAQ</a>
             <Link className={s.navExplore} href="/entrepreneurs">
-              Entrepreneurs
+              The data
             </Link>
             <Link className={`${s.btn} ${s.small}`} href={ASSESS_HREF}>
               Begin
@@ -204,8 +204,11 @@ function SwissLanding() {
                   </li>
                 ))}
               </ol>
-              <Link className={s.example} href="/results/test-jordan-maker">
-                See an example profile →
+              <Link
+                className={`${s.btn} ${s.secondary} ${s.example}`}
+                href="/results/test-jordan-maker"
+              >
+                See an example profile <span aria-hidden="true">→</span>
               </Link>
             </div>
             <div className={s.arch}>
