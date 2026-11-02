@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -41,44 +40,39 @@ export function VignetteReviewCard({
     }
   }
 
-  const badgeColor =
+  const marker =
     vignetteType === "practical"
-      ? "bg-primary/20 text-primary"
-      : "bg-secondary/20 text-secondary";
+      ? "bg-ink"
+      : "border border-ink bg-transparent";
 
   return (
-    <Card>
-      <CardHeader className="space-y-3">
-        <div className="flex items-center gap-3">
-          <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${badgeColor}`}
-          >
-            {typeLabel}
+    <article className="grid grid-cols-4 gap-x-4 border-t border-ink pt-6 md:grid-cols-12 md:gap-x-6">
+      <header className="col-span-4 mb-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-[#8c8a84] md:col-span-3 md:mb-0 md:flex-col md:gap-y-2">
+        <span className="font-semibold tabular-nums text-ink">
+          Vignette {index + 1}
+        </span>
+        <span className="inline-flex items-center gap-2 text-ink">
+          <span aria-hidden="true" className={`inline-block h-2.5 w-2.5 ${marker}`} />
+          {typeLabel}
+        </span>
+        {estimatedSeconds != null && (
+          <span className="tabular-nums">
+            ~{Math.round(estimatedSeconds)}s narration
           </span>
-          <span className="text-sm text-text-secondary">
-            Vignette {index + 1}
-          </span>
-          {estimatedSeconds != null && (
-            <span className="text-sm text-text-secondary">
-              ~{Math.round(estimatedSeconds)}s narration
-            </span>
-          )}
-        </div>
-      </CardHeader>
+        )}
+      </header>
 
-      <CardContent className="space-y-6">
+      <div className="col-span-4 min-w-0 space-y-8 md:col-span-9">
         {/* Vignette text */}
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
-            Vignette Text
-          </h3>
-          <p className="whitespace-pre-wrap text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary">
+          <h3 className="mb-3 text-sm text-[#8c8a84]">Vignette Text</h3>
+          <p className="max-w-[68ch] whitespace-pre-wrap text-[length:var(--text-fluid-base)] leading-relaxed text-ink">
             {text}
           </p>
         </div>
 
         {/* Prompts */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <PromptSection label="Phase 1 Prompt" content={prompts.phase1} />
           {prompts.phase2 && (
             <PromptSection label="Phase 2 Prompt" content={prompts.phase2} />
@@ -93,7 +87,6 @@ export function VignetteReviewCard({
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              size="sm"
               onClick={toggleAudio}
               aria-label={isPlaying ? "Pause narration" : "Play narration"}
             >
@@ -114,18 +107,16 @@ export function VignetteReviewCard({
             />
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </article>
   );
 }
 
 function PromptSection({ label, content }: { label: string; content: string }) {
   return (
     <div>
-      <h4 className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
-        {label}
-      </h4>
-      <p className="whitespace-pre-wrap rounded-xl border border-border-glass bg-bg-base/50 px-4 py-3 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-primary">
+      <h4 className="mb-2 text-sm text-[#8c8a84]">{label}</h4>
+      <p className="max-w-[68ch] whitespace-pre-wrap border-l border-ink pl-4 text-[length:var(--text-fluid-sm)] leading-relaxed text-[#3d3c39]">
         {content}
       </p>
     </div>
@@ -155,8 +146,8 @@ function PauseIcon() {
       fill="currentColor"
       aria-hidden="true"
     >
-      <rect x="3" y="2" width="4" height="12" rx="1" />
-      <rect x="9" y="2" width="4" height="12" rx="1" />
+      <rect x="3" y="2" width="4" height="12" />
+      <rect x="9" y="2" width="4" height="12" />
     </svg>
   );
 }
