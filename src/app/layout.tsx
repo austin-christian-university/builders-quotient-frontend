@@ -14,7 +14,8 @@ const inter = Inter({
 const interTight = Inter_Tight({
   variable: "--font-inter-tight-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  // Variable font: one file covers every weight. Listing weights explicitly
+  // made the Vercel Turbopack build fail in next/font/google.
   display: "swap",
 });
 
