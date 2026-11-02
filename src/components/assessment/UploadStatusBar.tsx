@@ -79,19 +79,19 @@ export function UploadStatusBar() {
           >
             <div
               className={cn(
-                "flex items-center gap-3 rounded-xl border px-3 py-2 text-sm backdrop-blur-md",
+                "flex items-center gap-3 border bg-paper px-3 py-2 text-sm",
                 tint === "red" &&
-                  "border-red-500/30 bg-red-500/10 text-red-300",
+                  "border-ink text-ink",
                 tint === "amber" &&
-                  "border-amber-500/30 bg-amber-500/10 text-amber-300",
+                  "border-ink text-text-secondary",
                 tint === "default" &&
-                  "border-border-glass bg-bg-elevated/60 text-text-secondary"
+                  "border-border text-text-secondary"
               )}
             >
               {/* Status icon */}
               {allComplete ? (
                 <svg
-                  className="h-4 w-4 shrink-0 text-emerald-400"
+                  className="h-4 w-4 shrink-0 text-ink"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={2}
@@ -134,9 +134,9 @@ export function UploadStatusBar() {
 
               {/* Progress bar (for active uploads) */}
               {hasPendingUploads && !hasFailed && (
-                <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-ink/10">
+                <div className="h-1 w-16 shrink-0 overflow-hidden bg-ink/10">
                   <motion.div
-                    className="h-full rounded-full bg-primary"
+                    className="h-full bg-ink"
                     initial={{ width: 0 }}
                     animate={{ width: `${avgProgress}%` }}
                     transition={{ duration: 0.3 }}
@@ -149,7 +149,7 @@ export function UploadStatusBar() {
                 <button
                   type="button"
                   onClick={() => failedJobs.forEach((j) => retryJob(j.id))}
-                  className="shrink-0 rounded-lg border border-red-500/30 bg-red-500/20 px-2.5 py-1 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/30"
+                  className="shrink-0 border border-primary bg-primary px-2.5 py-1 text-xs font-semibold text-ink transition-colors hover:border-primary-hover hover:bg-primary-hover"
                 >
                   Retry
                 </button>

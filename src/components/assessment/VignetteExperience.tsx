@@ -13,10 +13,10 @@ import { useVideoRecorder } from "@/lib/assessment/use-video-recorder";
 import { reserveResponse, reportSuspicionEvents } from "@/lib/actions/response-upload";
 import { useContentProtection } from "@/lib/assessment/use-content-protection";
 import { useUploadQueue } from "@/lib/assessment/upload-queue";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ResumeBanner } from "./ResumeBanner";
 import { CountdownDigit } from "./CountdownDigit";
-import { reducer, type Phase } from "@/lib/assessment/vignette-reducer";
+import { reducer } from "@/lib/assessment/vignette-reducer";
 import { useAudioNarrator } from "@/lib/assessment/use-audio-narrator";
 import { playCountdownTone } from "@/lib/assessment/countdown-tone";
 import { getSectionBoundaries, type AudioWordTiming } from "@/lib/assessment/narration-timer";
@@ -855,21 +855,19 @@ export function VignetteExperience({
   return (
     <>
         <div className="relative flex min-h-dvh flex-col">
-          <AmbientBackground phase={state.phase} prefersReducedMotion={prefersReducedMotion} />
-
           <ProgressIndicator step={step} totalSteps={totalSteps} />
 
-          <div className="relative z-10 flex flex-1 flex-col px-4 pb-8">
+          <div className="relative flex flex-1 flex-col px-4 pb-8">
             <ResumeBanner />
 
             {/* Camera error banner */}
             {streamStatus === "error" && state.phase !== "submitting" && state.phase !== "transitioning" && (
-              <div className="mx-auto mb-4 w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center">
-                <p className="text-sm text-red-400">{streamError}</p>
+              <div className="mx-auto mb-4 w-full max-w-md border border-ink p-4 text-center">
+                <p className="text-sm text-ink">{streamError}</p>
                 <button
                   type="button"
                   onClick={retryStream}
-                  className="mt-2 text-sm text-primary underline underline-offset-2"
+                  className="mt-2 text-sm font-semibold text-ink underline underline-offset-2"
                 >
                   Retry camera access
                 </button>
@@ -882,7 +880,7 @@ export function VignetteExperience({
                 without interrupting. */}
             {saveWarning && state.phase !== "error" && (
               <div
-                className="mx-auto mb-2 w-full max-w-md rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-sm text-text-secondary"
+                className="mx-auto mb-2 w-full max-w-md border border-border px-4 py-2 text-center text-sm text-text-secondary"
                 role="status"
                 aria-live="polite"
               >
@@ -904,10 +902,10 @@ export function VignetteExperience({
                 >
                   <div className="w-full max-w-md space-y-8 text-center">
                     <div className="space-y-3">
-                      <p className="text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-text-secondary">
+                      <p className="text-sm text-text-secondary">
                         Scenario {step} of {totalSteps}
                       </p>
-                      <h1 className="text-[length:var(--text-fluid-lg)] font-semibold tracking-tight text-text-primary">
+                      <h1 className="font-display text-[clamp(34px,8vw,56px)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">
                         {vignetteType === "practical" ? "Practical Intelligence" : "Creative Intelligence"}
                       </h1>
                       <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
@@ -1005,7 +1003,7 @@ export function VignetteExperience({
                               animate={{ opacity: 1 }}
                               className="flex flex-col items-center gap-3"
                             >
-                              <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true" />
+                              <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink border-t-transparent" aria-hidden="true" />
                               <p className="text-text-secondary">Preparing next prompt&#8230;</p>
                             </motion.div>
                           )}
@@ -1050,7 +1048,7 @@ export function VignetteExperience({
                               animate={{ opacity: 1 }}
                               className="flex flex-col items-center gap-3"
                             >
-                              <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true" />
+                              <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink border-t-transparent" aria-hidden="true" />
                               <p className="text-text-secondary">Preparing final prompt&#8230;</p>
                             </motion.div>
                           )}
@@ -1102,7 +1100,7 @@ export function VignetteExperience({
                   exit={{ opacity: 0 }}
                   className="flex flex-1 flex-col items-center justify-center gap-4"
                 >
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink border-t-transparent" aria-hidden="true" />
                   <p className="text-text-secondary" role="status" tabIndex={-1} ref={phaseContainerRef}>
                     Saving your response&#8230;
                   </p>
@@ -1118,7 +1116,7 @@ export function VignetteExperience({
                   exit={{ opacity: 0 }}
                   className="flex flex-1 flex-col items-center justify-center gap-4"
                 >
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink border-t-transparent" aria-hidden="true" />
                   <p className="text-text-secondary" role="status" tabIndex={-1} ref={phaseContainerRef}>
                     {step < totalSteps ? "Loading next scenario\u2026" : "Finishing up\u2026"}
                   </p>
@@ -1135,7 +1133,7 @@ export function VignetteExperience({
                   className="flex flex-1 flex-col items-center justify-center"
                 >
                   <div
-                    className="w-full max-w-md space-y-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center"
+                    className="w-full max-w-md space-y-4 border-t border-ink pt-6 text-center"
                     role="alert"
                     tabIndex={-1}
                     ref={phaseContainerRef}
@@ -1149,7 +1147,7 @@ export function VignetteExperience({
                       {sessionId.slice(0, 8)} / step {step}
                     </p>
                     <a
-                      className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-ink"
+                      className={buttonVariants({ variant: "primary", size: "md" })}
                       href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
                         `Assessment issue \u2014 session ${sessionId.slice(0, 8)} step ${step}`
                       )}`}
@@ -1184,52 +1182,5 @@ export function VignetteExperience({
         />
       )}
     </>
-  );
-}
-
-
-// --- Ambient gradient orbs behind the glass panels ---
-function AmbientBackground({ phase, prefersReducedMotion }: { phase: Phase; prefersReducedMotion?: boolean }) {
-  if (prefersReducedMotion) {
-    return (
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute -right-24 top-1/3 h-[400px] w-[400px] rounded-full bg-secondary/[0.08] blur-[100px]" />
-        <div className="absolute -bottom-20 left-1/3 h-[350px] w-[350px] rounded-full bg-primary/[0.06] blur-[100px]" />
-      </div>
-    );
-  }
-
-  const isActive = phase === "ready" || phase === "countdown" || phase === "narrating" ||
-    phase === "buffer_1" || phase === "recording_1" || phase === "buffer_2" || phase === "recording_2" ||
-    phase === "buffer_3" || phase === "recording_3";
-
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <motion.div
-        animate={{
-          x: isActive ? 0 : -40,
-          y: isActive ? 0 : 30,
-        }}
-        transition={{ duration: 3, ease: "easeInOut" }}
-        className="absolute -left-32 top-1/4 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]"
-      />
-      <motion.div
-        animate={{
-          x: isActive ? 0 : 30,
-          y: isActive ? 0 : -20,
-        }}
-        transition={{ duration: 3.5, ease: "easeInOut" }}
-        className="absolute -right-24 top-1/3 h-[400px] w-[400px] rounded-full bg-secondary/[0.08] blur-[100px]"
-      />
-      <motion.div
-        animate={{
-          x: isActive ? 0 : 20,
-          y: isActive ? 0 : 40,
-        }}
-        transition={{ duration: 4, ease: "easeInOut" }}
-        className="absolute -bottom-20 left-1/3 h-[350px] w-[350px] rounded-full bg-primary/[0.06] blur-[100px]"
-      />
-    </div>
   );
 }

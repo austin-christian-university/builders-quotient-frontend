@@ -48,7 +48,7 @@ function FloatingTimerBadge({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -12, scale: 0.9 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed top-[42px] right-4 z-50 flex items-center gap-2.5 rounded-full border border-ink/10 bg-bg-elevated/80 px-3 py-2 shadow-2xl backdrop-blur-xl md:top-4"
+      className="fixed top-[42px] right-4 z-50 flex items-center gap-2.5 border border-ink bg-paper px-3 py-2 md:top-4"
       role="timer"
       aria-label={`${secondsRemaining} seconds remaining`}
     >
@@ -61,8 +61,8 @@ function FloatingTimerBadge({
             r="16"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
-            className="text-border-glass"
+            strokeWidth="2"
+            className="text-border"
           />
           <circle
             cx="20"
@@ -70,12 +70,12 @@ function FloatingTimerBadge({
             r="16"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
+            strokeWidth="2"
+            strokeLinecap="butt"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             className={cn(
-              isThink ? "text-primary" : "text-red-500",
+              isThink ? "text-ink" : "text-vermilion",
               "transition-[stroke-dashoffset] duration-1000 ease-linear"
             )}
           />
@@ -86,24 +86,21 @@ function FloatingTimerBadge({
       <div className="flex flex-col items-start">
         <span
           className={cn(
-            "font-display text-sm font-bold tabular-nums leading-tight",
-            isDramatic && !isThink ? "text-red-400" : "text-text-primary"
+            "font-display text-sm font-semibold tabular-nums leading-tight tracking-[-0.02em]",
+            isDramatic && !isThink ? "text-vermilion" : "text-ink"
           )}
         >
           {isThink ? secondsRemaining : formatTime(secondsRemaining)}
         </span>
         <span
           className={cn(
-            "text-[10px] font-medium uppercase tracking-widest leading-tight",
-            isThink ? "text-text-secondary" : "text-red-400"
+            "text-[11px] leading-tight",
+            isThink ? "text-text-secondary" : "text-vermilion"
           )}
         >
           {isThink ? "Think" : (
             <span className="flex items-center gap-1">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
-              </span>
+              <span className="inline-flex h-1.5 w-1.5 bg-vermilion" aria-hidden="true" />
               REC
             </span>
           )}
@@ -118,7 +115,7 @@ function FloatingTimerBadge({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           onClick={onStopEarly}
-          className="ml-1 shrink-0 rounded-full border border-ink/15 bg-ink/5 px-3 py-1 text-xs font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-ink/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          className="ml-1 shrink-0 border border-ink bg-transparent px-3 py-1 text-xs font-semibold text-ink transition-colors hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
         >
           Done
         </motion.button>
@@ -170,10 +167,8 @@ export function CountdownRing({
     return () => observer.disconnect();
   }, []);
 
-  const ringColor = isThink ? "text-primary" : "text-red-500";
-  const glowFilter = isThink
-    ? "drop-shadow(0 0 6px var(--color-primary))"
-    : "drop-shadow(0 0 6px rgba(239, 68, 68, 0.6))";
+  // Think = ink stroke; recording is the one live state, so it takes vermilion.
+  const ringColor = isThink ? "text-ink" : "text-vermilion";
 
   return (
     <>
@@ -196,15 +191,6 @@ export function CountdownRing({
               : "h-40 w-40"
           )}
         >
-          {/* Background pulse during dramatic threshold (think mode only) */}
-          {isThink && isDramatic && !prefersReducedMotion && (
-            <motion.div
-              className="absolute inset-0 rounded-full bg-primary/10"
-              animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.1, 0.3] }}
-              transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-            />
-          )}
-
           <svg
             className="absolute inset-0 -rotate-90"
             viewBox="0 0 120 120"
@@ -217,8 +203,8 @@ export function CountdownRing({
               r="54"
               fill="none"
               stroke="currentColor"
-              strokeWidth="4"
-              className="text-border-glass"
+              strokeWidth="2"
+              className="text-border"
             />
             {/* Progress ring */}
             <circle
@@ -227,15 +213,14 @@ export function CountdownRing({
               r="54"
               fill="none"
               stroke="currentColor"
-              strokeWidth="4"
-              strokeLinecap="round"
+              strokeWidth="3"
+              strokeLinecap="butt"
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               className={cn(
                 ringColor,
                 "transition-[stroke-dashoffset] duration-1000 ease-linear"
               )}
-              style={{ filter: glowFilter }}
             />
           </svg>
 
@@ -247,7 +232,7 @@ export function CountdownRing({
                 {prefersReducedMotion ? (
                   <span
                     className={cn(
-                      "font-display font-bold tabular-nums text-text-primary",
+                      "font-display font-semibold tabular-nums tracking-[-0.04em] text-ink",
                       isDramatic
                         ? "text-[length:var(--text-fluid-4xl)]"
                         : "text-[length:var(--text-fluid-3xl)]"
@@ -272,7 +257,7 @@ export function CountdownRing({
                         bounce: 0.15,
                       }}
                       className={cn(
-                        "font-display font-bold tabular-nums text-text-primary",
+                        "font-display font-semibold tabular-nums tracking-[-0.04em] text-ink",
                         isDramatic
                           ? "text-[length:var(--text-fluid-4xl)]"
                           : "text-[length:var(--text-fluid-3xl)]"
@@ -282,7 +267,7 @@ export function CountdownRing({
                     </motion.span>
                   </AnimatePresence>
                 )}
-                <span className="text-xs font-medium uppercase tracking-widest text-text-secondary">
+                <span className="text-sm text-text-secondary">
                   Think&hellip;
                 </span>
               </>
@@ -291,20 +276,17 @@ export function CountdownRing({
               <>
                 <span
                   className={cn(
-                    "font-display font-bold tabular-nums",
+                    "font-display font-semibold tabular-nums tracking-[-0.03em]",
                     "text-[length:var(--text-fluid-xl)]",
-                    isDramatic ? "text-red-400" : "text-text-primary"
+                    isDramatic ? "text-vermilion" : "text-ink"
                   )}
                   role="timer"
                   aria-label={`${secondsRemaining} seconds remaining`}
                 >
                   {formatTime(secondsRemaining)}
                 </span>
-                <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-red-400">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-                  </span>
+                <span className="flex items-center gap-1.5 text-xs font-medium text-vermilion">
+                  <span className="inline-flex h-2 w-2 bg-vermilion" aria-hidden="true" />
                   {label ?? "RECORDING"}
                 </span>
               </>
@@ -322,7 +304,7 @@ export function CountdownRing({
               exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               onClick={onStopEarly}
-              className="rounded-full border border-ink/15 bg-ink/5 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-ink/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+              className="min-h-11 border border-ink bg-transparent px-6 text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
             >
               {isThink ? "Done Thinking" : <>I&rsquo;m Done</>}
             </motion.button>

@@ -56,10 +56,10 @@ export function CooldownBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="mx-auto mb-8 w-full max-w-lg rounded-xl border border-secondary/30 bg-secondary/10 px-5 py-4 text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-secondary"
+      className="mx-auto mb-8 w-full max-w-lg border-y border-ink px-1 py-4 text-sm leading-relaxed text-ink"
     >
       You recently completed this assessment. You can retake it in{" "}
-      <strong className="font-semibold">{formatRemaining(remaining)}</strong>.
+      <strong className="font-semibold tabular-nums">{formatRemaining(remaining)}</strong>.
     </div>
   );
 }

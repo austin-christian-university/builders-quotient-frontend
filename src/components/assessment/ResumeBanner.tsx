@@ -16,10 +16,10 @@ export function ResumeBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="relative mx-auto mb-6 w-full max-w-2xl rounded-xl border border-primary/30 bg-primary/10 px-5 py-4 pr-12 text-[length:var(--text-fluid-sm)] leading-relaxed text-primary"
+      className="relative mx-auto mb-6 w-full max-w-2xl border border-ink border-l-4 border-l-vermilion bg-bg-elevated px-5 py-4 pr-12 text-sm leading-relaxed text-ink"
     >
-      <p className="font-medium">Welcome back!</p>
-      <p className="mt-1 text-primary/80">
+      <p className="font-semibold tracking-[-0.01em]">Welcome back!</p>
+      <p className="mt-1 text-[#3d3c39]">
         We noticed you were in the middle of your assessment. Even if you feel
         unsure about your responses so far, keep going &mdash; finish this
         attempt and you can take it again in two&nbsp;hours with a
@@ -28,7 +28,7 @@ export function ResumeBanner() {
       <button
         type="button"
         onClick={() => setDismissed(true)}
-        className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg text-primary/60 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+        className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center text-text-secondary transition-colors hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
         aria-label="Dismiss"
       >
         <svg

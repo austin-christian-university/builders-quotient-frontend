@@ -9,6 +9,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { EmailCapture } from "@/components/assessment/EmailCapture";
 import { UploadGate } from "@/components/assessment/UploadGate";
 import { CooldownBanner } from "@/components/assessment/CooldownBanner";
+import { buttonVariants } from "@/components/ui/button";
 
 export const metadata = {
   title: "Assessment Complete — Builders Quotient",
@@ -64,8 +65,8 @@ export default async function CompletePage() {
   if (cookie.trust === "degraded") {
     return (
       <UploadGate>
-        <div className="mx-auto max-w-md space-y-4 p-6 text-center">
-          <h1 className="text-[length:var(--text-fluid-lg)] font-semibold text-text-primary">
+        <div className="mx-4 max-w-md space-y-4 border-t border-ink pt-6 pb-12 sm:mx-auto">
+          <h1 className="font-display text-[clamp(32px,7vw,44px)] font-semibold leading-[1.02] tracking-[-0.045em] text-text-primary">
             Your responses are saved
           </h1>
           <p className="text-text-secondary">
@@ -81,7 +82,7 @@ export default async function CompletePage() {
             {sessionId.slice(0, 8)}
           </p>
           <a
-            className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-ink"
+            className={buttonVariants({ variant: "primary", size: "md" })}
             href={`mailto:enrollment@austinchristianu.org?subject=${encodeURIComponent(
               `Assessment results \u2014 session ${sessionId.slice(0, 8)}`
             )}`}

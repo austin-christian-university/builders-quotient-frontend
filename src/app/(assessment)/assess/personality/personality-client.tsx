@@ -247,14 +247,14 @@ export function PersonalityClient({
       <div className="flex flex-1 items-start justify-center px-4 py-8">
         <div className="w-full max-w-2xl">
           {/* Page heading */}
-          <div className="mb-6 text-center">
-            <p className="text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-secondary">
+          <div className="mb-8">
+            <p className="text-sm text-text-secondary">
               Personality Profile
             </p>
-            <h1 className="mt-1 font-display text-[length:var(--text-fluid-xl)] font-bold tracking-[-0.01em]">
+            <h1 className="mt-3 max-w-[20ch] font-display text-[clamp(30px,6vw,48px)] font-semibold leading-[1.02] tracking-[-0.045em]">
               How well does each statement describe&nbsp;you?
             </h1>
-            <p className="mt-2 text-[length:var(--text-fluid-sm)] text-text-secondary">
+            <p className="mt-4 text-[length:var(--text-fluid-sm)] text-text-secondary">
               Press 1&ndash;5 on your keyboard for quick answers
             </p>
           </div>
@@ -287,7 +287,7 @@ export function PersonalityClient({
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-center text-sm text-red-400"
+              className="mt-4 text-sm text-[#b3261e]"
               role="alert"
             >
               {error}

@@ -81,12 +81,12 @@ export function PersonalityLikert({
               tabIndex={isSelected || (!value && option.value === 1) ? 0 : -1}
               onClick={() => onChange(itemId, option.value)}
               className={cn(
-                "flex size-11 cursor-pointer items-center justify-center rounded-full border text-sm font-medium select-none",
-                "transition-all duration-300 ease-[var(--ease-out-expo)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
+                "flex size-11 cursor-pointer items-center justify-center border font-display text-sm font-semibold tabular-nums select-none",
+                "transition-colors duration-150",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
                 isSelected
-                  ? "border-primary/60 bg-primary/10 text-text-primary shadow-[0_0_16px_rgb(77_163_255/0.2)]"
-                  : "border-border-glass bg-bg-elevated/60 text-text-secondary hover:border-ink/20 hover:bg-ink/5"
+                  ? "border-vermilion bg-vermilion text-ink"
+                  : "border-ink bg-transparent text-ink hover:bg-ink/5"
               )}
             >
               {option.value}
@@ -94,7 +94,7 @@ export function PersonalityLikert({
           );
         })}
       </div>
-      <div className="mt-1.5 flex justify-between px-1 text-xs text-text-secondary/60">
+      <div className="mt-2 flex justify-between text-xs text-text-secondary">
         <span>Strongly Disagree</span>
         <span>Strongly Agree</span>
       </div>

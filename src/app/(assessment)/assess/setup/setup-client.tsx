@@ -154,17 +154,17 @@ export function SetupClient() {
       />
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <p className="text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-text-secondary">
+          <p className="text-sm text-text-secondary">
             Before We Begin
           </p>
-          <h1 className="mt-2 font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-[-0.01em]">
+          <h1 className="mt-2 font-display text-[clamp(32px,5vw,44px)] font-semibold leading-[0.98] tracking-[-0.045em]">
             Equipment Check
           </h1>
         </CardHeader>
 
         <CardContent className="space-y-6">
           {/* Camera preview */}
-          <div className="relative aspect-video overflow-hidden rounded-xl border border-border-glass bg-bg-base">
+          <div className="relative aspect-video overflow-hidden border border-ink bg-bg-surface">
             {cameraStatus === "granted" ? (
               <video
                 ref={videoCallbackRef}
@@ -175,7 +175,7 @@ export function SetupClient() {
                 className="h-full w-full object-cover [-webkit-transform:scaleX(-1)] [transform:scaleX(-1)]"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-text-secondary">
+              <div className="flex h-full items-center justify-center px-4 text-center text-sm text-text-secondary">
                 {cameraStatus === "pending" && "Requesting camera access\u2026"}
                 {cameraStatus === "denied" && "Camera access was denied"}
                 {cameraStatus === "error" && "Camera not available"}
@@ -184,7 +184,7 @@ export function SetupClient() {
           </div>
 
           {/* Device status indicators */}
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-4">
             <StatusIndicator label="Camera" status={cameraStatus} />
             <StatusIndicator label="Microphone" status={micStatus} />
           </div>
@@ -195,28 +195,28 @@ export function SetupClient() {
           )}
 
           {/* Requirements */}
-          <ul className="space-y-2 text-[length:var(--text-fluid-sm)] text-text-secondary">
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+          <ul className="divide-y divide-border border-y border-border text-sm text-[#3d3c39]">
+            <li className="flex items-start gap-3 py-2.5">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Find a quiet space with good lighting
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3 py-2.5">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               The assessment takes about 20&nbsp;minutes
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3 py-2.5">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Your responses are recorded via webcam
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3 py-2.5">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               You cannot retake individual sections
             </li>
@@ -224,13 +224,13 @@ export function SetupClient() {
 
           {/* Denied state — retry button */}
           {(cameraStatus === "denied" || micStatus === "denied") && (
-            <p className="text-[length:var(--text-fluid-sm)] text-text-secondary">
+            <p className="text-sm text-text-secondary">
               Please allow camera and microphone access in your browser settings,
               then{" "}
               <button
                 type="button"
                 onClick={retryPermissions}
-                className="underline underline-offset-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded"
+                className="text-ink underline underline-offset-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
               >
                 try again
               </button>
@@ -269,9 +269,9 @@ function StatusIndicator({
 }) {
   const colors: Record<DeviceStatus, string> = {
     pending: "bg-text-secondary/40",
-    granted: "bg-emerald-400",
-    denied: "bg-red-400",
-    error: "bg-red-400",
+    granted: "bg-[#3f7d55]",
+    denied: "bg-[#b23a26]",
+    error: "bg-[#b23a26]",
   };
 
   const labels: Record<DeviceStatus, string> = {
@@ -282,9 +282,9 @@ function StatusIndicator({
   };
 
   return (
-    <div className="flex items-center gap-2 text-[length:var(--text-fluid-sm)]">
+    <div className="flex items-center gap-2 text-sm">
       <span
-        className={`inline-block h-2 w-2 rounded-full ${colors[status]}`}
+        className={`inline-block h-2 w-2 ${colors[status]}`}
         aria-hidden="true"
       />
       <span className="text-text-secondary">
@@ -300,10 +300,10 @@ function ConnectionWarning({ tier }: { tier: SpeedTier }) {
   return (
     <div
       role="alert"
-      className={`rounded-xl border px-4 py-3 text-[length:var(--text-fluid-sm)] ${
+      className={`border-l-2 px-4 py-3 text-sm text-ink ${
         isVerySlow
-          ? "border-red-500/30 bg-red-500/10 text-red-300"
-          : "border-amber-500/30 bg-amber-500/10 text-amber-300"
+          ? "border-[#b23a26] bg-[#b23a26]/[0.06]"
+          : "border-[#a36a12] bg-[#a36a12]/[0.06]"
       }`}
     >
       {isVerySlow

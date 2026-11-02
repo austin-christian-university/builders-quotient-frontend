@@ -31,7 +31,7 @@ export function UploadGate({ children }: { children: ReactNode }) {
         {/* Subtle note if uploads failed */}
         {failedJobs.length > 0 && (
           <div className="mx-auto mb-4 w-full max-w-lg px-4">
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-300">
+            <div className="border border-ink px-4 py-3 text-center text-sm text-ink">
               <p>
                 {failedJobs.length} video upload{failedJobs.length > 1 ? "s" : ""} couldn&rsquo;t
                 complete. Don&rsquo;t worry &mdash; your responses were recorded.
@@ -39,7 +39,7 @@ export function UploadGate({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => failedJobs.forEach((j) => retryJob(j.id))}
-                className="mt-1.5 text-xs font-medium text-amber-200 underline underline-offset-2 hover:text-amber-100"
+                className="mt-1.5 text-xs font-semibold text-ink underline underline-offset-2 hover:text-text-secondary"
               >
                 Try uploading again
               </button>
@@ -62,11 +62,9 @@ export function UploadGate({ children }: { children: ReactNode }) {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md text-center"
       >
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-primary/30 bg-primary/10">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        </div>
+        <div className="mx-auto mb-6 h-6 w-6 animate-spin rounded-full border-2 border-ink border-t-transparent" />
 
-        <h1 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-[-0.01em] text-text-primary">
+        <h1 className="font-display text-[clamp(34px,8vw,56px)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink">
           Almost done&#8230;
         </h1>
         <p className="mt-2 text-[length:var(--text-fluid-base)] text-text-secondary">
@@ -80,9 +78,9 @@ export function UploadGate({ children }: { children: ReactNode }) {
               <span className="shrink-0 text-sm tabular-nums text-text-secondary">
                 {i + 1}.
               </span>
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink/10">
+              <div className="h-1 flex-1 overflow-hidden bg-ink/10">
                 <motion.div
-                  className="h-full rounded-full bg-primary"
+                  className="h-full bg-ink"
                   initial={{ width: 0 }}
                   animate={{
                     width:
@@ -95,7 +93,7 @@ export function UploadGate({ children }: { children: ReactNode }) {
               </div>
               {job.status === "completed" && (
                 <svg
-                  className="h-4 w-4 shrink-0 text-emerald-400"
+                  className="h-4 w-4 shrink-0 text-ink"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={2}
@@ -111,7 +109,7 @@ export function UploadGate({ children }: { children: ReactNode }) {
               )}
               {job.status === "failed" && (
                 <svg
-                  className="h-4 w-4 shrink-0 text-red-400"
+                  className="h-4 w-4 shrink-0 text-ink"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={2}

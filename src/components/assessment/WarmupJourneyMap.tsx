@@ -25,7 +25,7 @@ export function WarmupJourneyMap({
   return (
     <div className="w-full px-4 py-3">
       <div
-        className="mx-auto flex max-w-2xl gap-1.5"
+        className="mx-auto flex max-w-2xl gap-1"
         role="progressbar"
         aria-label={`Assessment progress: ${sectionLabels[currentSection]}`}
       >
@@ -43,13 +43,16 @@ export function WarmupJourneyMap({
             >
               <div
                 className={cn(
-                  "h-1.5 rounded-full transition-colors duration-500",
-                  isCompleted && "bg-primary",
-                  isCurrent && "bg-secondary",
-                  !isCompleted && !isCurrent && "bg-border-glass"
+                  "h-[3px] transition-colors duration-500",
+                  isCompleted && "bg-ink",
+                  isCurrent && "bg-vermilion",
+                  !isCompleted && !isCurrent && "bg-border"
                 )}
               />
-              <span className="hidden text-[length:var(--text-fluid-xs)] text-text-secondary md:block">
+              <span className={cn(
+                  "hidden text-[length:var(--text-fluid-xs)] md:block",
+                  isCurrent ? "font-semibold text-ink" : "text-text-secondary"
+                )}>
                 {sectionLabels[section]}
               </span>
             </div>

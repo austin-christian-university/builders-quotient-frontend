@@ -27,64 +27,19 @@ const transition = {
   ease: [0.16, 1, 0.3, 1] as const,
 };
 
-// --- Icons ---
-
-function CheckIcon({ className = "h-8 w-8 text-secondary" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-    </svg>
-  );
-}
-
-function BrainIcon({ className = "h-6 w-6 text-primary" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-    </svg>
-  );
-}
-
-
-function GlobeIcon({ className = "h-6 w-6 text-primary" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.92 17.92 0 01-8.716-2.247m0 0A8.966 8.966 0 013 12c0-1.264.26-2.467.73-3.558" />
-    </svg>
-  );
-}
-
-function AcademicCapIcon({ className = "h-6 w-6 text-primary" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-    </svg>
-  );
-}
-
-function RocketIcon({ className = "h-6 w-6 text-primary" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-    </svg>
-  );
-}
-
 const intelligenceLoadingSteps = [
   "Submitting your responses\u2026",
 ];
 
-// --- Card Components (Bento Style) ---
+// --- Explore card ---
 
 function ExploreCard({
-  icon,
   heading,
   body,
   buttonLabel,
   href,
   external,
 }: {
-  icon: React.ReactNode;
   heading: string;
   body: string;
   buttonLabel: string;
@@ -94,33 +49,24 @@ function ExploreCard({
   return (
     <motion.div
       variants={fadeUp}
-      whileHover={{ y: -6, scale: 1.01, transition: { duration: 0.4, ease: "easeOut" } }}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[2.5rem] border border-border-glass bg-bg-elevated/40 p-8 shadow-md backdrop-blur-2xl transition-all hover:border-primary/30 hover:bg-bg-elevated/80 hover:shadow-2xl hover:shadow-primary/5 sm:p-10"
+      className="flex h-full flex-col border-t border-ink pt-6"
     >
-      {/* Deep mesh gradient background on hover */}
-      <div className="pointer-events-none absolute -inset-px rounded-[2.5rem] bg-gradient-to-br from-primary/10 via-transparent to-secondary/5 opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
-      <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-primary/20 blur-[60px] transition-all duration-700 group-hover:translate-x-4 group-hover:translate-y-4 group-hover:bg-primary/30" />
-
-      <div className="relative mb-8 flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl border border-border-glass bg-bg-surface shadow-[0_2px_10px_rgba(0,0,0,0.1)] transition-transform duration-700 group-hover:scale-110 group-hover:border-primary/40 group-hover:shadow-[0_0_20px_rgba(var(--color-primary),0.2)]">
-        {icon}
-      </div>
-
-      <div className="relative flex flex-grow flex-col">
-        <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-tight text-text-primary transition-colors duration-300 group-hover:text-primary">
+      <div className="flex flex-grow flex-col">
+        <h2 className="font-display text-[clamp(24px,3vw,30px)] font-semibold leading-tight tracking-[-0.035em] text-text-primary">
           {heading}
         </h2>
-        <p className="mt-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+        <p className="mt-3 text-[length:var(--text-fluid-base)] leading-relaxed text-[#3d3c39]">
           {body}
         </p>
       </div>
 
-      <div className="relative mt-8 pt-2">
+      <div className="mt-8">
         <Button
           as="a"
           href={href}
           variant="outline"
           size="md"
-          className="w-full bg-transparent border-primary/20 text-text-primary hover:bg-primary/5 hover:border-primary/50 sm:w-auto transition-all duration-300 rounded-xl"
+          className="w-full sm:w-auto"
           {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         >
           {buttonLabel}
@@ -202,7 +148,7 @@ function PersonalityRadarChart() {
           points={points}
           fill="none"
           stroke="currentColor"
-          className="text-ink/[0.06]"
+          className="text-ink/15"
           strokeWidth={0.75}
         />
       ))}
@@ -216,7 +162,7 @@ function PersonalityRadarChart() {
           x2={a.x}
           y2={a.y}
           stroke="currentColor"
-          className="text-ink/[0.06]"
+          className="text-ink/15"
           strokeWidth={0.75}
         />
       ))}
@@ -224,7 +170,7 @@ function PersonalityRadarChart() {
       {/* Data fill */}
       <polygon
         points={dataPoints}
-        className="fill-primary/15 stroke-primary/60"
+        className="fill-ink/10 stroke-ink"
         strokeWidth={1.5}
         strokeLinejoin="round"
       />
@@ -239,7 +185,7 @@ function PersonalityRadarChart() {
             cx={x}
             cy={y}
             r={2.5}
-            className="fill-primary"
+            className="fill-ink"
           />
         );
       })}
@@ -252,7 +198,7 @@ function PersonalityRadarChart() {
           y={l.y}
           textAnchor={l.anchor}
           dominantBaseline="central"
-          className="fill-text-secondary/60 text-[16px]"
+          className="fill-text-secondary text-[16px]"
         >
           {l.label}
         </text>
@@ -270,18 +216,15 @@ function StudentVariant() {
       <motion.div
         variants={fadeUp}
         transition={transition}
-        className="mx-auto mb-16 text-center sm:mb-20"
+        className="mb-16 border-t border-ink pt-6 sm:mb-20"
       >
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-secondary/30 bg-secondary/10">
-          <CheckIcon className="h-8 w-8 text-secondary" />
-        </div>
-        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.4em] text-secondary/90">
+        <p className="text-sm text-text-secondary">
           Assessment Complete
         </p>
-        <h1 className="mt-3 font-display text-[length:var(--text-fluid-3xl)] font-semibold tracking-tight text-text-primary">
+        <h1 className="mt-6 font-display text-[clamp(44px,9vw,88px)] font-semibold leading-[0.92] tracking-[-0.055em] text-text-primary">
           You&rsquo;re All Set
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+        <p className="mt-6 max-w-xl text-[clamp(17px,1.5vw,19px)] leading-relaxed text-[#3d3c39]">
           Thanks for taking the Builders Quotient. We&rsquo;ll get your scores back to you soon. While you wait, let&rsquo;s dive deeper:
         </p>
       </motion.div>
@@ -290,44 +233,40 @@ function StudentVariant() {
       <motion.div
         variants={fadeUp}
         transition={transition}
-        className="group relative mx-auto mb-16 overflow-hidden rounded-2xl border border-primary/20 bg-bg-surface/60 p-8 shadow-[0_8px_40px_-12px_rgba(var(--color-primary),0.1)] backdrop-blur-3xl sm:p-10 transition-all duration-700 hover:shadow-[0_20px_60px_-12px_rgba(var(--color-primary),0.15)] hover:border-primary/30"
+        className="mb-16 border-t border-ink pt-6"
       >
-        {/* Gradient blobs */}
-        <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-primary/15 blur-[100px]" aria-hidden="true" />
-        <div className="pointer-events-none absolute -bottom-32 -left-32 h-[20rem] w-[20rem] rounded-full bg-secondary/8 blur-[80px]" aria-hidden="true" />
-
-        <div className="relative z-10 flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-10">
+        <div className="flex flex-col items-start gap-8 md:flex-row md:gap-10">
           {/* Radar chart */}
           <div className="w-full max-w-[360px] shrink-0 md:w-[360px]">
             <PersonalityRadarChart />
-            <p className="mt-1 text-center text-[length:var(--text-fluid-xs)] uppercase tracking-widest text-text-secondary/40">
+            <p className="mt-1 text-center text-xs text-text-secondary">
               Example data
             </p>
           </div>
 
           {/* Copy */}
           <div className="flex-1">
-            <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-tight text-text-primary">
+            <h2 className="font-display text-[clamp(32px,5vw,52px)] font-semibold leading-[0.98] tracking-[-0.045em] text-text-primary">
               Discover Your Mindset
             </h2>
 
-            <div className="mt-4 space-y-4">
-              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+            <div className="mt-5 space-y-4">
+              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-[#3d3c39]">
                 Beyond intelligence, the most successful entrepreneurs share a unique blend of personality traits &mdash; grit, risk tolerance, innovativeness, and more. Our personality profile measures 8&nbsp;key dimensions that define great founders.
               </p>
-              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-[#3d3c39]">
                 This one takes about <strong className="font-medium text-text-primary">25&nbsp;minutes</strong> &mdash; quick agree/disagree questions, no video required. We&rsquo;d love for you to knock it out while you&rsquo;re here, and we&rsquo;ll <strong className="font-medium text-text-primary">include your personality profile when your Builders Quotient is ready</strong>. It&rsquo;s also the next step in the ACU&nbsp;application.
               </p>
-              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary/70">
+              <p className="text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
                 If now isn&rsquo;t a good time, no worries &mdash; we&rsquo;ll email you a link to come back and complete it&nbsp;later.
               </p>
             </div>
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Button as="a" href="/assess/personality" size="lg" className="shadow-[0_0_30px_-8px_rgba(var(--color-primary),0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_-8px_rgba(var(--color-primary),0.7)] rounded-xl">
+              <Button as="a" href="/assess/personality" size="lg">
                 Start Personality Profile
               </Button>
-              <span className="text-[length:var(--text-fluid-xs)] font-medium text-text-secondary/60 uppercase tracking-widest">
+              <span className="text-sm text-text-secondary">
                 ~25&nbsp;minutes
               </span>
             </div>
@@ -343,12 +282,11 @@ function StudentVariant() {
         id="explore"
         className="scroll-mt-8"
       >
-        <p className="mb-8 text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+        <p className="mb-8 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
           While you&rsquo;re here, explore what we&rsquo;re building at&nbsp;ACU.
         </p>
-        <div className="grid gap-8 md:grid-cols-2 lg:gap-10">
+        <div className="grid gap-x-6 gap-y-12 md:grid-cols-2">
           <ExploreCard
-            icon={<GlobeIcon className="h-8 w-8 text-primary" />}
             heading="Discover ACU"
             body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
             buttonLabel="Visit Our Home"
@@ -356,7 +294,6 @@ function StudentVariant() {
             external
           />
           <ExploreCard
-            icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
             heading="Explore Curriculum"
             body="See the programs and courses designed to build the next generation of entrepreneurs."
             buttonLabel="View Curriculum"
@@ -370,7 +307,7 @@ function StudentVariant() {
       <motion.p
         variants={fadeUp}
         transition={transition}
-        className="mt-16 text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary/60"
+        className="mt-16 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary"
       >
         That&rsquo;s it for now. We&rsquo;ll reach out to you when your results are ready.
       </motion.p>
@@ -387,27 +324,23 @@ function GeneralVariant() {
       <motion.div
         variants={fadeUp}
         transition={transition}
-        className="mx-auto mb-16 text-center sm:mb-20"
+        className="mb-16 border-t border-ink pt-6 sm:mb-20"
       >
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-secondary/30 bg-secondary/10">
-          <CheckIcon className="h-8 w-8 text-secondary" />
-        </div>
-        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.4em] text-secondary/90">
+        <p className="text-sm text-text-secondary">
           Assessment Complete
         </p>
-        <h1 className="mt-3 font-display text-[length:var(--text-fluid-3xl)] font-semibold tracking-tight text-text-primary">
+        <h1 className="mt-6 font-display text-[clamp(44px,9vw,88px)] font-semibold leading-[0.92] tracking-[-0.055em] text-text-primary">
           You&rsquo;re All Set
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+        <p className="mt-6 max-w-xl text-[clamp(17px,1.5vw,19px)] leading-relaxed text-[#3d3c39]">
           Thanks for taking the Builders Quotient. We&rsquo;ll get your scores back to you soon. In the meantime, explore what we&rsquo;re building at&nbsp;ACU.
         </p>
       </motion.div>
 
       {/* Explore cards */}
       <motion.div variants={fadeUp} transition={transition}>
-        <div className="grid gap-8 md:grid-cols-3 lg:gap-10">
+        <div className="grid gap-x-6 gap-y-12 md:grid-cols-3">
           <ExploreCard
-            icon={<GlobeIcon className="h-8 w-8 text-primary" />}
             heading="Discover ACU"
             body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
             buttonLabel="Visit Our Home"
@@ -415,7 +348,6 @@ function GeneralVariant() {
             external
           />
           <ExploreCard
-            icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
             heading="Explore Curriculum"
             body="See the programs and courses designed to build the next generation of entrepreneurs."
             buttonLabel="View Curriculum"
@@ -423,7 +355,6 @@ function GeneralVariant() {
             external
           />
           <ExploreCard
-            icon={<RocketIcon className="h-8 w-8 text-primary" />}
             heading="Startups &amp; Projects"
             body="Our accelerator connects students with real startups from day&nbsp;one."
             buttonLabel="The Accelerator"
@@ -437,7 +368,7 @@ function GeneralVariant() {
       <motion.p
         variants={fadeUp}
         transition={transition}
-        className="mt-16 text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary/60"
+        className="mt-16 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary"
       >
         That&rsquo;s it for now. We&rsquo;ll reach out to you when your results are ready.
       </motion.p>
@@ -453,26 +384,22 @@ function DefaultVariant() {
       <motion.div
         variants={fadeUp}
         transition={transition}
-        className="mx-auto mb-16 text-center sm:mb-20"
+        className="mb-16 border-t border-ink pt-6 sm:mb-20"
       >
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-secondary/30 bg-secondary/10">
-          <CheckIcon className="h-8 w-8 text-secondary" />
-        </div>
-        <p className="text-[length:var(--text-fluid-xs)] font-bold uppercase tracking-[0.4em] text-secondary/90">
+        <p className="text-sm text-text-secondary">
           Assessment Complete
         </p>
-        <h1 className="mt-3 font-display text-[length:var(--text-fluid-3xl)] font-semibold tracking-tight text-text-primary">
+        <h1 className="mt-6 font-display text-[clamp(44px,9vw,88px)] font-semibold leading-[0.92] tracking-[-0.055em] text-text-primary">
           You&rsquo;re All Set
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+        <p className="mt-6 max-w-xl text-[clamp(17px,1.5vw,19px)] leading-relaxed text-[#3d3c39]">
           Thanks for taking the Builders Quotient. We&rsquo;ll get your scores back to you soon.
         </p>
       </motion.div>
 
       <motion.div variants={fadeUp} transition={transition}>
-        <div className="grid gap-8 md:grid-cols-2 lg:gap-10">
+        <div className="grid gap-x-6 gap-y-12 md:grid-cols-2">
           <ExploreCard
-            icon={<GlobeIcon className="h-8 w-8 text-primary" />}
             heading="Discover ACU"
             body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient."
             buttonLabel="Visit Our Home"
@@ -480,7 +407,6 @@ function DefaultVariant() {
             external
           />
           <ExploreCard
-            icon={<AcademicCapIcon className="h-8 w-8 text-primary" />}
             heading="Explore Curriculum"
             body="See the programs designed to build the next generation of entrepreneurs."
             buttonLabel="View Curriculum"
@@ -493,7 +419,7 @@ function DefaultVariant() {
       <motion.p
         variants={fadeUp}
         transition={transition}
-        className="mt-16 text-center text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary/60"
+        className="mt-16 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary"
       >
         That&rsquo;s it for now. We&rsquo;ll reach out to you when your results are ready.
       </motion.p>
@@ -540,7 +466,6 @@ export function ThankYouContent({ variant, sessionId }: { variant: Variant; sess
           <SplashSequence
             key="loading"
             steps={intelligenceLoadingSteps}
-            icon={<BrainIcon className="h-10 w-10 text-primary drop-shadow-md" />}
             onComplete={() => setIsReady(true)}
           />
         ) : (
