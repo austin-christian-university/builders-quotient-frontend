@@ -35,8 +35,8 @@ function Spinner() {
 }
 
 const leadTypeOptions: { value: LeadType; label: string }[] = [
-  { value: "prospective_student", label: "I\u2019m a prospective student" },
-  { value: "general_interest", label: "I\u2019m anybody else" },
+  { value: "prospective_student", label: "Prospective student" },
+  { value: "general_interest", label: "Something else" },
 ];
 
 export function EmailCapture() {
@@ -574,8 +574,8 @@ function LeadTypeRadioGroup({
             tabIndex={isSelected || (!value && i === 0) ? 0 : -1}
             onClick={() => onChange(option.value)}
             className={[
-              "min-h-[3rem] px-4 py-3 text-left",
-              "text-[length:var(--text-fluid-sm)] font-medium leading-snug",
+              "flex min-h-12 items-center gap-3 px-4 py-3 text-left",
+              "font-display text-[15px] font-semibold tracking-[-0.01em] leading-tight",
               "transition-colors duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
               "cursor-pointer",
@@ -584,6 +584,10 @@ function LeadTypeRadioGroup({
                 : "border border-ink bg-transparent text-ink hover:bg-ink/5",
             ].join(" ")}
           >
+            <span
+              aria-hidden="true"
+              className={`h-3 w-3 shrink-0 border ${isSelected ? "border-vermilion bg-vermilion" : "border-ink"}`}
+            />
             {option.label}
           </button>
         );

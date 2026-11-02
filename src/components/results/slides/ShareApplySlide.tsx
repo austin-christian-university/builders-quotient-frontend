@@ -10,7 +10,6 @@ import {
 } from "@/lib/assessment/personality-dimensions";
 import { useShareCardCache } from "@/lib/hooks/use-share-card-cache";
 import { BqMark } from "@/components/brand/BqMark";
-import { cn } from "@/lib/utils";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -102,29 +101,33 @@ function CardShell({
     cta: string;
     children: React.ReactNode;
 }) {
+    // Sized in container units (cqw) so the poster keeps its proportions at any card width.
     return (
         <div
-            className="flex h-full flex-col bg-paper text-left text-ink"
+            className="@container flex h-full flex-col bg-paper text-left text-ink"
             style={{ transform: isExporting ? "translateZ(0)" : "none" }}
         >
-            {/* Header — BqMark lockup */}
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-ink px-4 py-3">
-                <span className="flex items-center gap-2">
-                    <BqMark className="h-5 w-5 text-ink" />
-                    <span className="text-[13px] font-semibold tracking-[-0.02em]">Builder&rsquo;s Quotient</span>
+            {/* Header — lockup + card name */}
+            <div className="flex shrink-0 items-center justify-between gap-[3cqw] border-b-2 border-ink px-[6cqw] py-[4.5cqw]">
+                <span className="flex items-center gap-[2.5cqw]">
+                    <BqMark className="h-[6.5cqw] w-[6.5cqw] text-ink" />
+                    <span className="text-[4.6cqw] font-semibold leading-none tracking-[-0.03em]">Builder&rsquo;s Quotient</span>
                 </span>
-                {label && <span className="text-[11px] text-text-secondary">{label}</span>}
+                {label && <span className="text-[3.6cqw] leading-none text-[#6b6963]">{label}</span>}
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col">{children}</div>
 
-            {/* Footer — CTA, URL, ACU */}
-            <div className="shrink-0 border-t border-ink px-4 pt-2.5 pb-3">
-                <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-[12px] font-semibold tracking-[-0.01em]">{cta}</p>
-                    <p className="text-[10px] text-text-secondary">bq.austinchristianu.org</p>
+            {/* Footer — ink band with the call to action and the mark */}
+            <div className="flex shrink-0 items-end justify-between gap-[4cqw] bg-ink px-[6cqw] py-[5cqw] text-paper">
+                <div className="min-w-0">
+                    <p className="text-[5.6cqw] font-semibold leading-none tracking-[-0.03em]">
+                        {cta} <span aria-hidden="true">&rarr;</span>
+                    </p>
+                    <p className="mt-[2cqw] text-[3.4cqw] leading-none text-[#bdbab2]">bq.austinchristianu.org</p>
+                    <p className="mt-[1.4cqw] text-[3cqw] leading-none text-[#8c8a84]">Austin Christian University</p>
                 </div>
-                <p className="mt-0.5 text-[10px] text-ink">Austin Christian University</p>
+                <BqMark className="h-[13cqw] w-[13cqw] shrink-0 text-paper" />
             </div>
         </div>
     );
@@ -142,36 +145,37 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
     if (!primary) return null;
 
     const isReasoning = matchType === "reasoning";
-    const label = isReasoning ? "Reasoning Match" : "Communication Match";
-    const founderLabel = isReasoning ? "Thinks Like" : "Communicates Like";
+    const label = isReasoning ? "Reasoning" : "Communication";
+    const founderLabel = isReasoning ? "Thinks like" : "Communicates like";
     const displayName = data.applicant.displayName || "You";
 
     return (
-        <CardShell isExporting={isExporting} label={label} cta="Find Your Match">
+        <CardShell isExporting={isExporting} label={label} cta="Find your match">
             {/* You */}
-            <div className="px-4 pt-5 pb-4">
-                <p className="mb-1.5 text-[11px] text-text-secondary">You</p>
-                <p className="text-[24px] font-semibold leading-[1] tracking-[-0.04em] [overflow-wrap:anywhere]">
+            <div className="px-[6cqw] pt-[7cqw]">
+                <p className="text-[3.6cqw] text-[#6b6963]">You</p>
+                <p className="mt-[1.5cqw] text-[9cqw] font-semibold leading-[0.95] tracking-[-0.045em] [overflow-wrap:anywhere]">
                     {displayName}
                 </p>
-                <p className="mt-1.5 text-[12px] font-semibold tracking-[-0.01em] text-[#3d3c39]">
+                <p className="mt-[2cqw] text-[4.4cqw] font-medium tracking-[-0.01em] text-[#3d3c39]">
                     {data.archetype.name}
                 </p>
             </div>
 
-            {/* Founder — the one vermilion label on the reasoning card */}
-            <div className="mt-auto border-t border-ink px-4 pt-4 pb-5">
+            {/* Founder — the poster's headline */}
+            <div className="mt-auto px-[6cqw] pb-[7cqw]">
                 <p
-                    className={cn("mb-2 text-[11px]", isReasoning ? "font-semibold" : "text-text-secondary")}
-                    style={isReasoning ? { color: VERMILION } : undefined}
+                    className="flex items-center gap-[2cqw] text-[4.4cqw] font-semibold tracking-[-0.01em]"
+                    style={{ color: isReasoning ? VERMILION : INK }}
                 >
+                    <span aria-hidden="true" className="inline-block h-[2.6cqw] w-[2.6cqw]" style={{ background: isReasoning ? VERMILION : INK }} />
                     {founderLabel}
                 </p>
-                <p className="text-[clamp(30px,10vw,40px)] font-semibold leading-[0.92] tracking-[-0.05em] [overflow-wrap:anywhere]">
+                <p className="mt-[3cqw] text-[16cqw] font-semibold leading-[0.86] tracking-[-0.06em] [overflow-wrap:anywhere]">
                     {primary.entrepreneurName}
                 </p>
                 {primary.companies && primary.companies.length > 0 && (
-                    <p className="mt-2 text-[12px] leading-snug text-[#3d3c39]">
+                    <p className="mt-[4cqw] border-t border-ink pt-[3cqw] text-[4.2cqw] leading-snug text-[#3d3c39]">
                         {primary.companies.join(", ")}
                     </p>
                 )}
@@ -198,8 +202,8 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
     const studentScores = rawScores.map((s) => (s / maxScore) * 100);
 
     return (
-        <CardShell isExporting={isExporting} cta="Find Your Profile">
-            <p className="px-4 pt-4 text-[22px] font-semibold leading-[1] tracking-[-0.04em]">
+        <CardShell isExporting={isExporting} label={variant === "pi" ? "Practical" : "Creative"} cta="Find your profile">
+            <p className="px-[6cqw] pt-[6cqw] text-[10cqw] font-semibold leading-[0.92] tracking-[-0.05em]">
                 {variant === "pi" ? "How You Solve" : "How You Create"}
             </p>
 
@@ -265,8 +269,8 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
     });
 
     return (
-        <CardShell isExporting={isExporting} label="Communication Style" cta="Find Your Style">
-            <p className="px-4 pt-4 text-[22px] font-semibold leading-[1] tracking-[-0.04em]">
+        <CardShell isExporting={isExporting} label="Communication" cta="Find your style">
+            <p className="px-[6cqw] pt-[6cqw] text-[10cqw] font-semibold leading-[0.92] tracking-[-0.05em]">
                 How You Present &amp; Connect
             </p>
 
@@ -290,12 +294,19 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
 
 function ArchetypeCard({ data, isExporting }: { data: ResultsPageData, isExporting: boolean }) {
     return (
-        <CardShell isExporting={isExporting} label="Builder Profile" cta="Find Your Archetype">
-            <div className="flex flex-1 flex-col justify-end px-4 pt-5 pb-5">
-                <h2 className="text-[clamp(38px,12vw,52px)] font-semibold leading-[0.9] tracking-[-0.055em] [overflow-wrap:anywhere]">
+        <CardShell isExporting={isExporting} label="Profile" cta="Find your archetype">
+            <div className="px-[6cqw] pt-[7cqw]">
+                <p className="text-[3.6cqw] text-[#6b6963]">{data.applicant.displayName || "You"} is</p>
+            </div>
+            <div className="mt-auto flex flex-col px-[6cqw] pb-[7cqw]">
+                <p className="flex items-center gap-[2cqw] text-[4.4cqw] font-semibold" style={{ color: VERMILION }}>
+                    <span aria-hidden="true" className="inline-block h-[2.6cqw] w-[2.6cqw]" style={{ background: VERMILION }} />
+                    Archetype
+                </p>
+                <h2 className="mt-[3cqw] text-[17cqw] font-semibold leading-[0.86] tracking-[-0.06em] [overflow-wrap:anywhere]">
                     {data.archetype.name}
                 </h2>
-                <p className="mt-4 border-t border-ink pt-3 text-[14px] leading-[1.4] text-[#3d3c39]">
+                <p className="mt-[5cqw] border-t border-ink pt-[3cqw] text-[4.6cqw] leading-[1.35] text-[#3d3c39]">
                     &ldquo;{data.archetype.tagline}&rdquo;
                 </p>
             </div>
