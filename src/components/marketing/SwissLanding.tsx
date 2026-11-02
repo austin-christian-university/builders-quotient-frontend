@@ -11,16 +11,22 @@ const STEPS = [
   ["Discover", "Receive a detailed profile of your entrepreneurial thinking across intelligence and personality domains."],
 ] as const;
 
-const RESULTS = [
-  "Your entrepreneurial archetype",
-  "How you reason through real business problems",
-  "Your creative problem-solving style",
-  "Your communication style",
-  "Which real entrepreneurs think most like you",
-  "Shareable profile cards",
-];
+const GETS = [
+  ["How you hold up", "Your problem-solving when the pressure's on."],
+  ["What you see", "The openings you find with almost nothing."],
+  ["Who to study", "A real entrepreneur who thinks like you."],
+] as const;
 
-const ARCHETYPES = ["The Theorist", "Pathfinder", "Cartographer", "Steward", "Catalyst"];
+// The public sample profile at /results/test-jordan-maker, summarised.
+const SAMPLE = {
+  tagline: "Digs deep, tests everything, finds real gold",
+  matches: [
+    ["Thinks like", "Dylan Patel", "SemiAnalysis"],
+    ["Communicates like", "Andy Dunn", "Bonobos"],
+  ],
+  strengths: ["Risk assessment", "Action planning"],
+  growth: ["Decision architecture", "Constraint analysis"],
+} as const;
 
 const FAQS = [
   ["How long does it take?", "About 20 minutes — the vignettes, your recorded responses, and a short personality quiz."],
@@ -83,7 +89,7 @@ function SwissLanding() {
             <a className={s.navLink} href="#results">Results</a>
             <a className={s.navLink} href="#faq">FAQ</a>
             <Link className={s.navExplore} href="/entrepreneurs">
-              Entrepreneurs
+              The data
             </Link>
             <Link className={`${s.btn} ${s.small}`} href={ASSESS_HREF}>
               Begin
@@ -117,16 +123,16 @@ function SwissLanding() {
         <Section n="01" label="About">
           <h2>A new kind of exam.</h2>
           <p className={s.lede}>
-            The Builders Quotient is a psychometric assessment created by Austin Christian
-            University. Think of it like a personality test — but instead of answering
-            multiple choice questions, you watch real business scenarios and explain what
-            you&apos;d do on camera.
+            Real business moments, answered on camera, designed to tell you three things:
           </p>
-          <p className={s.note}>
-            Our AI compares your reasoning to how hundreds of the world&apos;s most
-            successful entrepreneurs actually responded to similar situations. It measures
-            how you solve problems, think creatively, and communicate.
-          </p>
+          <ul className={s.gets}>
+            {GETS.map(([title, body]) => (
+              <li key={title}>
+                <b>{title}</b>
+                <span>{body}</span>
+              </li>
+            ))}
+          </ul>
         </Section>
 
         <Section n="02" label="The data">
@@ -192,33 +198,70 @@ function SwissLanding() {
           </div>
         </Section>
 
-        <Section n="05" label="Your results" id="results">
-          <h2>Your entrepreneurial DNA, decoded.</h2>
-          <div className={s.res}>
-            <div>
-              <ol className={s.resList}>
-                {RESULTS.map((item, i) => (
-                  <li key={item}>
-                    <span>{String.fromCharCode(97 + i)}</span>
-                    {item}
-                  </li>
-                ))}
-              </ol>
-              <Link className={s.example} href="/results/test-jordan-maker">
-                See an example profile →
-              </Link>
+        <Section n="05" label="What you get back" id="results">
+          <h2>Find out which founder thinks like you.</h2>
+          <p className={s.lede}>
+            Twenty minutes of your reasoning, matched against 274 real entrepreneurs. This is
+            what comes back.
+          </p>
+
+          <article className={s.sheet} aria-label="Sample Builder's Quotient profile">
+            <header className={s.sheetHead}>
+              <span>Builder&apos;s Quotient profile</span>
+              <span className={s.sample}>Sample</span>
+            </header>
+
+            <div className={s.sheetArch}>
+              <p className={s.k}>Jordan Maker · Archetype</p>
+              <p className={s.archName}>The Prospector</p>
+              <p className={s.archLine}>&ldquo;{SAMPLE.tagline}&rdquo;</p>
             </div>
-            <div className={s.arch}>
-              <small>Archetypes include</small>
-              <ul>
-                {ARCHETYPES.map((a) => (
-                  <li key={a} className={a === "Cartographer" ? s.on : undefined}>
-                    {a}
-                  </li>
-                ))}
-              </ul>
-              <p className={s.more}>One of sixteen.</p>
+
+            <div className={s.matches}>
+              {SAMPLE.matches.map(([label, name, company]) => (
+                <div className={s.match} key={label}>
+                  <p className={s.k}>{label}</p>
+                  <p className={s.matchName}>{name}</p>
+                  <p className={s.matchCo}>{company}</p>
+                </div>
+              ))}
             </div>
+
+            <div className={s.traits}>
+              <div>
+                <p className={s.k}>Strengths</p>
+                <ul>
+                  {SAMPLE.strengths.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className={s.k}>Growth areas</p>
+                <ul>
+                  {SAMPLE.growth.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <footer className={s.sheetFoot}>
+              Plus your reasoning map, creative map, communication style and shareable cards.
+              One of sixteen archetypes.
+            </footer>
+          </article>
+
+          <div className={s.resCta}>
+            <Link className={`${s.btn} ${s.primary}`} href={ASSESS_HREF}>
+              Find your match <span aria-hidden="true">→</span>
+            </Link>
+            <Link
+              className={`${s.btn} ${s.secondary}`}
+              href="/results/test-jordan-maker"
+            >
+              See the full sample <span aria-hidden="true">→</span>
+            </Link>
           </div>
         </Section>
 

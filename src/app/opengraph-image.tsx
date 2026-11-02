@@ -29,9 +29,8 @@ export default async function OGImage() {
           fontFamily: "Inter Tight",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 24, color: GREY }}>
+        <div style={{ display: "flex", fontSize: 24, color: GREY }}>
           <span>Presented by Austin Christian University</span>
-          <span>~20 min · Camera required</span>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
           <div
