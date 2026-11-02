@@ -127,7 +127,6 @@ export function OrbGuide({ script, onContinue, onSkip }: OrbGuideProps) {
         <VoiceRing
           audioRef={audioRef}
           isPlaying={isSpeaking}
-          prefersReducedMotion={prefersReducedMotion}
         />
 
         {/* Subtitle area — always reserves 3 lines so the orb never shifts */}
