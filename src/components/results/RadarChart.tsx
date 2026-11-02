@@ -499,7 +499,7 @@ export function RadarChart({
           data-radar="corpus"
           points={corpusPoints}
           fill="rgba(17,17,17,0.06)"
-          stroke="rgba(255,255,255,0.35)"
+          stroke="rgba(17,17,17,0.35)"
           strokeWidth={1.5}
           strokeDasharray="4 4"
           style={{ pointerEvents: "none" }}
@@ -561,8 +561,6 @@ export function RadarChart({
           const isLabelClickable = !!onCategoryHover || isInteractive;
 
           const labelColor = dotColors?.[i] ?? accentColor;
-          const glowOpacity = isActive ? "99" : "33"; // 60% vs 20% alpha
-          const textShadow = `0 0 10px ${labelColor}${glowOpacity}, 0 0 20px ${labelColor}${glowOpacity}`;
 
           const lines = splitLabel(label.toUpperCase());
           const lineHeight = compensatedFontSize * 1.25;
@@ -583,7 +581,6 @@ export function RadarChart({
               fontWeight={600}
               letterSpacing="0.08em"
               style={{
-                textShadow,
                 transition: "all 0.2s ease",
                 cursor: isLabelClickable ? "pointer" : "default",
                 pointerEvents: isLabelClickable ? "all" : "none",
@@ -659,7 +656,7 @@ export function RadarChart({
               width={pillW}
               height={pillH}
               rx={pillH / 2}
-              fill="rgba(10,10,12,0.94)"
+              fill="#111111"
               stroke={tooltipContent.groupColor}
               strokeWidth={1}
               strokeOpacity={0.5}
@@ -672,7 +669,7 @@ export function RadarChart({
               dominantBaseline="middle"
               fontSize={tooltipFontSize}
               fontWeight={600}
-              fill="#111111"
+              fill="#f4f1ea"
               fontFamily="Inter, sans-serif"
             >
               {tooltipContent.label}

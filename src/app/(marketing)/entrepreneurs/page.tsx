@@ -8,7 +8,7 @@ import { CorpusCommunicationRadar } from "./CorpusCommunicationRadar";
 import TraitScatterChart from "./TraitScatterChart";
 import BeeSwarmChart from "./BeeSwarmChart";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { PageHeader, Section, EndCta } from "@/components/swiss/Swiss";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +55,6 @@ export default async function EntrepreneurExplorerPage() {
       value: composureTrait ? `${Math.round(composureTrait.mean * 100)}%` : "\u2014",
       traitName: "Composure Under Pressure",
       detail: "Composure under pressure stays high across the corpus.",
-      tone: "primary",
     },
     {
       eyebrow: "Widest spread",
@@ -64,255 +63,185 @@ export default async function EntrepreneurExplorerPage() {
         : "\u2014",
       traitName: "Formality",
       detail: "Formality is where founder styles split most sharply.",
-      tone: "secondary",
     },
   ];
 
   return (
-    <main id="main-content" className="relative min-h-screen bg-bg-base">
-      {/* Hero */}
-      <section className="relative px-6 pt-24 pb-16 md:pt-32 md:pb-24">
-        {/* Background glow */}
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_30%,rgb(77_163_255/0.08),transparent)]"
-          aria-hidden="true"
-        />
-
-        <div className="relative mx-auto max-w-7xl text-center">
-          <p className="text-xs uppercase tracking-[0.4em] text-text-secondary/60 mb-4">
-            Builder&apos;s Quotient Research
-          </p>
-          <h1
-            className="text-[clamp(2.25rem,5vw,3.75rem)] font-bold leading-[1.1] tracking-tight bg-gradient-to-br from-ink via-ink to-ink/80 bg-clip-text text-transparent pb-2"
-            style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-          >
-            How do the world&apos;s top entrepreneurs think?
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-text-secondary/90 font-light leading-relaxed">
+    <main id="main-content">
+      <PageHeader
+        eyebrow="Builder’s Quotient Research"
+        title={<>How do the world&apos;s top entrepreneurs think?</>}
+        lede={
+          <>
             We analyzed {stats.totalEntrepreneurs} entrepreneurs across{" "}
-            {stats.totalIndustries} industries to map how they reason and
-            create.
-          </p>
-
-          {/* Stat cards */}
-          <div className="mx-auto mt-12 grid max-w-4xl grid-cols-2 gap-4 md:grid-cols-4">
-            <StatCard
-              value={`${stats.pctInsightDriven}%`}
-              label="are insight-driven creators"
-              sublabel="Lead with intuition, not validation"
-            />
-            <StatCard
-              value="#1 differentiator"
-              label={stats.topDifferentiator}
-              sublabel="The skill that separates entrepreneurs most"
-            />
-            <StatCard
-              value={`${stats.dominantArchetype.pct}%`}
-              label={`are ${stats.dominantArchetype.name.replace(/^The /, "")}s`}
-              sublabel="Nearly half share one archetype"
-            />
-            <StatCard
-              value={`${stats.emptyArchetypeCount} archetypes`}
-              label="have zero entrepreneurs"
-              sublabel="What kind is almost unheard of?"
-            />
-          </div>
-
-          {/* CTA */}
-          <div className="mt-10">
-            <Button as={Link} href="/assess/overview" size="lg" variant="outline" className="rounded-full">
-              Discover your archetype
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* 4x4 Grid */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-7xl">
-          <h2
-            className="text-[clamp(1.5rem,1.15rem+1.75vw,2.25rem)] font-bold text-text-primary mb-2 text-center"
-            style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+            {stats.totalIndustries} industries to map how they reason and create.
+          </>
+        }
+      >
+        <div className="mt-[clamp(28px,3.5vw,44px)]">
+          <Link
+            href="/assess/overview"
+            className="inline-flex h-12 items-center gap-2.5 whitespace-nowrap border border-ink px-[22px] text-[15px] font-semibold text-ink transition-colors hover:bg-ink hover:text-paper"
           >
-            16 Archetypes
-          </h2>
-          <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
-            Our framework organizes entrepreneurial thinking into 16 archetypes based
-            on practical intelligence and creative intelligence profiles.
-          </p>
-          <ArchetypeGrid cells={gridCells} maxCount={maxCount} />
-
-          <div className="mt-8 text-center">
-            <Link
-              href="/entrepreneurs/directory"
-              className="inline-flex items-center gap-1.5 py-3 text-sm text-primary/80 hover:text-primary transition-colors"
-            >
-              Browse all {stats.totalEntrepreneurs} entrepreneurs
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </Link>
-          </div>
+            Discover your archetype <span aria-hidden="true">&rarr;</span>
+          </Link>
         </div>
-      </section>
+      </PageHeader>
 
-      {/* Scatter Plots */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-7xl">
-          <h2
-            className="text-[clamp(1.5rem,1.15rem+1.75vw,2.25rem)] font-bold text-text-primary mb-2 text-center"
-            style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+      <Section n="01" label="Findings">
+        <div className="border-t border-ink">
+          <StatCard
+            value={`${stats.pctInsightDriven}%`}
+            label="are insight-driven creators"
+            sublabel="Lead with intuition, not validation"
+          />
+          <StatCard
+            value="#1 differentiator"
+            label={stats.topDifferentiator}
+            sublabel="The skill that separates entrepreneurs most"
+          />
+          <StatCard
+            value={`${stats.dominantArchetype.pct}%`}
+            label={`are ${stats.dominantArchetype.name.replace(/^The /, "")}s`}
+            sublabel="Nearly half share one archetype"
+          />
+          <StatCard
+            value={`${stats.emptyArchetypeCount} archetypes`}
+            label="have zero entrepreneurs"
+            sublabel="What kind is almost unheard of?"
+          />
+        </div>
+      </Section>
+
+      <Section
+        n="02"
+        label="Archetypes"
+        title="16 Archetypes"
+        lede="Our framework organizes entrepreneurial thinking into 16 archetypes based on practical intelligence and creative intelligence profiles."
+      >
+        <ArchetypeGrid cells={gridCells} maxCount={maxCount} />
+
+        <div className="mt-8">
+          <Link
+            href="/entrepreneurs/directory"
+            className="inline-flex items-center gap-2 border-b border-ink py-1 text-[15px] font-semibold transition-colors hover:border-vermilion hover:text-vermilion"
           >
-            The Data Behind the Archetypes
-          </h2>
-          <p className="hidden md:block text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
-            Each dot is a real entrepreneur, positioned by the two strongest
-            axes within practical and creative intelligence. Clusters reveal
-            the archetypes. Hover to see who they are; click to explore a
-            profile.
-          </p>
-          <p className="md:hidden text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
-            Each dot is a real entrepreneur, positioned by the two strongest
-            axes within practical and creative intelligence. Clusters reveal
-            the archetypes. Tap a dot to see who they are, then tap the arrow
-            to open their profile.
-          </p>
-          <ExplorerScatterPlots dots={scatterDots} />
+            Browse all {stats.totalEntrepreneurs} entrepreneurs
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
         </div>
-      </section>
+      </Section>
 
-      {/* Corpus Communication Style */}
+      <Section
+        n="03"
+        label="The data"
+        title="The Data Behind the Archetypes"
+        lede={
+          <>
+            <span className="hidden md:inline">
+              Each dot is a real entrepreneur, positioned by the two strongest
+              axes within practical and creative intelligence. Clusters reveal
+              the archetypes. Hover to see who they are; click to explore a
+              profile.
+            </span>
+            <span className="md:hidden">
+              Each dot is a real entrepreneur, positioned by the two strongest
+              axes within practical and creative intelligence. Clusters reveal
+              the archetypes. Tap a dot to see who they are, then tap the arrow
+              to open their profile.
+            </span>
+          </>
+        }
+      >
+        <ExplorerScatterPlots dots={scatterDots} />
+      </Section>
+
       {corpusAvgPersonalityVector && personalityTraitStats && (
-        <section className="px-6 py-16 md:py-24">
-          <div className="mx-auto max-w-7xl">
-            <h2
-              className="text-[clamp(1.5rem,1.15rem+1.75vw,2.25rem)] font-bold text-text-primary mb-2 text-center"
-              style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-            >
-              How Entrepreneurs Communicate
-            </h2>
-            <p className="text-text-secondary/70 text-center mb-10 max-w-xl mx-auto">
+        <Section
+          n="04"
+          label="Communication"
+          title="How Entrepreneurs Communicate"
+          lede={
+            <>
               Video analysis of {stats.totalEntrepreneurs}&nbsp;entrepreneurs reveals
               what&apos;s universal and what&apos;s polarizing in how they present.
-            </p>
-
-            {/* Stat highlights */}
-            <div className="mx-auto mb-24 grid max-w-md grid-cols-2 gap-4">
-              {communicationHighlights.map((highlight) => (
-                <div key={highlight.traitName} className="text-center">
-                  <p
-                    className={`text-[clamp(1.5rem,1.25rem+0.8vw,2rem)] font-semibold tracking-tight ${
-                      highlight.tone === "primary"
-                        ? "text-primary"
-                        : highlight.tone === "secondary"
-                          ? "text-secondary"
-                          : "text-text-primary"
-                    }`}
-                    style={{
-                      fontFamily: "'Inter Tight', Inter, sans-serif",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {highlight.value}
-                  </p>
-                  <p
-                    className="mt-1 text-base font-bold text-text-primary"
-                    style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                  >
-                    {highlight.traitName}
-                  </p>
-                  <p className="mt-1 text-sm leading-5 text-text-secondary/80">
-                    {highlight.detail}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Charts stacked vertically */}
-            <div className="mx-auto" style={{ maxWidth: "min(100%, 48rem)" }}>
-              <div>
-                <p
-                  className="text-sm font-medium text-text-secondary/70 text-center mb-2"
-                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                >
-                  Entrepreneurial Average — Communication Profile
+            </>
+          }
+        >
+          {/* Stat highlights: big numerals on ink rules */}
+          <div className="grid grid-cols-1 border-t border-ink md:grid-cols-2 md:gap-x-6">
+            {communicationHighlights.map((highlight) => (
+              <div key={highlight.traitName} className="border-b border-ink pt-4 pb-5">
+                <p className="text-sm text-[#8c8a84]">{highlight.eyebrow}</p>
+                <p className="mt-4 text-[clamp(52px,7vw,88px)] font-semibold leading-[0.85] tracking-[-0.055em] tabular-nums">
+                  {highlight.value}
                 </p>
-                <p className="text-sm text-text-secondary/60 text-center mb-2 max-w-md mx-auto">
-                  The shape of a typical founder across 20 behavioral
-                  dimensions, averaged from video interviews.
+                <p className="mt-4 text-[17px] font-semibold">{highlight.traitName}</p>
+                <p className="mt-1 max-w-[40ch] text-sm leading-5 text-text-secondary">
+                  {highlight.detail}
                 </p>
-                <CorpusCommunicationRadar
-                  corpusAvgPersonalityVector={corpusAvgPersonalityVector}
-                />
               </div>
-
-              <div className="mt-24">
-                <p
-                  className="text-sm font-medium text-text-secondary/70 text-center mb-2"
-                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                >
-                  Where Founders Agree &amp; Diverge
-                </p>
-                <p className="text-sm text-text-secondary/60 text-center mb-6 max-w-md mx-auto">
-                  Each dot is one trait. High on the chart means founders vary
-                  widely; far right means the group scores high on average.
-                </p>
-                <TraitScatterChart traitStats={personalityTraitStats} />
-              </div>
-
-              {personalityVectors && (
-                <div className="mt-24">
-                  <p
-                    className="text-sm font-medium text-text-secondary/70 text-center mb-2"
-                    style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                  >
-                    Five Traits, {stats.totalEntrepreneurs}&nbsp;Founders
-                  </p>
-                  <p className="text-sm text-text-secondary/60 text-center mb-6 max-w-md mx-auto">
-                    Each dot is one entrepreneur. On some traits founders
-                    converge on a shared baseline; on others they spread wide
-                    open&mdash;style over consensus.
-                  </p>
-                  <BeeSwarmChart
-                    personalityVectors={personalityVectors}
-                    traitStats={personalityTraitStats}
-                  />
-                </div>
-              )}
-            </div>
+            ))}
           </div>
-        </section>
+
+          <ChartBlock
+            title="Entrepreneurial Average — Communication Profile"
+            description="The shape of a typical founder across 20 behavioral dimensions, averaged from video interviews."
+          >
+            <CorpusCommunicationRadar
+              corpusAvgPersonalityVector={corpusAvgPersonalityVector}
+            />
+          </ChartBlock>
+
+          <ChartBlock
+            title="Where Founders Agree & Diverge"
+            description="Each dot is one trait. High on the chart means founders vary widely; far right means the group scores high on average."
+          >
+            <TraitScatterChart traitStats={personalityTraitStats} />
+          </ChartBlock>
+
+          {personalityVectors && (
+            <ChartBlock
+              title={<>Five Traits, {stats.totalEntrepreneurs}&nbsp;Founders</>}
+              description="Each dot is one entrepreneur. On some traits founders converge on a shared baseline; on others they spread wide open—style over consensus."
+            >
+              <BeeSwarmChart
+                personalityVectors={personalityVectors}
+                traitStats={personalityTraitStats}
+              />
+            </ChartBlock>
+          )}
+        </Section>
       )}
 
-      {/* Bottom CTA */}
-      <section className="relative px-6 py-24 md:py-32">
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_60%,rgb(77_163_255/0.08),transparent)]"
-          aria-hidden="true"
-        />
-        <div className="relative mx-auto max-w-2xl text-center">
-          <h2
-            className="text-[clamp(1.875rem,4vw,3rem)] font-bold tracking-tight bg-gradient-to-br from-ink to-ink bg-clip-text text-transparent pb-1"
-            style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-          >
-            Which archetype are you?
-          </h2>
-          <p className="mt-4 text-lg text-text-secondary/90 font-light">
-            Take the Builder&apos;s Quotient assessment and find out.
-          </p>
-          <div className="mt-10 group relative inline-flex items-center justify-center">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary/30 to-secondary/30 blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-            <Button
-              as={Link}
-              href="/assess/overview"
-              size="lg"
-              className="relative rounded-full border border-ink/10 bg-ink/5 px-12 py-6 text-lg uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-ink/10 hover:scale-105 active:scale-95"
-            >
-              Begin Assessment
-            </Button>
-          </div>
-        </div>
-      </section>
+      <EndCta
+        title="Which archetype are you?"
+        body="Take the Builder’s Quotient assessment and find out."
+        cta="Begin Assessment"
+        href="/assess/overview"
+      />
     </main>
+  );
+}
+
+function ChartBlock({
+  title,
+  description,
+  children,
+}: {
+  title: React.ReactNode;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mt-[clamp(56px,7vw,88px)] border-t border-ink pt-5">
+      <h3 className="text-[clamp(20px,2vw,24px)] font-semibold leading-tight tracking-[-0.025em]">
+        {title}
+      </h3>
+      <p className="mt-2 mb-8 max-w-[56ch] text-[15px] leading-[1.5] text-text-secondary">
+        {description}
+      </p>
+      <div className="min-w-0">{children}</div>
+    </div>
   );
 }

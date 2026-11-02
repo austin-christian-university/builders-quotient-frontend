@@ -8,6 +8,10 @@ interface ArchetypeBadgeProps {
   className?: string;
 }
 
+/**
+ * Swiss Ink archetype label: a square ink-ruled tag, name in ink, tagline in
+ * grey. No pill, no blur.
+ */
 export function ArchetypeBadge({
   archetypeKey,
   name,
@@ -17,18 +21,11 @@ export function ArchetypeBadge({
 }: ArchetypeBadgeProps) {
   const content = (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border border-border-glass bg-ink/5 px-4 py-1.5 backdrop-blur-sm ${className}`}
+      className={`inline-flex items-baseline gap-3 border border-ink px-3 py-1.5 group-hover:bg-ink ${className}`}
     >
-      <span
-        className="text-sm font-semibold text-text-primary"
-        style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-      >
-        {name}
-      </span>
+      <span className="text-sm font-semibold tracking-[-0.01em] text-ink group-hover:text-paper">{name}</span>
       {tagline && (
-        <span className="text-xs text-text-secondary hidden sm:inline">
-          {tagline}
-        </span>
+        <span className="hidden text-sm text-[#8c8a84] group-hover:text-[#bdbab2] sm:inline">{tagline}</span>
       )}
     </span>
   );
@@ -37,7 +34,7 @@ export function ArchetypeBadge({
     return (
       <Link
         href={`/entrepreneurs/archetype/${archetypeKey}`}
-        className="transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base rounded-full"
+        className="group inline-block focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ink"
       >
         {content}
       </Link>

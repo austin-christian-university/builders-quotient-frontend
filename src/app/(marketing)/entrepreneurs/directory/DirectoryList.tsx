@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useId } from "react";
 import { ARCHETYPES } from "@/lib/schemas/entrepreneurs";
 import { EntrepreneurListItem } from "./EntrepreneurListItem";
 
@@ -21,11 +21,16 @@ const sortedArchetypes = [...ARCHETYPES].sort((a, b) =>
   a.name.localeCompare(b.name)
 );
 
+const fieldClass =
+  "h-12 w-full rounded-none border border-ink bg-paper px-3 text-base text-ink placeholder:text-[#8c8a84] focus:outline-2 focus:outline-offset-2 focus:outline-ink";
+
 export function DirectoryList({
   entrepreneurs,
 }: DirectoryListProps) {
   const [search, setSearch] = useState("");
   const [archetypeFilter, setArchetypeFilter] = useState("");
+  const searchId = useId();
+  const filterId = useId();
 
   const handleSearchKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -49,88 +54,89 @@ export function DirectoryList({
   return (
     <div>
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-8">
-        <div className="relative flex-1">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary/40 pointer-events-none"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_16rem]">
+        <div>
+          <label htmlFor={searchId} className="mb-2 block text-sm text-[#8c8a84]">
+            Search by name
+          </label>
           <input
-            type="text"
+            id={searchId}
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             placeholder="Search by name..."
-            className="w-full rounded-lg border border-border-glass bg-bg-elevated px-4 py-2.5 pl-10 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary/50 transition-colors"
+            className={fieldClass}
             autoComplete="off"
             spellCheck={false}
           />
         </div>
 
-        <select
-          value={archetypeFilter}
-          onChange={(e) => setArchetypeFilter(e.target.value)}
-          className="rounded-lg border border-border-glass bg-bg-elevated px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary/50 transition-colors sm:w-56 appearance-none cursor-pointer"
-          aria-label="Filter by archetype"
-        >
-          <option value="">All Archetypes</option>
-          {sortedArchetypes.map((a) => (
-            <option key={a.key} value={a.key}>
-              {a.name}
-            </option>
-          ))}
-        </select>
+        <div>
+          <label htmlFor={filterId} className="mb-2 block text-sm text-[#8c8a84]">
+            Filter by archetype
+          </label>
+          <div className="relative">
+            <select
+              id={filterId}
+              value={archetypeFilter}
+              onChange={(e) => setArchetypeFilter(e.target.value)}
+              className={`${fieldClass} cursor-pointer appearance-none pr-9`}
+            >
+              <option value="">All Archetypes</option>
+              {sortedArchetypes.map((a) => (
+                <option key={a.key} value={a.key}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+            <span
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink"
+              aria-hidden="true"
+            >
+              ↓
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Result count */}
       <p
-        className="text-xs text-text-secondary/50 mb-4"
-        style={{ fontVariantNumeric: "tabular-nums" }}
+        className="mb-3 text-sm text-[#8c8a84] tabular-nums"
         aria-live="polite"
       >
-        Showing {filtered.length} of {entrepreneurs.length} entrepreneurs
+        Showing <b className="font-semibold text-ink">{filtered.length}</b> of {entrepreneurs.length} entrepreneurs
       </p>
 
       {/* Results */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-border-glass bg-bg-elevated px-6 py-16 text-center">
-          <p className="text-text-secondary/70 text-sm">
-            No entrepreneurs match your search.
-          </p>
+        <div className="border-t border-ink py-12">
+          <p className="text-lg text-ink">No entrepreneurs match your search.</p>
           <button
+            type="button"
             onClick={() => {
               setSearch("");
               setArchetypeFilter("");
             }}
-            className="mt-3 text-xs text-primary hover:text-primary/80 transition-colors"
+            className="mt-4 text-sm font-semibold text-ink underline decoration-vermilion decoration-2 underline-offset-4 hover:text-vermilion focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ink"
           >
             Clear filters
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <ul className="border-t border-ink">
           {filtered.map((e) => (
-            <EntrepreneurListItem
-              key={e.id}
-              id={e.id}
-              name={e.name}
-              archetypeName={e.archetype_name}
-              archetypeTagline={e.archetype_tagline}
-              industries={e.industries}
-            />
+            <li key={e.id}>
+              <EntrepreneurListItem
+                id={e.id}
+                name={e.name}
+                archetypeName={e.archetype_name}
+                archetypeTagline={e.archetype_tagline}
+                industries={e.industries}
+              />
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

@@ -28,29 +28,10 @@ const SIZE = 400;
 const PADDING = 48;
 const PLOT_SIZE = SIZE - PADDING * 2;
 
-// Archetype key -> color mapping (derived from primary blue + secondary gold)
-const ARCHETYPE_COLORS: Record<string, string> = {
-  analytical_exploratory__insight_market: "#e8452c",
-  analytical_exploratory__insight_process: "#d93d25",
-  analytical_exploratory__validation_market: "#3d8edf",
-  analytical_exploratory__validation_process: "#2d79bf",
-  analytical_decisive__insight_market: "#111111",
-  analytical_decisive__insight_process: "#2a2a2a",
-  analytical_decisive__validation_market: "#d4a63e",
-  analytical_decisive__validation_process: "#bf9333",
-  interpersonal_exploratory__insight_market: "#34d399",
-  interpersonal_exploratory__insight_process: "#5de0b3",
-  interpersonal_exploratory__validation_market: "#2ab885",
-  interpersonal_exploratory__validation_process: "#209d6e",
-  interpersonal_decisive__insight_market: "#f87171",
-  interpersonal_decisive__insight_process: "#fb9a9a",
-  interpersonal_decisive__validation_market: "#e05555",
-  interpersonal_decisive__validation_process: "#c94040",
-};
-
-function getColor(archetypeKey: string): string {
-  return ARCHETYPE_COLORS[archetypeKey] ?? "#e8452c";
-}
+// Swiss Ink: dots are ink; position (not colour) carries the archetype clusters.
+// Vermilion is reserved for the active / highlighted entrepreneur.
+const DOT_COLOR = "#111111";
+const ACTIVE_COLOR = "#e8452c";
 
 /** Map a mouse/touch event to SVG coordinates. */
 function svgPoint(
@@ -144,12 +125,7 @@ export function ScatterPlot({
 
   return (
     <div className={className}>
-      <p
-        className="text-xs uppercase tracking-[0.2em] text-text-secondary/60 mb-2 text-center"
-        style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-      >
-        {title}
-      </p>
+      <p className="mb-3 border-b border-ink pb-2 text-sm font-semibold">{title}</p>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${SIZE} ${SIZE}`}
@@ -163,8 +139,9 @@ export function ScatterPlot({
           y={PADDING}
           width={PLOT_SIZE}
           height={PLOT_SIZE}
-          fill="transparent"
-          rx={8}
+          fill="none"
+          stroke="#d9d5cb"
+          strokeWidth={1}
         />
 
         {/* Axis lines */}
@@ -173,7 +150,7 @@ export function ScatterPlot({
           y1={PADDING}
           x2={cx}
           y2={SIZE - PADDING}
-          stroke="rgba(17,17,17,0.08)"
+          stroke="#c8c4ba"
           strokeWidth={1}
         />
         <line
@@ -181,12 +158,12 @@ export function ScatterPlot({
           y1={cy}
           x2={SIZE - PADDING}
           y2={cy}
-          stroke="rgba(17,17,17,0.08)"
+          stroke="#c8c4ba"
           strokeWidth={1}
         />
 
         {/* Axis labels */}
-        <text x={PADDING + 4} y={cy - 6} fontSize={13} fill="#6b6963" opacity={0.7}>
+        <text x={PADDING + 4} y={cy - 6} fontSize={13} fill="#6b6963">
           {xLabelNegative}
         </text>
         <text
@@ -194,7 +171,6 @@ export function ScatterPlot({
           y={cy - 6}
           fontSize={13}
           fill="#6b6963"
-          opacity={0.7}
           textAnchor="end"
         >
           {xLabelPositive}
@@ -204,7 +180,6 @@ export function ScatterPlot({
           y={PADDING + 14}
           fontSize={13}
           fill="#6b6963"
-          opacity={0.7}
         >
           {yLabelPositive}
         </text>
@@ -213,7 +188,6 @@ export function ScatterPlot({
           y={SIZE - PADDING - 6}
           fontSize={13}
           fill="#6b6963"
-          opacity={0.7}
         >
           {yLabelNegative}
         </text>
@@ -224,7 +198,7 @@ export function ScatterPlot({
           const sy = toSvgY(dot.y);
           const isHighlighted = dot.id === highlightId;
           const isActive = dot.id === activeId;
-          const color = getColor(dot.archetypeKey);
+          const color = isHighlighted || isActive ? ACTIVE_COLOR : DOT_COLOR;
 
           return (
             <g key={dot.id}>
@@ -238,7 +212,7 @@ export function ScatterPlot({
                 fill={color}
                 stroke={isHighlighted ? "#111111" : "none"}
                 strokeWidth={isHighlighted ? 2 : 0}
-                opacity={isHighlighted || isActive ? 1 : 0.6}
+                opacity={isHighlighted || isActive ? 1 : 0.45}
                 style={{ transition: "r 0.15s ease, opacity 0.15s ease", pointerEvents: "none" }}
               />
               <circle
@@ -298,9 +272,8 @@ export function ScatterPlot({
                 y={pillY}
                 width={pillW}
                 height={pillH}
-                rx={12}
-                fill="rgba(10,10,12,0.94)"
-                stroke="rgba(17,17,17,0.18)"
+                fill="#111111"
+                stroke="#111111"
                 strokeWidth={1}
                 style={{ pointerEvents: "none" }}
               />
@@ -309,7 +282,7 @@ export function ScatterPlot({
                 y={pillY + pillH / 2 + 0.5}
                 dominantBaseline="middle"
                 fontSize={11}
-                fill="#111111"
+                fill="#f4f1ea"
                 fontWeight={500}
                 fontFamily="Inter, sans-serif"
                 style={{ pointerEvents: "none" }}
@@ -322,7 +295,7 @@ export function ScatterPlot({
                 y1={pillY + 5}
                 x2={pillX + pillW - arrowBoxW}
                 y2={pillY + pillH - 5}
-                stroke="rgba(17,17,17,0.15)"
+                stroke="rgba(244,241,234,0.3)"
                 strokeWidth={1}
                 style={{ pointerEvents: "none" }}
               />
@@ -341,7 +314,6 @@ export function ScatterPlot({
                   y={pillY}
                   width={arrowBoxW}
                   height={pillH}
-                  rx={12}
                   fill="transparent"
                 />
                 <g

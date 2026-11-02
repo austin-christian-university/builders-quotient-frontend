@@ -10,6 +10,25 @@ import {
   CI_CANONICAL_CATEGORIES,
 } from "@/lib/assessment/scoring-categories";
 import type { CorpusMaxScores } from "@/lib/schemas/entrepreneurs";
+import { Section } from "@/components/swiss/Swiss";
+
+const INK = "#111111";
+const VERMILION = "#e8452c";
+
+function ChartLegend({ color, archetypeName }: { color: string; archetypeName: string }) {
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Chart legend">
+      <div className="flex items-center gap-2">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
+        <span className="text-sm text-text-secondary">This Entrepreneur</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="h-2.5 w-2.5 rounded-full border border-[#8c8a84] bg-[#c8c4ba]/40" aria-hidden="true" />
+        <span className="text-sm text-text-secondary">{archetypeName} Average</span>
+      </div>
+    </div>
+  );
+}
 
 interface PracticalIntelligenceSectionProps {
   piScores: Record<string, number>;
@@ -18,9 +37,11 @@ interface PracticalIntelligenceSectionProps {
   entrepreneurId: string;
   allEntrepreneurs: { id: string; pi_d1_score: number; pi_d2_score: number; ci_d1_score: number; ci_d2_score: number }[];
   archetypeName: string;
+  n?: string;
 }
 
 export function PracticalIntelligenceSection({
+  n,
   piScores,
   archetypeAvgPiScores,
   corpusMax,
@@ -47,40 +68,29 @@ export function PracticalIntelligenceSection({
   }));
 
   return (
-    <section className="px-6 py-12 md:py-16">
-      <div className="mx-auto max-w-4xl">
-        <p
-          className="text-xs uppercase tracking-[0.2em] text-text-secondary/60 mb-2 text-center"
-          style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-        >
-          Practical Intelligence
-        </p>
-        <p className="text-text-secondary/50 text-sm text-center mb-8">
-          How this entrepreneur approaches real-world problem solving — from diagnosing situations to planning actions
-        </p>
-        <div ref={containerRef} className="w-full max-w-lg mx-auto min-h-[300px]">
-          <RadarChart
-            categories={piLabels}
-            studentScores={piStudent}
-            corpusScores={piCorpus}
-            maxValue={piChartMax}
-            accentColor="#e8452c"
-            onCategoryHover={handleHover}
-            activeCategoryIndex={activeIndex}
-            containerWidth={containerWidth}
-          />
-        </div>
-        <div className="flex items-center justify-center gap-6 mt-3">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-primary" aria-hidden="true" />
-            <span className="text-xs text-text-secondary">This Entrepreneur</span>
+    <Section
+      n={n}
+      label="Problem solving"
+      title="Practical Intelligence"
+      lede="How this entrepreneur approaches real-world problem solving — from diagnosing situations to planning actions"
+    >
+      <div className="grid grid-cols-1 gap-x-6 gap-y-12 lg:grid-cols-9">
+        <div className="min-w-0 lg:col-span-5">
+          <div ref={containerRef} className="w-full max-w-lg min-h-[300px]">
+            <RadarChart
+              categories={piLabels}
+              studentScores={piStudent}
+              corpusScores={piCorpus}
+              maxValue={piChartMax}
+              accentColor={VERMILION}
+              onCategoryHover={handleHover}
+              activeCategoryIndex={activeIndex}
+              containerWidth={containerWidth}
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border border-ink/30 bg-ink/5" aria-hidden="true" />
-            <span className="text-xs text-text-secondary">{archetypeName} Average</span>
-          </div>
+          <ChartLegend color={VERMILION} archetypeName={archetypeName} />
         </div>
-        <div className="mt-10 max-w-md mx-auto">
+        <div className="min-w-0 max-w-md border-t border-border pt-6 lg:col-span-4 lg:border-t-0 lg:pt-0">
           <ScatterPlot
             dots={scatterDots}
             title="Practical Intelligence"
@@ -92,7 +102,7 @@ export function PracticalIntelligenceSection({
           />
         </div>
       </div>
-    </section>
+    </Section>
   );
 }
 
@@ -103,9 +113,11 @@ interface CreativeIntelligenceSectionProps {
   entrepreneurId: string;
   allEntrepreneurs: { id: string; pi_d1_score: number; pi_d2_score: number; ci_d1_score: number; ci_d2_score: number }[];
   archetypeName: string;
+  n?: string;
 }
 
 export function CreativeIntelligenceSection({
+  n,
   ciScores,
   archetypeAvgCiScores,
   corpusMax,
@@ -132,40 +144,29 @@ export function CreativeIntelligenceSection({
   }));
 
   return (
-    <section className="px-6 py-12 md:py-16">
-      <div className="mx-auto max-w-4xl">
-        <p
-          className="text-xs uppercase tracking-[0.2em] text-text-secondary/60 mb-2 text-center"
-          style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-        >
-          Creative Intelligence
-        </p>
-        <p className="text-text-secondary/50 text-sm text-center mb-8">
-          How this entrepreneur spots opportunities and generates creative solutions — from pattern recognition to vision
-        </p>
-        <div ref={containerRef} className="w-full max-w-lg mx-auto min-h-[300px]">
-          <RadarChart
-            categories={ciLabels}
-            studentScores={ciStudent}
-            corpusScores={ciCorpus}
-            maxValue={ciChartMax}
-            accentColor="#111111"
-            onCategoryHover={handleHover}
-            activeCategoryIndex={activeIndex}
-            containerWidth={containerWidth}
-          />
-        </div>
-        <div className="flex items-center justify-center gap-6 mt-3">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-secondary" aria-hidden="true" />
-            <span className="text-xs text-text-secondary">This Entrepreneur</span>
+    <Section
+      n={n}
+      label="Opportunity"
+      title="Creative Intelligence"
+      lede="How this entrepreneur spots opportunities and generates creative solutions — from pattern recognition to vision"
+    >
+      <div className="grid grid-cols-1 gap-x-6 gap-y-12 lg:grid-cols-9">
+        <div className="min-w-0 lg:col-span-5">
+          <div ref={containerRef} className="w-full max-w-lg min-h-[300px]">
+            <RadarChart
+              categories={ciLabels}
+              studentScores={ciStudent}
+              corpusScores={ciCorpus}
+              maxValue={ciChartMax}
+              accentColor={INK}
+              onCategoryHover={handleHover}
+              activeCategoryIndex={activeIndex}
+              containerWidth={containerWidth}
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border border-ink/30 bg-ink/5" aria-hidden="true" />
-            <span className="text-xs text-text-secondary">{archetypeName} Average</span>
-          </div>
+          <ChartLegend color={INK} archetypeName={archetypeName} />
         </div>
-        <div className="mt-10 max-w-md mx-auto">
+        <div className="min-w-0 max-w-md border-t border-border pt-6 lg:col-span-4 lg:border-t-0 lg:pt-0">
           <ScatterPlot
             dots={scatterDots}
             title="Creative Intelligence"
@@ -177,7 +178,7 @@ export function CreativeIntelligenceSection({
           />
         </div>
       </div>
-    </section>
+    </Section>
   );
 }
 

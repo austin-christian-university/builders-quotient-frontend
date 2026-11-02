@@ -7,43 +7,43 @@ interface EntrepreneurCardProps {
   archetypeName?: string;
 }
 
+/**
+ * One row of a Swiss Ink typographic index: name, optional archetype, industry
+ * tags as plain grey text, hairline rule below. Render inside a list whose
+ * container carries the top ink rule.
+ */
 export function EntrepreneurCard({
   id,
   name,
   industries,
   archetypeName,
 }: EntrepreneurCardProps) {
+  const tags = industries && industries.length > 0 ? industries.slice(0, 4) : [];
+  const extra = industries && industries.length > 4 ? industries.length - 4 : 0;
+
   return (
     <Link
       href={`/entrepreneurs/${id}`}
-      className="group rounded-2xl border border-border-glass bg-bg-elevated p-5 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-ink/20 hover:shadow-[0_0_24px_rgb(77_163_255/0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+      className="group grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-1 border-b border-border py-4 hover:bg-ink/[0.03] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_auto]"
     >
-      <p
-        className="text-base font-semibold text-text-primary group-hover:text-ink transition-colors"
-        style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-      >
+      <span className="min-w-0 text-lg font-semibold leading-tight tracking-[-0.02em] text-ink">
         {name}
-      </p>
-      {archetypeName && (
-        <p className="mt-1 text-xs text-primary/80">{archetypeName}</p>
-      )}
-      {industries && industries.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {industries.slice(0, 4).map((industry) => (
-            <span
-              key={industry}
-              className="rounded-sm bg-ink/5 px-2 py-0.5 text-xs text-text-secondary"
-            >
-              {industry}
-            </span>
-          ))}
-          {industries.length > 4 && (
-            <span className="px-1 py-0.5 text-xs text-text-secondary/50">
-              +{industries.length - 4}
-            </span>
-          )}
-        </div>
-      )}
+        {archetypeName && (
+          <span className="ml-2 text-sm font-normal tracking-normal text-[#8c8a84]">{archetypeName}</span>
+        )}
+      </span>
+      <span
+        className="col-start-1 row-start-2 min-w-0 text-sm text-text-secondary md:col-start-2 md:row-start-1"
+      >
+        {tags.join(", ")}
+        {extra > 0 && <span className="text-[#8c8a84]"> +{extra}</span>}
+      </span>
+      <span
+        className="col-start-2 row-start-1 text-ink transition-transform group-hover:translate-x-1 group-hover:text-vermilion md:col-start-3"
+        aria-hidden="true"
+      >
+        →
+      </span>
     </Link>
   );
 }

@@ -1,4 +1,5 @@
-import { Footer } from "@/components/layout/Footer";
+import { SiteNav } from "@/components/swiss/SiteNav";
+import { SiteFooter } from "@/components/swiss/SiteFooter";
 
 export default function MarketingLayout({
   children,
@@ -7,8 +8,9 @@ export default function MarketingLayout({
 }) {
   return (
     <>
+      <SiteNav />
       {children}
-      <Footer />
+      <SiteFooter />
     </>
   );
 }

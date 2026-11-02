@@ -26,12 +26,17 @@ interface BeeSwarmChartProps {
   }[];
 }
 
+// Swiss Ink: every row is labelled, so rows share one ink colour; the mean
+// marker is the single vermilion element.
+const DOT_COLOR = "#111111";
+const MEAN_COLOR = "#e8452c";
+
 const TRAITS = [
-  { key: "pv_06", index: 5, label: "Composure", color: "#e8452c" },
-  { key: "pv_17", index: 16, label: "Formality", color: "#111111" },
-  { key: "pv_18", index: 17, label: "Vulnerability", color: "#f28b82" },
-  { key: "pv_10", index: 9, label: "Humor", color: "#66d4a4" },
-  { key: "pv_16", index: 15, label: "Conciseness", color: "#b79cff" },
+  { key: "pv_06", index: 5, label: "Composure" },
+  { key: "pv_17", index: 16, label: "Formality" },
+  { key: "pv_18", index: 17, label: "Vulnerability" },
+  { key: "pv_10", index: 9, label: "Humor" },
+  { key: "pv_16", index: 15, label: "Conciseness" },
 ] as const;
 
 const ROW_START_Y = 62;
@@ -64,7 +69,7 @@ export default function BeeSwarmChart({
             width={X_RANGE}
             height={HEIGHT - 24 - MARGIN.bottom}
             fill="none"
-            stroke="rgba(17,17,17,0.1)"
+            stroke="#d9d5cb"
             strokeWidth={1}
           />
 
@@ -72,25 +77,23 @@ export default function BeeSwarmChart({
             x={X_MIN - 18}
             y={18}
             textAnchor="end"
-            fill="rgba(255,255,255,0.42)"
-            fontSize={12}
+            fill="#8c8a84"
+            fontSize={13}
             fontWeight={500}
             fontFamily="Inter Tight, Inter, sans-serif"
-            letterSpacing="0.22em"
           >
-            SELECTED TRAITS
+            Selected traits
           </text>
           <text
             x={WIDTH - 4}
             y={18}
             textAnchor="end"
-            fill="rgba(255,255,255,0.42)"
-            fontSize={12}
+            fill="#8c8a84"
+            fontSize={13}
             fontWeight={500}
             fontFamily="Inter Tight, Inter, sans-serif"
-            letterSpacing="0.22em"
           >
-            OBSERVED RANGE
+            Observed range
           </text>
 
           {ticks.map((tick) => {
@@ -140,8 +143,8 @@ export default function BeeSwarmChart({
                       cx={valueToX(value)}
                       cy={rowY + deterministicJitter(dotIndex, value)}
                       r={2.6}
-                      fill={trait.color}
-                      opacity={0.22 + (dotIndex % 5) * 0.05}
+                      fill={DOT_COLOR}
+                      opacity={0.14 + (dotIndex % 5) * 0.04}
                     />
                   );
                 })}
@@ -153,16 +156,16 @@ export default function BeeSwarmChart({
                       y1={rowY - JITTER_RANGE - 4}
                       x2={meanX}
                       y2={rowY + JITTER_RANGE + 4}
-                      stroke="rgba(255,255,255,0.5)"
-                      strokeWidth={1.1}
+                      stroke={MEAN_COLOR}
+                      strokeWidth={1.5}
                     />
                     <circle
                       cx={meanX}
                       cy={rowY}
                       r={4}
                       fill="transparent"
-                      stroke="rgba(255,255,255,0.68)"
-                      strokeWidth={1.2}
+                      stroke={MEAN_COLOR}
+                      strokeWidth={1.5}
                     />
                   </>
                 )}
@@ -171,8 +174,8 @@ export default function BeeSwarmChart({
                   x={WIDTH - 4}
                   y={rowY + 4}
                   textAnchor="end"
-                  fill={trait.color}
-                  fontSize={12}
+                  fill="#111111"
+                  fontSize={13}
                   fontWeight={600}
                   fontFamily="Inter Tight, Inter, sans-serif"
                 >
@@ -185,7 +188,7 @@ export default function BeeSwarmChart({
       </div>
 
       {/* Mobile: stacked strip cards, one per trait */}
-      <div className="md:hidden flex flex-col gap-3">
+      <div className="md:hidden flex flex-col border-t border-ink">
         {TRAITS.map((trait) => {
           const stat = statsByKey.get(trait.key);
           const meanX = stat ? mobileValueToX(stat.mean) : null;
@@ -193,7 +196,7 @@ export default function BeeSwarmChart({
           return (
             <div
               key={trait.key}
-              className="rounded-2xl border border-ink/10 bg-ink/[0.03] px-4 py-3 backdrop-blur-xl"
+              className="border-b border-border py-3"
               role="img"
               aria-label={`Distribution of ${trait.label} across entrepreneurs`}
             >
@@ -205,12 +208,8 @@ export default function BeeSwarmChart({
                   {trait.label}
                 </span>
                 <span
-                  className="rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tabular-nums"
-                  style={{
-                    color: trait.color,
-                    borderColor: `${trait.color}55`,
-                    fontFamily: "'Inter Tight', Inter, sans-serif",
-                  }}
+                  className="text-xs font-semibold tabular-nums"
+                  style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
                 >
                   {stat ? formatRange(stat.min, stat.max) : "\u2014"}
                 </span>
@@ -235,8 +234,8 @@ export default function BeeSwarmChart({
                         deterministicJitter(dotIndex, value, MOBILE_JITTER)
                       }
                       r={2.4}
-                      fill={trait.color}
-                      opacity={0.3 + (dotIndex % 5) * 0.05}
+                      fill={DOT_COLOR}
+                      opacity={0.18 + (dotIndex % 5) * 0.04}
                     />
                   );
                 })}
@@ -248,23 +247,23 @@ export default function BeeSwarmChart({
                       y1={6}
                       x2={meanX}
                       y2={MOBILE_STRIP_VIEWBOX_H - 6}
-                      stroke="rgba(255,255,255,0.55)"
-                      strokeWidth={1}
+                      stroke={MEAN_COLOR}
+                      strokeWidth={1.5}
                     />
                     <circle
                       cx={meanX}
                       cy={MOBILE_STRIP_CENTER_Y}
                       r={3.5}
                       fill="transparent"
-                      stroke="rgba(255,255,255,0.75)"
-                      strokeWidth={1.2}
+                      stroke={MEAN_COLOR}
+                      strokeWidth={1.5}
                     />
                   </>
                 )}
               </svg>
 
               <div
-                className="mt-1 flex justify-between text-[10px] tabular-nums text-text-secondary/60"
+                className="mt-1 flex justify-between text-[10px] tabular-nums text-text-secondary"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 <span>0%</span>
@@ -276,13 +275,13 @@ export default function BeeSwarmChart({
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-text-secondary/65">
+      <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-text-secondary">
         <div className="flex items-center gap-2">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-ink/60" />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-ink/50" />
           <span>Each dot is one entrepreneur</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-block h-3 w-px bg-ink/60" />
+          <span className="inline-block h-3 w-0.5 bg-vermilion" />
           <span>Mean marker</span>
         </div>
       </div>

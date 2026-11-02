@@ -13,11 +13,14 @@ interface CorpusCommunicationRadarProps {
 
 const ACCENT_COLOR = "#e8452c";
 
+// Swiss Ink: sectors are named on the chart itself, so they don't need their
+// own hues. Arcs, labels and dots are ink; the profile shape is the one
+// vermilion element.
 const SECTOR_COLORS: Record<string, string> = {
-  "Energy & Dynamism": "#5cc8ff",
-  "Confidence & Authority": "#e8452c",
-  "Warmth & Interpersonal": "#f28b82",
-  "Communication Style": "#b79cff",
+  "Energy & Dynamism": "#111111",
+  "Confidence & Authority": "#111111",
+  "Warmth & Interpersonal": "#111111",
+  "Communication Style": "#111111",
   "Self-Presentation": "#111111",
 };
 
@@ -70,7 +73,7 @@ export function CorpusCommunicationRadar({
   return (
     <div
       ref={containerRef}
-      className="mx-auto w-full max-w-md min-h-[300px]"
+      className="w-full max-w-md min-h-[300px]"
     >
       <RadarChart
         categories={categories}

@@ -10,6 +10,12 @@ interface ArchetypeGridProps {
   maxCount: number;
 }
 
+/**
+ * The 16 archetypes as a ruled 4x4 table: practical-intelligence styles down
+ * the side, creative-intelligence styles across the top. Square cells on
+ * hairlines; the count is a numeral, and the most-populated cell carries the
+ * page's one vermilion highlight.
+ */
 export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -20,10 +26,12 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
   }
 
   const anim = (delay: number) => ({
-    initial: prefersReducedMotion ? {} : { opacity: 0, scale: 0.95 },
-    animate: { opacity: 1, scale: 1 },
+    initial: prefersReducedMotion ? {} : { opacity: 0 },
+    animate: { opacity: 1 },
     transition: { duration: 0.4, delay, ease: [0.16, 1, 0.3, 1] as const },
   });
+
+  const isTop = (cell: ArchetypeGridCell) => maxCount > 0 && cell.count === maxCount;
 
   return (
     <>
@@ -32,83 +40,60 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
         <div
           role="region"
           aria-label="Archetype matrix: 4 practical-intelligence styles by 4 creative-intelligence styles"
-          className="w-full rounded-2xl"
+          className="w-full"
         >
-          <div className="grid grid-cols-[140px_repeat(4,1fr)] gap-2 mb-2">
-            <div />
+          <div className="grid grid-cols-[minmax(0,0.8fr)_repeat(4,minmax(0,1fr))] border-b border-ink">
+            <div aria-hidden="true" />
             {CI_STYLES.map((ci) => (
-              <div
-                key={ci.key}
-                className="text-center text-xs uppercase tracking-[0.15em] text-text-secondary/50 px-2 py-2"
-                style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-              >
+              <div key={ci.key} className="px-3 pb-3 text-sm font-semibold">
                 {ci.label}
               </div>
             ))}
           </div>
 
           {PI_STYLES.map((pi, rowIdx) => (
-            <div key={pi.key} className="grid grid-cols-[140px_repeat(4,1fr)] gap-2 mb-2">
-              <div
-                className="flex items-center text-xs uppercase tracking-[0.15em] text-text-secondary/50 pr-2"
-                style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-              >
-                {pi.label}
-              </div>
+            <div
+              key={pi.key}
+              className="grid grid-cols-[minmax(0,0.8fr)_repeat(4,minmax(0,1fr))] border-b border-border"
+            >
+              <div className="py-4 pr-3 text-sm font-semibold">{pi.label}</div>
 
               {CI_STYLES.map((ci, colIdx) => {
                 const key = `${pi.key}__${ci.key}`;
                 const cell = cellMap.get(key);
-                if (!cell) return <div key={key} />;
+                if (!cell) return <div key={key} className="border-l border-border" />;
 
-                const isEmpty = cell.count === 0;
-                const glowIntensity = isEmpty ? 0 : Math.max(0.03, (cell.count / maxCount) * 0.12);
-                const delay = prefersReducedMotion ? 0 : (rowIdx * 4 + colIdx) * 0.04;
+                const delay = prefersReducedMotion ? 0 : (rowIdx * 4 + colIdx) * 0.03;
 
-                if (isEmpty) {
+                if (cell.count === 0) {
                   return (
-                    <motion.div
-                      key={key}
-                      {...anim(delay)}
-                      className="rounded-2xl border border-border/50 bg-ink/[0.01] p-4 flex flex-col justify-center items-center text-center opacity-40"
-                    >
-                      <p
-                        className="text-sm font-semibold text-text-secondary/60"
-                        style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                      >
-                        {cell.archetype.name}
-                      </p>
-                      <p className="mt-1 text-xs text-text-secondary/45 leading-tight">
-                        No entrepreneurs found
-                      </p>
+                    <motion.div key={key} {...anim(delay)} className="border-l border-border p-3">
+                      <p className="text-sm font-semibold text-[#8c8a84]">{cell.archetype.name}</p>
+                      <p className="mt-1 text-xs leading-tight text-[#8c8a84]">No entrepreneurs found</p>
                     </motion.div>
                   );
                 }
 
                 return (
-                  <motion.div key={key} {...anim(delay)}>
+                  <motion.div key={key} {...anim(delay)} className="border-l border-border">
                     <Link
                       href={`/entrepreneurs/archetype/${cell.archetype.key}`}
-                      className="block rounded-2xl border border-border-glass bg-bg-elevated p-4 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-ink/20 hover:shadow-[0_0_24px_rgb(77_163_255/0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base h-full"
-                      style={{
-                        boxShadow: `inset 0 0 60px rgba(232,69,44,${glowIntensity})`,
-                      }}
+                      className="flex h-full flex-col p-3 transition-colors hover:bg-[#ebe7dd] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink"
                     >
-                      <p
-                        className="text-sm font-semibold text-text-primary"
-                        style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
+                      <span
+                        className={`text-[32px] font-semibold leading-none tracking-[-0.05em] tabular-nums ${
+                          isTop(cell) ? "text-vermilion" : ""
+                        }`}
                       >
-                        {cell.archetype.name}
-                      </p>
-                      <p className="mt-1 text-xs text-text-secondary/70 leading-snug line-clamp-2">
+                        {cell.count}
+                      </span>
+                      <span className="mt-3 text-sm font-semibold leading-snug">{cell.archetype.name}</span>
+                      <span className="mt-1 line-clamp-2 text-xs leading-snug text-text-secondary">
                         {cell.archetype.tagline}
-                      </p>
-                      <p
-                        className="mt-2 text-xs text-primary/70"
-                        style={{ fontVariantNumeric: "tabular-nums" }}
-                      >
+                      </span>
+                      <span className="sr-only">
                         {cell.count} entrepreneur{cell.count !== 1 ? "s" : ""}
-                      </p>
+                      </span>
                     </Link>
                   </motion.div>
                 );
@@ -118,83 +103,54 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
         </div>
       </div>
 
-      {/* Mobile: grouped vertical cards (below md) */}
-      <div className="md:hidden space-y-6">
+      {/* Mobile: grouped ruled lists (below md) */}
+      <div className="space-y-10 md:hidden">
         {PI_STYLES.map((pi, rowIdx) => (
           <section key={pi.key}>
-            <div className="mb-3 flex items-center gap-3">
-              <h3
-                className="text-[11px] uppercase tracking-[0.22em] text-text-secondary/60 whitespace-nowrap"
-                style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-              >
-                {pi.label}
-              </h3>
-              <div className="h-px flex-1 bg-ink/[0.08]" aria-hidden="true" />
-            </div>
+            <h3 className="border-b border-ink pb-2 text-sm font-semibold">{pi.label}</h3>
 
-            <div className="flex flex-col gap-2">
+            <ul>
               {CI_STYLES.map((ci, colIdx) => {
                 const key = `${pi.key}__${ci.key}`;
                 const cell = cellMap.get(key);
                 if (!cell) return null;
 
-                const isEmpty = cell.count === 0;
-                const glowIntensity = isEmpty ? 0 : Math.max(0.04, (cell.count / maxCount) * 0.14);
                 const delay = prefersReducedMotion ? 0 : (rowIdx * 4 + colIdx) * 0.03;
 
-                if (isEmpty) {
+                if (cell.count === 0) {
                   return (
-                    <motion.div
-                      key={key}
-                      {...anim(delay)}
-                      className="rounded-2xl border border-border/50 bg-ink/[0.01] px-4 py-3 opacity-40"
-                    >
-                      <p
-                        className="text-[15px] font-semibold text-text-secondary/60"
-                        style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                      >
-                        {cell.archetype.name}
-                      </p>
-                      <p className="mt-0.5 text-xs text-text-secondary/45 leading-tight">
-                        No entrepreneurs found
-                      </p>
-                    </motion.div>
+                    <motion.li key={key} {...anim(delay)} className="border-b border-border py-3">
+                      <p className="text-[15px] font-semibold text-[#8c8a84]">{cell.archetype.name}</p>
+                      <p className="mt-0.5 text-xs leading-tight text-[#8c8a84]">No entrepreneurs found</p>
+                    </motion.li>
                   );
                 }
 
                 return (
-                  <motion.div key={key} {...anim(delay)}>
+                  <motion.li key={key} {...anim(delay)} className="border-b border-border">
                     <Link
                       href={`/entrepreneurs/archetype/${cell.archetype.key}`}
-                      className="block rounded-2xl border border-border-glass bg-bg-elevated px-4 py-3 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-ink/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
-                      style={{
-                        boxShadow: `inset 0 0 40px rgba(232,69,44,${glowIntensity})`,
-                      }}
+                      className="flex items-start justify-between gap-4 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className="text-[15px] font-semibold text-text-primary"
-                            style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                          >
-                            {cell.archetype.name}
-                          </p>
-                          <p className="mt-0.5 text-xs text-text-secondary/70 leading-snug line-clamp-2">
-                            {cell.archetype.tagline}
-                          </p>
-                        </div>
-                        <p
-                          className="shrink-0 pt-0.5 text-[11px] font-medium text-primary/80 tabular-nums"
-                          style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-                        >
-                          {cell.count}
-                        </p>
-                      </div>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[15px] font-semibold">{cell.archetype.name}</span>
+                        <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-text-secondary">
+                          {cell.archetype.tagline}
+                        </span>
+                      </span>
+                      <span
+                        className={`shrink-0 text-2xl font-semibold leading-none tracking-[-0.04em] tabular-nums ${
+                          isTop(cell) ? "text-vermilion" : ""
+                        }`}
+                      >
+                        {cell.count}
+                        <span className="sr-only"> entrepreneur{cell.count !== 1 ? "s" : ""}</span>
+                      </span>
                     </Link>
-                  </motion.div>
+                  </motion.li>
                 );
               })}
-            </div>
+            </ul>
           </section>
         ))}
       </div>
