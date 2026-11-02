@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import type { ReviewVignette } from "@/lib/queries/vignettes";
+import { Button } from "@/components/ui/button";
 import { VignetteReviewCard } from "./VignetteReviewCard";
 
 type TypeFilter = "practical" | "creative";
 type StatusFilter = "active" | "inactive";
 
-function PillButton({
+function FilterButton({
   selected,
   onClick,
   children,
@@ -17,17 +18,15 @@ function PillButton({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant={selected ? "secondary" : "outline"}
+      aria-pressed={selected}
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-        selected
-          ? "bg-primary text-bg-base shadow-[0_0_16px_rgb(77_163_255/0.3)]"
-          : "border border-border-glass bg-transparent text-text-secondary hover:bg-ink/5 hover:text-text-primary"
-      }`}
+      className={selected ? undefined : "border-border text-text-secondary hover:border-ink"}
     >
-      {children}
-    </button>
+      <span className="tabular-nums">{children}</span>
+    </Button>
   );
 }
 
@@ -51,42 +50,42 @@ export function VignetteReviewFilters({
 
   return (
     <>
-      <div className="space-y-3">
-        {/* Type pills */}
-        <div className="flex gap-2" role="group" aria-label="Vignette type">
-          <PillButton
+      <div className="space-y-2">
+        {/* Type filter */}
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Vignette type">
+          <FilterButton
             selected={typeFilter === "practical"}
             onClick={() => setTypeFilter("practical")}
           >
             Practical ({pi.length})
-          </PillButton>
-          <PillButton
+          </FilterButton>
+          <FilterButton
             selected={typeFilter === "creative"}
             onClick={() => setTypeFilter("creative")}
           >
             Creative ({ci.length})
-          </PillButton>
+          </FilterButton>
         </div>
 
-        {/* Status pills */}
-        <div className="flex gap-2" role="group" aria-label="Vignette status">
-          <PillButton
+        {/* Status filter */}
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Vignette status">
+          <FilterButton
             selected={statusFilter === "active"}
             onClick={() => setStatusFilter("active")}
           >
             Active ({activeCount})
-          </PillButton>
-          <PillButton
+          </FilterButton>
+          <FilterButton
             selected={statusFilter === "inactive"}
             onClick={() => setStatusFilter("inactive")}
           >
             Inactive ({inactiveCount})
-          </PillButton>
+          </FilterButton>
         </div>
       </div>
 
       {/* Results */}
-      <div className="mt-8 space-y-6">
+      <div className="mt-[clamp(32px,5vw,56px)] space-y-[clamp(40px,6vw,64px)]">
         {filtered.length > 0 ? (
           filtered.map((v, i) => (
             <VignetteReviewCard
@@ -105,7 +104,7 @@ export function VignetteReviewFilters({
             />
           ))
         ) : (
-          <p className="text-text-secondary">
+          <p className="border-t border-ink pt-6 text-text-secondary">
             No {statusFilter} {typeFilter} vignettes found.
           </p>
         )}

@@ -27,15 +27,15 @@ export function ReviewPasswordGate() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-bg-base px-[clamp(20px,4vw,48px)]">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4"
+        className="w-full max-w-sm space-y-5 border-t border-ink pt-6"
       >
-        <h1 className="font-display text-[length:var(--text-fluid-xl)] font-semibold tracking-tight text-text-primary">
+        <h1 className="font-display text-[clamp(32px,5vw,44px)] font-semibold leading-[0.95] tracking-[-0.045em] text-ink">
           Vignette Review
         </h1>
-        <p className="text-[length:var(--text-fluid-sm)] text-text-secondary">
+        <p className="text-sm text-text-secondary">
           Enter the review password to continue.
         </p>
 
@@ -52,7 +52,7 @@ export function ReviewPasswordGate() {
         />
 
         {error && (
-          <p id="review-error" className="text-sm text-red-400" role="alert">
+          <p id="review-error" className="text-sm font-medium text-vermilion" role="alert">
             {error}
           </p>
         )}
@@ -60,7 +60,7 @@ export function ReviewPasswordGate() {
         <Button type="submit" disabled={isPending} className="w-full">
           {isPending ? (
             <>
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="inline-block h-4 w-4 animate-spin border-2 border-current border-t-transparent" />
               Verifying
             </>
           ) : (

@@ -23,12 +23,12 @@ export default async function VignetteReviewPage() {
   const { pi, ci } = await getAllVignettesForReview();
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
-      <header className="mb-8">
-        <h1 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-tight text-text-primary">
+    <main className="mx-auto max-w-[1240px] px-[clamp(20px,4vw,48px)] pt-[clamp(40px,6vw,80px)] pb-[clamp(64px,9vw,112px)]">
+      <header className="mb-[clamp(32px,5vw,56px)] border-t border-ink pt-6">
+        <h1 className="max-w-[14ch] font-display text-[clamp(36px,6vw,80px)] font-semibold leading-[0.92] tracking-[-0.05em] text-ink">
           Vignette Review
         </h1>
-        <p className="mt-2 text-[length:var(--text-fluid-sm)] text-text-secondary">
+        <p className="mt-4 text-sm tabular-nums text-text-secondary">
           {pi.length} practical and {ci.length} creative vignettes
         </p>
       </header>
