@@ -123,7 +123,7 @@ function SwissLanding() {
         <Section n="01" label="About">
           <h2>A new kind of exam.</h2>
           <p className={s.lede}>
-            No multiple choice. Real business moments, answered on camera, in your own words.
+            Real business moments, answered on camera, designed to tell you three things:
           </p>
           <ul className={s.gets}>
             {GETS.map(([title, body]) => (
