@@ -254,6 +254,41 @@
   margin-top: 20px;
 }
 
+/* about — what you get */
+.gets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+@media (max-width: 820px) {
+  .gets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.get {
+  border-top: 2px solid var(--ink);
+  padding-top: 14px;
+}
+.get:first-child {
+  border-top-color: var(--red);
+}
+.get h3 {
+  font-size: clamp(22px, 2.2vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-block: 28px 10px;
+}
+.get p {
+  font-size: 15px;
+  color: var(--body);
+  max-width: 34ch;
+}
+.gets + .note {
+  margin-top: 40px;
+}
+
 /* stats */
 .stats {
   border-top: 1px solid var(--ink);

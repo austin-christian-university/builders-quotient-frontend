@@ -11,6 +11,12 @@ const STEPS = [
   ["Discover", "Receive a detailed profile of your entrepreneurial thinking across intelligence and personality domains."],
 ] as const;
 
+const GETS = [
+  ["Your archetype", "One of sixteen builder types, from how you actually reason."],
+  ["Who thinks like you", "The real entrepreneurs whose decisions look most like yours."],
+  ["Where you're strong", "Your strengths and growth areas, across practical and creative intelligence."],
+] as const;
+
 // The public sample profile at /results/test-jordan-maker, summarised.
 const SAMPLE = {
   tagline: "Digs deep, tests everything, finds real gold",
@@ -115,17 +121,24 @@ function SwissLanding() {
         </section>
 
         <Section n="01" label="About">
-          <h2>A new kind of exam.</h2>
+          <h2>Know how you think before you build.</h2>
           <p className={s.lede}>
-            The Builders Quotient is a psychometric assessment created by Austin Christian
-            University. Think of it like a personality test — but instead of answering
-            multiple choice questions, you watch real business scenarios and explain what
-            you&apos;d do on camera.
+            Watch real business moments and say on camera what you&apos;d do. Builder&apos;s
+            Quotient compares your reasoning with how 274 successful entrepreneurs actually
+            handled them — and tells you who you think like.
           </p>
+          <div className={s.gets}>
+            {GETS.map(([title, body], i) => (
+              <div className={s.get} key={title}>
+                <div className={s.n}>{String(i + 1).padStart(2, "0")}</div>
+                <h3>{title}</h3>
+                <p>{body}</p>
+              </div>
+            ))}
+          </div>
           <p className={s.note}>
-            Our AI compares your reasoning to how hundreds of the world&apos;s most
-            successful entrepreneurs actually responded to similar situations. It measures
-            how you solve problems, think creatively, and communicate.
+            A psychometric assessment from Austin Christian University. No multiple choice —
+            real scenarios, answered in your own words.
           </p>
         </Section>
 
