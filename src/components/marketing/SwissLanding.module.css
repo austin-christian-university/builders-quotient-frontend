@@ -367,66 +367,111 @@
   max-width: 40ch;
 }
 
-/* results */
-.res {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 24px;
+/* results — a sample profile sheet */
+.sheet {
   margin-top: 48px;
-  align-items: start;
+  border: 2px solid var(--ink);
+  background: #fbfaf6;
 }
-@media (max-width: 900px) {
-  .res {
+.sheetHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.sample {
+  color: var(--red);
+}
+.k {
+  font-size: 14px;
+  color: var(--grey);
+  margin-bottom: 8px;
+}
+.sheetArch {
+  padding: 32px 24px 36px;
+  border-bottom: 1px solid var(--ink);
+}
+.archName {
+  font-size: clamp(44px, 7vw, 96px);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+.archLine {
+  margin-top: 16px;
+  font-size: clamp(17px, 1.5vw, 20px);
+  color: var(--body);
+}
+.matches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-bottom: 1px solid var(--ink);
+}
+.match {
+  padding: 24px 24px 28px;
+}
+.match + .match {
+  border-left: 1px solid var(--ink);
+}
+.match:first-child .k {
+  color: var(--red);
+  font-weight: 600;
+}
+.matchName {
+  font-size: clamp(30px, 3.6vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.matchCo {
+  margin-top: 8px;
+  font-size: 15px;
+  color: var(--body);
+}
+.traits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  padding: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.traits ul {
+  list-style: none;
+}
+.traits li {
+  font-size: 17px;
+  padding-block: 6px;
+  border-top: 1px solid var(--rule);
+}
+.sheetFoot {
+  padding: 16px 24px;
+  font-size: 14px;
+  color: var(--grey);
+}
+@media (max-width: 640px) {
+  .sheetHead,
+  .sheetArch,
+  .match,
+  .traits,
+  .sheetFoot {
+    padding-inline: 16px;
+  }
+  .matches {
     grid-template-columns: minmax(0, 1fr);
   }
+  .match + .match {
+    border-left: 0;
+    border-top: 1px solid var(--ink);
+  }
 }
-.resList {
-  list-style: none;
-  border-top: 1px solid var(--ink);
-}
-.resList li {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: 8px;
-  padding-block: 14px;
-  border-bottom: 1px solid var(--rule);
-  font-size: 17px;
-}
-.resList li span {
-  color: var(--grey);
-  font-size: 14px;
-  padding-top: 2px;
-}
-.example {
-  margin-top: 28px;
-}
-.arch {
-  border-top: 1px solid var(--ink);
-  padding-top: 14px;
-}
-.arch small {
-  display: block;
-  font-size: 14px;
-  color: var(--grey);
-  margin-bottom: 16px;
-}
-.arch ul {
-  list-style: none;
-  font-size: clamp(28px, 3.6vw, 44px);
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
-}
-.arch li {
-  color: #c8c4ba;
-}
-.arch li.on {
-  color: var(--ink);
-}
-.more {
-  font-size: 14px;
-  color: var(--grey);
-  margin-top: 16px;
+.resCta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
 }
 
 /* before you start */

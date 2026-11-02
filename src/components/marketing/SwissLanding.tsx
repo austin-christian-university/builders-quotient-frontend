@@ -11,16 +11,16 @@ const STEPS = [
   ["Discover", "Receive a detailed profile of your entrepreneurial thinking across intelligence and personality domains."],
 ] as const;
 
-const RESULTS = [
-  "Your entrepreneurial archetype",
-  "How you reason through real business problems",
-  "Your creative problem-solving style",
-  "Your communication style",
-  "Which real entrepreneurs think most like you",
-  "Shareable profile cards",
-];
-
-const ARCHETYPES = ["The Theorist", "Pathfinder", "Cartographer", "Steward", "Catalyst"];
+// The public sample profile at /results/test-jordan-maker, summarised.
+const SAMPLE = {
+  tagline: "Digs deep, tests everything, finds real gold",
+  matches: [
+    ["Thinks like", "Dylan Patel", "SemiAnalysis"],
+    ["Communicates like", "Andy Dunn", "Bonobos"],
+  ],
+  strengths: ["Risk assessment", "Action planning"],
+  growth: ["Decision architecture", "Constraint analysis"],
+} as const;
 
 const FAQS = [
   ["How long does it take?", "About 20 minutes — the vignettes, your recorded responses, and a short personality quiz."],
@@ -192,36 +192,70 @@ function SwissLanding() {
           </div>
         </Section>
 
-        <Section n="05" label="Your results" id="results">
-          <h2>Your entrepreneurial DNA, decoded.</h2>
-          <div className={s.res}>
-            <div>
-              <ol className={s.resList}>
-                {RESULTS.map((item, i) => (
-                  <li key={item}>
-                    <span>{String.fromCharCode(97 + i)}</span>
-                    {item}
-                  </li>
-                ))}
-              </ol>
-              <Link
-                className={`${s.btn} ${s.secondary} ${s.example}`}
-                href="/results/test-jordan-maker"
-              >
-                See an example profile <span aria-hidden="true">→</span>
-              </Link>
+        <Section n="05" label="What you get back" id="results">
+          <h2>Find out which founder thinks like you.</h2>
+          <p className={s.lede}>
+            Twenty minutes of your reasoning, matched against 274 real entrepreneurs. This is
+            what comes back.
+          </p>
+
+          <article className={s.sheet} aria-label="Sample Builder's Quotient profile">
+            <header className={s.sheetHead}>
+              <span>Builder&apos;s Quotient profile</span>
+              <span className={s.sample}>Sample</span>
+            </header>
+
+            <div className={s.sheetArch}>
+              <p className={s.k}>Jordan Maker · Archetype</p>
+              <p className={s.archName}>The Prospector</p>
+              <p className={s.archLine}>&ldquo;{SAMPLE.tagline}&rdquo;</p>
             </div>
-            <div className={s.arch}>
-              <small>Archetypes include</small>
-              <ul>
-                {ARCHETYPES.map((a) => (
-                  <li key={a} className={a === "Cartographer" ? s.on : undefined}>
-                    {a}
-                  </li>
-                ))}
-              </ul>
-              <p className={s.more}>One of sixteen.</p>
+
+            <div className={s.matches}>
+              {SAMPLE.matches.map(([label, name, company]) => (
+                <div className={s.match} key={label}>
+                  <p className={s.k}>{label}</p>
+                  <p className={s.matchName}>{name}</p>
+                  <p className={s.matchCo}>{company}</p>
+                </div>
+              ))}
             </div>
+
+            <div className={s.traits}>
+              <div>
+                <p className={s.k}>Strengths</p>
+                <ul>
+                  {SAMPLE.strengths.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className={s.k}>Growth areas</p>
+                <ul>
+                  {SAMPLE.growth.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <footer className={s.sheetFoot}>
+              Plus your reasoning map, creative map, communication style and shareable cards.
+              One of sixteen archetypes.
+            </footer>
+          </article>
+
+          <div className={s.resCta}>
+            <Link className={`${s.btn} ${s.primary}`} href={ASSESS_HREF}>
+              Find your match <span aria-hidden="true">→</span>
+            </Link>
+            <Link
+              className={`${s.btn} ${s.secondary}`}
+              href="/results/test-jordan-maker"
+            >
+              See the full sample <span aria-hidden="true">→</span>
+            </Link>
           </div>
         </Section>
 
