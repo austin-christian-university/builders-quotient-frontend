@@ -14,7 +14,7 @@ const inter = Inter({
 const interTight = Inter_Tight({
   variable: "--font-inter-tight-sans",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
