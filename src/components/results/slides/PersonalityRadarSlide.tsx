@@ -42,7 +42,7 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-xs uppercase tracking-[0.3em] mb-2 text-center"
-          style={{ color: "#9aa0ac" }}
+          style={{ color: "#6b6963" }}
         >
           Entrepreneur Personality
         </motion.p>
@@ -53,7 +53,7 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-2xl font-semibold text-center mb-1"
           style={{
-            color: "#f5f6fa",
+            color: "#111111",
             fontFamily: "'Inter Tight', Inter, sans-serif",
             letterSpacing: "-0.01em",
           }}
@@ -66,7 +66,7 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.15 }}
           className="text-sm text-center italic"
-          style={{ color: "#9aa0ac" }}
+          style={{ color: "#6b6963" }}
         >
           Based on peer-reviewed research on traits correlated with
           entrepreneurial success
@@ -113,7 +113,7 @@ export function PersonalityRadarSlide({ data }: PersonalityRadarSlideProps) {
                 >
                   {activeFacet.label}
                 </p>
-                <p className="text-sm leading-relaxed" style={{ color: "#9aa0ac" }}>
+                <p className="text-sm leading-relaxed" style={{ color: "#6b6963" }}>
                   {activeDescription}
                 </p>
               </motion.div>

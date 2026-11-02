@@ -13,8 +13,8 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
 
   return (
     <div className="relative rounded-2xl border overflow-hidden" style={{
-      background: "rgba(255,255,255,0.04)",
-      borderColor: "rgba(255,255,255,0.1)",
+      background: "rgba(17,17,17,0.04)",
+      borderColor: "rgba(17,17,17,0.1)",
       backdropFilter: "blur(20px)",
     }}>
       {/* Accent glow */}
@@ -29,7 +29,7 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
       <div className="relative z-10 p-6 space-y-5">
         {/* Entrepreneur name */}
         <h3 className="text-2xl font-bold" style={{
-          color: "#fff",
+          color: "#111111",
           fontFamily: "'Inter Tight', Inter, sans-serif",
           letterSpacing: "-0.01em",
         }}>
@@ -57,9 +57,9 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
                 key={industry}
                 className="rounded-full border px-2.5 py-0.5 text-xs"
                 style={{
-                  borderColor: "rgba(255,255,255,0.1)",
-                  backgroundColor: "rgba(255,255,255,0.04)",
-                  color: "#9aa0ac",
+                  borderColor: "rgba(17,17,17,0.1)",
+                  backgroundColor: "rgba(17,17,17,0.04)",
+                  color: "#6b6963",
                 }}
               >
                 {industry}
@@ -70,7 +70,7 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
 
         {/* Bio narrative */}
         {bio && (
-          <p className="text-sm leading-relaxed" style={{ color: "rgba(245,246,250,0.7)" }}>
+          <p className="text-sm leading-relaxed" style={{ color: "rgba(17,17,17,0.7)" }}>
             {bio}
           </p>
         )}
@@ -81,7 +81,7 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
             <p className="mb-2 text-xs uppercase tracking-[0.25em] font-semibold" style={{ color: accentColor }}>
               {domainLabel}
             </p>
-            <p className="text-sm leading-relaxed" style={{ color: "rgba(245,246,250,0.7)" }}>
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(17,17,17,0.7)" }}>
               {data.domainStyle}
             </p>
           </div>
@@ -95,8 +95,8 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
             </p>
             <div className="space-y-3">
               {data.signatureMoves.slice(0, 3).map((move) => (
-                <p key={move.title} className="text-sm leading-relaxed" style={{ color: "rgba(245,246,250,0.7)" }}>
-                  <strong style={{ color: "rgba(245,246,250,0.9)" }}>{move.title}</strong>
+                <p key={move.title} className="text-sm leading-relaxed" style={{ color: "rgba(17,17,17,0.7)" }}>
+                  <strong style={{ color: "rgba(17,17,17,0.9)" }}>{move.title}</strong>
                   {" \u2014 "}
                   {move.description}
                 </p>
@@ -111,7 +111,7 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
             <p className="mb-2 text-xs uppercase tracking-[0.25em] font-semibold" style={{ color: accentColor }}>
               Strengths
             </p>
-            <p className="text-sm leading-relaxed" style={{ color: "rgba(245,246,250,0.7)" }}>
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(17,17,17,0.7)" }}>
               {data.strengths}
             </p>
           </div>
@@ -120,10 +120,10 @@ export function NarrativeMatchCard({ data, accentColor, domainLabel }: Narrative
         {/* Blindspots */}
         {data.blindspots && (
           <div>
-            <p className="mb-2 text-xs uppercase tracking-[0.25em] font-semibold" style={{ color: "#e9b949" }}>
+            <p className="mb-2 text-xs uppercase tracking-[0.25em] font-semibold" style={{ color: "#111111" }}>
               Blindspots
             </p>
-            <p className="text-sm leading-relaxed" style={{ color: "rgba(245,246,250,0.7)" }}>
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(17,17,17,0.7)" }}>
               {data.blindspots}
             </p>
           </div>

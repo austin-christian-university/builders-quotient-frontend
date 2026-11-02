@@ -45,20 +45,20 @@ function OverviewContent() {
 
           {prefersReducedMotion ? (
             <>
-              <div className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] opacity-30 blur-3xl mix-blend-screen" />
-              <div className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] opacity-20 blur-3xl mix-blend-screen" />
+              <div className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(232,69,44,0.15),transparent_70%)] opacity-30 blur-3xl mix-blend-screen" />
+              <div className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(17,17,17,0.1),transparent_70%)] opacity-20 blur-3xl mix-blend-screen" />
             </>
           ) : (
             <>
               <motion.div
                 animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.4, 0.3] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] blur-3xl mix-blend-screen"
+                className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(232,69,44,0.15),transparent_70%)] blur-3xl mix-blend-screen"
               />
               <motion.div
                 animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] blur-3xl mix-blend-screen"
+                className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(17,17,17,0.1),transparent_70%)] blur-3xl mix-blend-screen"
               />
             </>
           )}

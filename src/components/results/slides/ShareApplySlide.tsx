@@ -96,13 +96,13 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
     const primary = match?.primary;
     if (!primary) return null;
 
-    const accentColor = matchType === "reasoning" ? "#4da3ff" : "#e9b949";
+    const accentColor = matchType === "reasoning" ? "#e8452c" : "#111111";
     const label = matchType === "reasoning" ? "Reasoning Match" : "Communication Match";
     const founderLabel = matchType === "reasoning" ? "Thinks Like" : "Communicates Like";
     const displayName = data.applicant.displayName || "You";
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] px-6 pt-3 pb-6 relative overflow-hidden" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+        <div className="flex flex-col h-full bg-[#f4f1ea] px-6 pt-3 pb-6 relative overflow-hidden" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
             {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 pointer-events-none"
@@ -119,7 +119,7 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
                 </div>
 
                 {/* Eyebrow */}
-                <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold text-center mb-auto">
+                <span className="uppercase tracking-[0.2em] text-[9px] text-ink/40 font-semibold text-center mb-auto">
                     {label}
                 </span>
 
@@ -127,8 +127,8 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
                 <div className="flex flex-col items-center gap-3 my-auto text-center">
                     {/* You */}
                     <div>
-                        <p className="text-[8px] uppercase tracking-[0.2em] text-white/35 font-semibold mb-1">You</p>
-                        <p className="font-display text-lg font-bold text-white leading-tight">{displayName}</p>
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-ink/35 font-semibold mb-1">You</p>
+                        <p className="font-display text-lg font-bold text-ink leading-tight">{displayName}</p>
                         <p className="text-[10px] font-semibold mt-1" style={{ color: accentColor }}>
                             {data.archetype.name}
                         </p>
@@ -136,17 +136,17 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
 
                     {/* Connector */}
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-px bg-white/12" />
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/20">
+                        <div className="w-8 h-px bg-ink/12" />
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink/20">
                             <path d="M8 3l4 4-4 4" /><path d="M16 21l-4-4 4-4" /><line x1="12" y1="7" x2="12" y2="17" />
                         </svg>
-                        <div className="w-8 h-px bg-white/12" />
+                        <div className="w-8 h-px bg-ink/12" />
                     </div>
 
                     {/* Founder */}
                     <div>
-                        <p className="text-[8px] uppercase tracking-[0.2em] text-white/35 font-semibold mb-1">{founderLabel}</p>
-                        <p className="font-display text-2xl font-extrabold text-white leading-tight">
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-ink/35 font-semibold mb-1">{founderLabel}</p>
+                        <p className="font-display text-2xl font-extrabold text-ink leading-tight">
                             {primary.entrepreneurName}
                         </p>
                         {primary.companies && primary.companies.length > 0 && (
@@ -159,10 +159,10 @@ function MatchupCard({ data, matchType, isExporting }: MatchupCardProps) {
 
                 {/* Footer */}
                 <div className="mt-auto">
-                    <div className="h-px w-full bg-gradient-to-r from-white/15 to-transparent mb-3" />
+                    <div className="h-px w-full bg-gradient-to-r from-ink/15 to-transparent mb-3" />
                     <div className="flex flex-col items-center gap-1.5">
-                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Match</p>
-                        <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
+                        <p className="text-[8px] text-ink/35 uppercase tracking-[0.15em] font-semibold">Find Your Match</p>
+                        <p className="text-[7px] text-ink/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
             </div>
@@ -180,7 +180,7 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
     const radar = variant === "pi" ? data.piRadar : data.ciRadar;
     if (radar.length === 0) return null;
 
-    const accentColor = variant === "pi" ? "#4da3ff" : "#e9b949";
+    const accentColor = variant === "pi" ? "#e8452c" : "#111111";
 
     const categories = radar.map((c) => getShortLabel(c.category));
     const rawScores = radar.map((c) => c.studentScore);
@@ -188,7 +188,7 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
     const studentScores = rawScores.map((s) => (s / maxScore) * 100);
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] px-5 pt-3 pb-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+        <div className="flex flex-col h-full bg-[#f4f1ea] px-5 pt-3 pb-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
             {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
                 className="absolute -top-16 -right-16 w-56 h-56 pointer-events-none"
@@ -205,7 +205,7 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
                 </div>
 
                 {/* Eyebrow */}
-                <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold mb-2">
+                <span className="uppercase tracking-[0.2em] text-[9px] text-ink/40 font-semibold mb-2">
                     {variant === "pi" ? "How You Solve" : "How You Create"}
                 </span>
 
@@ -223,10 +223,10 @@ function RadarShareCard({ data, variant, isExporting }: RadarShareCardProps) {
 
                 {/* Footer */}
                 <div className="mt-auto">
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent mb-3" />
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-ink/15 to-transparent mb-3" />
                     <div className="flex flex-col items-center gap-1.5">
-                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Profile</p>
-                        <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
+                        <p className="text-[8px] text-ink/35 uppercase tracking-[0.15em] font-semibold">Find Your Profile</p>
+                        <p className="text-[7px] text-ink/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
             </div>
@@ -281,7 +281,7 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
     });
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] px-5 pt-3 pb-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+        <div className="flex flex-col h-full bg-[#f4f1ea] px-5 pt-3 pb-5 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
             {/* Glow — radial gradient instead of blur() for iOS perf */}
             <div
                 className="absolute -top-16 -right-16 w-56 h-56 pointer-events-none"
@@ -299,7 +299,7 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
 
                 {/* Eyebrow + subtitle */}
                 <div className="mb-2">
-                    <span className="uppercase tracking-[0.2em] text-[9px] text-white/40 font-semibold">Communication Style</span>
+                    <span className="uppercase tracking-[0.2em] text-[9px] text-ink/40 font-semibold">Communication Style</span>
                     <p className="text-[10px] font-semibold mt-1" style={{ color: `${COMM_ACCENT}AA` }}>
                         How You Present &amp; Connect
                     </p>
@@ -322,10 +322,10 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
 
                 {/* Footer */}
                 <div className="mt-auto">
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent mb-3" />
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-ink/15 to-transparent mb-3" />
                     <div className="flex flex-col items-center gap-1.5">
-                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Style</p>
-                        <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
+                        <p className="text-[8px] text-ink/35 uppercase tracking-[0.15em] font-semibold">Find Your Style</p>
+                        <p className="text-[7px] text-ink/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
             </div>
@@ -335,8 +335,8 @@ function CommunicationRadarShareCard({ data, isExporting }: { data: ResultsPageD
 
 function ArchetypeCard({ data, isExporting }: { data: ResultsPageData, isExporting: boolean }) {
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] px-6 pt-3 pb-6 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
+        <div className="flex flex-col h-full bg-[#f4f1ea] px-6 pt-3 pb-6 relative overflow-hidden text-center" style={{ transform: isExporting ? "translateZ(0)" : "none" }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-ink/5 via-transparent to-transparent pointer-events-none" />
             {/* subtle noise - conditionally hide if exporting to optimize capture or keep for vibe, html-to-image handles SVGs fine usually */}
             {!isExporting && (
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
@@ -352,22 +352,22 @@ function ArchetypeCard({ data, isExporting }: { data: ResultsPageData, isExporti
                 </div>
 
                 <div className="flex flex-col items-center justify-center flex-1">
-                    <p className="uppercase tracking-[0.3em] text-[10px] text-white/50 font-medium mb-4 font-mono">Builder Profile</p>
+                    <p className="uppercase tracking-[0.3em] text-[10px] text-ink/50 font-medium mb-4 font-mono">Builder Profile</p>
 
-                    <h2 className="font-display text-4xl font-bold text-white leading-tight mb-3">
+                    <h2 className="font-display text-4xl font-bold text-ink leading-tight mb-3">
                         {data.archetype.name}
                     </h2>
 
-                    <p className="text-sm text-white/60 italic font-serif px-4">
+                    <p className="text-sm text-ink/60 italic font-serif px-4">
                         &ldquo;{data.archetype.tagline}&rdquo;
                     </p>
                 </div>
 
                 <div className="mt-auto w-full pt-6">
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4" />
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-ink/20 to-transparent mb-4" />
                     <div className="flex flex-col items-center gap-1.5">
-                        <p className="text-[8px] text-white/35 uppercase tracking-[0.15em] font-semibold">Find Your Archetype</p>
-                        <p className="text-[7px] text-white/25 tracking-[0.1em]">bq.austinchristianu.org</p>
+                        <p className="text-[8px] text-ink/35 uppercase tracking-[0.15em] font-semibold">Find Your Archetype</p>
+                        <p className="text-[7px] text-ink/25 tracking-[0.1em]">bq.austinchristianu.org</p>
                     </div>
                 </div>
             </div>
@@ -454,7 +454,7 @@ function TiltWrapper({
             >
                 <div
                     ref={cardRef}
-                    className="w-full h-full absolute inset-0 rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] bg-[#0a0a0c] border border-white/10"
+                    className="w-full h-full absolute inset-0 rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] bg-[#f4f1ea] border border-ink/10"
                     style={{
                         willChange: disabled ? 'auto' : 'transform',
                     }}
@@ -464,7 +464,7 @@ function TiltWrapper({
                     {/* Holographic Sheen Overlay — hidden on mobile (no hover) and during export */}
                     {!disabled && (
                         <motion.div
-                            className="absolute inset-0 pointer-events-none mix-blend-screen rounded-2xl bg-gradient-to-tr from-white/0 via-white/30 to-white/0"
+                            className="absolute inset-0 pointer-events-none mix-blend-screen rounded-2xl bg-gradient-to-tr from-ink/0 via-ink/30 to-ink/0"
                             style={{
                                 backgroundPosition: sheenBgPosition,
                                 backgroundSize: '200% 200%',
@@ -658,7 +658,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
             <motion.div
                 aria-hidden="true"
                 className="absolute w-[100vw] h-[100vw] max-w-[700px] max-h-[700px] bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
-                style={{ background: "radial-gradient(circle, rgba(77,163,255,0.22) 0%, rgba(77,163,255,0.08) 40%, transparent 70%)" }}
+                style={{ background: "radial-gradient(circle, rgba(232,69,44,0.22) 0%, rgba(232,69,44,0.08) 40%, transparent 70%)" }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 2, ease: "easeOut", delay: 0.5 }}
@@ -671,12 +671,12 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 transition={{ duration: 1.4, ease: EASE, delay: 0.5 }}
                 className="text-center z-10 mb-4 shrink-0 mt-8"
             >
-                <p className="text-white/50 uppercase tracking-[0.3em] text-xs font-semibold">Share Your Profile</p>
+                <p className="text-ink/50 uppercase tracking-[0.3em] text-xs font-semibold">Share Your Profile</p>
                 <div className="flex justify-center gap-1.5 mt-4">
                     {cards.map((_, i) => (
                         <div
                             key={i}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/20'}`}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-ink' : 'w-1.5 bg-ink/20'}`}
                         />
                     ))}
                 </div>
@@ -693,7 +693,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 {cards.length > 1 && (
                     <button
                         onClick={handlePrev}
-                        className="p-1 md:p-2 text-white/40 hover:text-white transition-colors h-12 w-12 flex items-center justify-center shrink-0 select-none touch-manipulation hover:bg-white/5 rounded-full active:scale-95"
+                        className="p-1 md:p-2 text-ink/40 hover:text-ink transition-colors h-12 w-12 flex items-center justify-center shrink-0 select-none touch-manipulation hover:bg-ink/5 rounded-full active:scale-95"
                         aria-label="Previous card"
                     >
                         <ChevronLeft />
@@ -732,7 +732,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 {cards.length > 1 && (
                     <button
                         onClick={handleNext}
-                        className="p-1 md:p-2 text-white/40 hover:text-white transition-colors h-12 w-12 flex items-center justify-center shrink-0 select-none touch-manipulation hover:bg-white/5 rounded-full active:scale-95"
+                        className="p-1 md:p-2 text-ink/40 hover:text-ink transition-colors h-12 w-12 flex items-center justify-center shrink-0 select-none touch-manipulation hover:bg-ink/5 rounded-full active:scale-95"
                         aria-label="Next card"
                     >
                         <ChevronRight />
@@ -751,11 +751,11 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 <button
                     onClick={handleDownloadImage}
                     disabled={isExporting}
-                    className="w-full rounded-full border border-white/20 bg-white/5 backdrop-blur-sm py-3.5 px-6 text-sm font-semibold text-white/90 hover:border-white/40 hover:bg-white/10 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                    className="w-full rounded-full border border-ink/20 bg-ink/5 backdrop-blur-sm py-3.5 px-6 text-sm font-semibold text-ink/90 hover:border-ink/40 hover:bg-ink/10 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                 >
                     {isExporting ? (
-                        <div className="flex items-center gap-2 text-white/70">
-                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        <div className="flex items-center gap-2 text-ink/70">
+                            <div className="w-4 h-4 border-2 border-ink/20 border-t-white rounded-full animate-spin" />
                             <span>Preparing image{"\u2026"}</span>
                         </div>
                     ) : isMobile ? (
@@ -775,7 +775,7 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 <button
                     onClick={handleCopyLink}
                     disabled={isExporting}
-                    className="w-full py-2.5 px-6 text-xs font-medium text-white/50 hover:text-white flex items-center justify-center gap-1.5 transition-colors"
+                    className="w-full py-2.5 px-6 text-xs font-medium text-ink/50 hover:text-ink flex items-center justify-center gap-1.5 transition-colors"
                 >
                     <LinkIcon />
                     {copied ? "Link Copied!" : "Copy Link to Results"}
@@ -785,16 +785,16 @@ export function ShareApplySlide({ data }: ShareApplySlideProps) {
                 {showApply && (
                     <>
                         <div className="flex items-center gap-3 w-full mt-2 mb-1" aria-hidden="true">
-                            <div className="flex-1 h-px bg-white/5" />
-                            <span className="text-white/30 text-[9px] uppercase tracking-[0.2em] font-medium">What&rsquo;s next</span>
-                            <div className="flex-1 h-px bg-white/5" />
+                            <div className="flex-1 h-px bg-ink/5" />
+                            <span className="text-ink/30 text-[9px] uppercase tracking-[0.2em] font-medium">What&rsquo;s next</span>
+                            <div className="flex-1 h-px bg-ink/5" />
                         </div>
                         <a
                             href="https://www.austinchristianuniversity.org/apply"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full inline-flex items-center justify-center rounded-full py-3.5 px-8 text-sm font-bold text-[#0a0a0c] uppercase tracking-[0.1em] transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(233,185,73,0.3)] touch-manipulation"
-                            style={{ background: "#e9b949" }}
+                            className="w-full inline-flex items-center justify-center rounded-full py-3.5 px-8 text-sm font-bold text-[#f4f1ea] uppercase tracking-[0.1em] transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(17,17,17,0.3)] touch-manipulation"
+                            style={{ background: "#111111" }}
                         >
                             Apply to ACU
                         </a>
@@ -860,7 +860,7 @@ function SharePreviewOverlay({
                     <img
                         src={objectUrl}
                         alt="Your builder profile card"
-                        className="w-full rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/10"
+                        className="w-full rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-ink/10"
                     />
                 </motion.div>
             )}
@@ -868,7 +868,7 @@ function SharePreviewOverlay({
             {/* Share button — fresh gesture */}
             <button
                 onClick={onShare}
-                className="w-full max-w-[260px] rounded-full border border-white/20 bg-white/10 backdrop-blur-sm py-3.5 px-6 text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:bg-white/15 mb-3"
+                className="w-full max-w-[260px] rounded-full border border-ink/20 bg-ink/10 backdrop-blur-sm py-3.5 px-6 text-sm font-semibold text-ink flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:bg-ink/15 mb-3"
             >
                 <ShareIcon />
                 <span>Share Image</span>
@@ -877,7 +877,7 @@ function SharePreviewOverlay({
             {/* Cancel */}
             <button
                 onClick={onDismiss}
-                className="text-white/50 text-sm py-2 px-4 hover:text-white transition-colors"
+                className="text-ink/50 text-sm py-2 px-4 hover:text-ink transition-colors"
             >
                 Cancel
             </button>

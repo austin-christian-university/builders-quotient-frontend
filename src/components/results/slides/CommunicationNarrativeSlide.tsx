@@ -56,7 +56,7 @@ export function CommunicationNarrativeSlide({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-xs uppercase tracking-[0.3em] mb-2"
-          style={{ color: "#9aa0ac" }}
+          style={{ color: "#6b6963" }}
         >
           Communication Style
         </motion.p>
@@ -67,7 +67,7 @@ export function CommunicationNarrativeSlide({
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-2xl font-semibold"
           style={{
-            color: "#f5f6fa",
+            color: "#111111",
             fontFamily: "'Inter Tight', Inter, sans-serif",
             letterSpacing: "-0.01em",
           }}
@@ -119,8 +119,8 @@ export function CommunicationNarrativeSlide({
                     }}
                     className="rounded-2xl border p-4 flex flex-col gap-1.5"
                     style={{
-                      background: "rgba(255,255,255,0.03)",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      background: "rgba(17,17,17,0.03)",
+                      borderColor: "rgba(17,17,17,0.08)",
                       backdropFilter: "blur(16px)",
                     }}
                   >
@@ -130,7 +130,7 @@ export function CommunicationNarrativeSlide({
                     >
                       {block.category}
                     </span>
-                    <p className="text-sm leading-relaxed" style={{ color: "#f5f6fa" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "#111111" }}>
                       {block.text}
                     </p>
                   </motion.div>
@@ -161,8 +161,8 @@ export function CommunicationNarrativeSlide({
                     }}
                     className="rounded-2xl border p-4 flex flex-col gap-1.5"
                     style={{
-                      background: "rgba(255,255,255,0.03)",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      background: "rgba(17,17,17,0.03)",
+                      borderColor: "rgba(17,17,17,0.08)",
                       backdropFilter: "blur(16px)",
                     }}
                   >
@@ -172,7 +172,7 @@ export function CommunicationNarrativeSlide({
                     >
                       {block.category}
                     </span>
-                    <p className="text-sm leading-relaxed" style={{ color: "#f5f6fa" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "#111111" }}>
                       {block.text}
                     </p>
                   </motion.div>

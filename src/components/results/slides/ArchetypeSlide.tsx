@@ -47,7 +47,7 @@ export function ArchetypeSlide({ data }: Props) {
                     initial={{ opacity: 0, y: 40, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 1.2, type: "spring", bounce: 0.4, delay: 0.2 }}
-                    className="relative w-full rounded-[2rem] border border-white/10 bg-[#151517]/80 overflow-hidden flex flex-col items-center justify-center p-8 group shadow-2xl"
+                    className="relative w-full border-2 border-ink bg-[#fbfaf6] overflow-hidden flex flex-col items-center justify-center p-8 group"
                 >
                     {/* Inner glow */}
                     <div
@@ -58,14 +58,14 @@ export function ArchetypeSlide({ data }: Props) {
                     {/* Gloss reflection overlay */}
                     <div
                         aria-hidden="true"
-                        className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"
+                        className="absolute inset-0 bg-gradient-to-tr from-transparent via-ink/5 to-ink/20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"
                     />
 
                     <motion.h2
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8, delay: 0.6 }}
-                        className="font-display text-[length:var(--text-fluid-4xl)] font-bold text-white mb-4 text-center leading-tight drop-shadow-md relative z-10"
+                        className="font-display text-[length:var(--text-fluid-4xl)] font-bold text-ink mb-4 text-center leading-tight tracking-[-0.04em] relative z-10"
                     >
                         {data.name}
                     </motion.h2>
@@ -74,7 +74,7 @@ export function ArchetypeSlide({ data }: Props) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.8, delay: 1 }}
-                        className="text-[length:var(--text-fluid-base)] text-white/80 text-center italic relative z-10"
+                        className="text-[length:var(--text-fluid-base)] text-ink/80 text-center italic relative z-10"
                     >
                         &ldquo;{data.tagline}&rdquo;
                     </motion.p>
@@ -83,7 +83,7 @@ export function ArchetypeSlide({ data }: Props) {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 1.4 }}
-                        className="mt-6 text-sm text-white/60 text-center leading-relaxed relative z-10"
+                        className="mt-6 text-sm text-ink/60 text-center leading-relaxed relative z-10"
                     >
                         {data.description}
                     </motion.p>

@@ -18,13 +18,13 @@ export function EntrepreneurListItem({
   return (
     <Link
       href={`/entrepreneurs/${id}`}
-      className="group flex items-center gap-4 rounded-xl border border-border-glass bg-bg-elevated px-5 py-4 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-bg-surface hover:border-white/20 hover:shadow-[0_0_24px_rgb(77_163_255/0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+      className="group flex items-center gap-4 rounded-xl border border-border-glass bg-bg-elevated px-5 py-4 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-bg-surface hover:border-ink/20 hover:shadow-[0_0_24px_rgb(77_163_255/0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
     >
       {/* Name + archetype */}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2 flex-wrap">
           <span
-            className="text-base font-semibold text-text-primary group-hover:text-white transition-colors"
+            className="text-base font-semibold text-text-primary group-hover:text-ink transition-colors"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
             {name}
@@ -42,7 +42,7 @@ export function EntrepreneurListItem({
           {industries.slice(0, 3).map((industry) => (
             <span
               key={industry}
-              className="rounded-sm bg-white/5 px-2 py-0.5 text-xs text-text-secondary"
+              className="rounded-sm bg-ink/5 px-2 py-0.5 text-xs text-text-secondary"
             >
               {industry}
             </span>

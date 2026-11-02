@@ -86,7 +86,7 @@ export function PersonalityLikert({
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
                 isSelected
                   ? "border-primary/60 bg-primary/10 text-text-primary shadow-[0_0_16px_rgb(77_163_255/0.2)]"
-                  : "border-border-glass bg-bg-elevated/60 text-text-secondary hover:border-white/20 hover:bg-white/5"
+                  : "border-border-glass bg-bg-elevated/60 text-text-secondary hover:border-ink/20 hover:bg-ink/5"
               )}
             >
               {option.value}

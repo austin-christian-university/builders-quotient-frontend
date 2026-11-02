@@ -81,7 +81,7 @@ export default async function CompletePage() {
             {sessionId.slice(0, 8)}
           </p>
           <a
-            className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
+            className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-ink"
             href={`mailto:enrollment@austinchristianu.org?subject=${encodeURIComponent(
               `Assessment results \u2014 session ${sessionId.slice(0, 8)}`
             )}`}

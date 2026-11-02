@@ -23,7 +23,7 @@ function PillButton({
       className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
         selected
           ? "bg-primary text-bg-base shadow-[0_0_16px_rgb(77_163_255/0.3)]"
-          : "border border-border-glass bg-transparent text-text-secondary hover:bg-white/5 hover:text-text-primary"
+          : "border border-border-glass bg-transparent text-text-secondary hover:bg-ink/5 hover:text-text-primary"
       }`}
     >
       {children}

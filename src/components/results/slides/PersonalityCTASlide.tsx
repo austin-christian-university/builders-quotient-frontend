@@ -89,7 +89,7 @@ function PersonalityRadarPreview() {
           points={points}
           fill="none"
           stroke="currentColor"
-          className="text-white/[0.06]"
+          className="text-ink/[0.06]"
           strokeWidth={0.75}
         />
       ))}
@@ -101,7 +101,7 @@ function PersonalityRadarPreview() {
           x2={a.x}
           y2={a.y}
           stroke="currentColor"
-          className="text-white/[0.06]"
+          className="text-ink/[0.06]"
           strokeWidth={0.75}
         />
       ))}
@@ -162,7 +162,7 @@ export function PersonalityCTASlide({ token }: PersonalityCTASlideProps) {
         className="absolute w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full pointer-events-none"
         style={{
           background:
-            "radial-gradient(circle, rgba(233,185,73,0.12) 0%, rgba(233,185,73,0.04) 40%, transparent 70%)",
+            "radial-gradient(circle, rgba(17,17,17,0.12) 0%, rgba(17,17,17,0.04) 40%, transparent 70%)",
         }}
         animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.6, 0.4] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
@@ -185,7 +185,7 @@ export function PersonalityCTASlide({ token }: PersonalityCTASlideProps) {
         {/* Heading */}
         <motion.h2
           variants={fadeUp}
-          className="font-display font-bold text-[length:var(--text-fluid-2xl)] text-white leading-tight text-center text-balance"
+          className="font-display font-bold text-[length:var(--text-fluid-2xl)] text-ink leading-tight text-center text-balance"
         >
           Complete Your Builder Profile
         </motion.h2>
@@ -217,12 +217,12 @@ export function PersonalityCTASlide({ token }: PersonalityCTASlideProps) {
             size="lg"
             onClick={handleStart}
             disabled={isPending}
-            className="shadow-[0_0_30px_-8px_rgba(233,185,73,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_-8px_rgba(233,185,73,0.7)] rounded-xl"
-            style={{ background: "#e9b949", color: "#0a0a0c" }}
+            className="shadow-[0_0_30px_-8px_rgba(17,17,17,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_-8px_rgba(17,17,17,0.7)] rounded-xl"
+            style={{ background: "#111111", color: "#f4f1ea" }}
           >
             {isPending ? (
               <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-[#0a0a0c]/20 border-t-[#0a0a0c] rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-[#f4f1ea]/20 border-t-[#f4f1ea] rounded-full animate-spin" />
                 Starting{"\u2026"}
               </span>
             ) : (

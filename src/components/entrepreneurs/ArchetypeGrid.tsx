@@ -70,7 +70,7 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
                     <motion.div
                       key={key}
                       {...anim(delay)}
-                      className="rounded-2xl border border-border/50 bg-white/[0.01] p-4 flex flex-col justify-center items-center text-center opacity-40"
+                      className="rounded-2xl border border-border/50 bg-ink/[0.01] p-4 flex flex-col justify-center items-center text-center opacity-40"
                     >
                       <p
                         className="text-sm font-semibold text-text-secondary/60"
@@ -89,9 +89,9 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
                   <motion.div key={key} {...anim(delay)}>
                     <Link
                       href={`/entrepreneurs/archetype/${cell.archetype.key}`}
-                      className="block rounded-2xl border border-border-glass bg-bg-elevated p-4 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-white/20 hover:shadow-[0_0_24px_rgb(77_163_255/0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base h-full"
+                      className="block rounded-2xl border border-border-glass bg-bg-elevated p-4 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-ink/20 hover:shadow-[0_0_24px_rgb(77_163_255/0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base h-full"
                       style={{
-                        boxShadow: `inset 0 0 60px rgba(77,163,255,${glowIntensity})`,
+                        boxShadow: `inset 0 0 60px rgba(232,69,44,${glowIntensity})`,
                       }}
                     >
                       <p
@@ -129,7 +129,7 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
               >
                 {pi.label}
               </h3>
-              <div className="h-px flex-1 bg-white/[0.08]" aria-hidden="true" />
+              <div className="h-px flex-1 bg-ink/[0.08]" aria-hidden="true" />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -147,7 +147,7 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
                     <motion.div
                       key={key}
                       {...anim(delay)}
-                      className="rounded-2xl border border-border/50 bg-white/[0.01] px-4 py-3 opacity-40"
+                      className="rounded-2xl border border-border/50 bg-ink/[0.01] px-4 py-3 opacity-40"
                     >
                       <p
                         className="text-[15px] font-semibold text-text-secondary/60"
@@ -166,9 +166,9 @@ export function ArchetypeGrid({ cells, maxCount }: ArchetypeGridProps) {
                   <motion.div key={key} {...anim(delay)}>
                     <Link
                       href={`/entrepreneurs/archetype/${cell.archetype.key}`}
-                      className="block rounded-2xl border border-border-glass bg-bg-elevated px-4 py-3 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+                      className="block rounded-2xl border border-border-glass bg-bg-elevated px-4 py-3 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-ink/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
                       style={{
-                        boxShadow: `inset 0 0 40px rgba(77,163,255,${glowIntensity})`,
+                        boxShadow: `inset 0 0 40px rgba(232,69,44,${glowIntensity})`,
                       }}
                     >
                       <div className="flex items-start justify-between gap-3">

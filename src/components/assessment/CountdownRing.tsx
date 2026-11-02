@@ -48,7 +48,7 @@ function FloatingTimerBadge({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -12, scale: 0.9 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed top-[42px] right-4 z-50 flex items-center gap-2.5 rounded-full border border-white/10 bg-bg-elevated/80 px-3 py-2 shadow-2xl backdrop-blur-xl md:top-4"
+      className="fixed top-[42px] right-4 z-50 flex items-center gap-2.5 rounded-full border border-ink/10 bg-bg-elevated/80 px-3 py-2 shadow-2xl backdrop-blur-xl md:top-4"
       role="timer"
       aria-label={`${secondsRemaining} seconds remaining`}
     >
@@ -118,7 +118,7 @@ function FloatingTimerBadge({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           onClick={onStopEarly}
-          className="ml-1 shrink-0 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          className="ml-1 shrink-0 rounded-full border border-ink/15 bg-ink/5 px-3 py-1 text-xs font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-ink/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           Done
         </motion.button>
@@ -322,7 +322,7 @@ export function CountdownRing({
               exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               onClick={onStopEarly}
-              className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+              className="rounded-full border border-ink/15 bg-ink/5 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-ink/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
             >
               {isThink ? "Done Thinking" : <>I&rsquo;m Done</>}
             </motion.button>

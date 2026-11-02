@@ -281,7 +281,7 @@ export function PersonalityCompleteContent({ variant, sessionId }: { variant: Va
   }, [isReady]);
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center overflow-x-hidden pt-16 pb-28 selection:bg-primary/20 selection:text-white">
+    <div className="flex min-h-dvh flex-col items-center justify-center overflow-x-hidden pt-16 pb-28 selection:bg-primary/20 selection:text-ink">
       <AnimatePresence mode="wait">
         {!isReady ? (
           <SplashSequence

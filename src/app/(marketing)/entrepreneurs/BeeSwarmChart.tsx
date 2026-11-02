@@ -27,8 +27,8 @@ interface BeeSwarmChartProps {
 }
 
 const TRAITS = [
-  { key: "pv_06", index: 5, label: "Composure", color: "#4da3ff" },
-  { key: "pv_17", index: 16, label: "Formality", color: "#e9b949" },
+  { key: "pv_06", index: 5, label: "Composure", color: "#e8452c" },
+  { key: "pv_17", index: 16, label: "Formality", color: "#111111" },
   { key: "pv_18", index: 17, label: "Vulnerability", color: "#f28b82" },
   { key: "pv_10", index: 9, label: "Humor", color: "#66d4a4" },
   { key: "pv_16", index: 15, label: "Conciseness", color: "#b79cff" },
@@ -64,7 +64,7 @@ export default function BeeSwarmChart({
             width={X_RANGE}
             height={HEIGHT - 24 - MARGIN.bottom}
             fill="none"
-            stroke="rgba(255,255,255,0.1)"
+            stroke="rgba(17,17,17,0.1)"
             strokeWidth={1}
           />
 
@@ -101,7 +101,7 @@ export default function BeeSwarmChart({
                   x={x}
                   y={HEIGHT - 10}
                   textAnchor="middle"
-                  fill="#9aa0ac"
+                  fill="#6b6963"
                   fontSize={14}
                   fontFamily="Inter, sans-serif"
                 >
@@ -122,7 +122,7 @@ export default function BeeSwarmChart({
                   x={X_MIN - 14}
                   y={rowY + 5}
                   textAnchor="end"
-                  fill="#f5f6fa"
+                  fill="#111111"
                   fontSize={14}
                   fontWeight={500}
                   fontFamily="Inter, sans-serif"
@@ -193,7 +193,7 @@ export default function BeeSwarmChart({
           return (
             <div
               key={trait.key}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-xl"
+              className="rounded-2xl border border-ink/10 bg-ink/[0.03] px-4 py-3 backdrop-blur-xl"
               role="img"
               aria-label={`Distribution of ${trait.label} across entrepreneurs`}
             >
@@ -278,11 +278,11 @@ export default function BeeSwarmChart({
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-text-secondary/65">
         <div className="flex items-center gap-2">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-white/60" />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-ink/60" />
           <span>Each dot is one entrepreneur</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-block h-3 w-px bg-white/60" />
+          <span className="inline-block h-3 w-px bg-ink/60" />
           <span>Mean marker</span>
         </div>
       </div>

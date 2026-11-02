@@ -9,7 +9,7 @@ interface ReasoningMatchSlideProps {
   data: NarrativeMatch | null;
 }
 
-const ACCENT = "#4da3ff";
+const ACCENT = "#e8452c";
 
 export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -60,28 +60,28 @@ export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-md rounded-2xl border p-8 text-center"
           style={{
-            background: "rgba(255,255,255,0.03)",
-            borderColor: "rgba(255,255,255,0.08)",
+            background: "rgba(17,17,17,0.03)",
+            borderColor: "rgba(17,17,17,0.08)",
             backdropFilter: "blur(16px)",
           }}
         >
           <p
             className="mb-3 text-xs uppercase tracking-[0.3em]"
-            style={{ color: "#9aa0ac" }}
+            style={{ color: "#6b6963" }}
           >
             Reasoning Match
           </p>
           <h2
             className="mb-3 text-xl font-semibold"
             style={{
-              color: "#f5f6fa",
+              color: "#111111",
               fontFamily: "'Inter Tight', Inter, sans-serif",
               letterSpacing: "-0.01em",
             }}
           >
             Reasoning match coming soon
           </h2>
-          <p className="text-sm leading-relaxed" style={{ color: "#9aa0ac" }}>
+          <p className="text-sm leading-relaxed" style={{ color: "#6b6963" }}>
             We&rsquo;re building intelligence-based entrepreneur matching. Check back
             soon.
           </p>
@@ -99,7 +99,7 @@ export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-xs uppercase tracking-[0.3em] mb-2"
-          style={{ color: "#9aa0ac" }}
+          style={{ color: "#6b6963" }}
         >
           Reasoning Match
         </motion.p>
@@ -109,7 +109,7 @@ export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-xl font-semibold sm:text-2xl"
           style={{
-            color: "#f5f6fa",
+            color: "#111111",
             fontFamily: "'Inter Tight', Inter, sans-serif",
             letterSpacing: "-0.01em",
           }}
@@ -183,11 +183,11 @@ export function ReasoningMatchSlide({ data }: ReasoningMatchSlideProps) {
                     {
                       borderColor: isActive
                         ? `${ACCENT}80`
-                        : "rgba(255,255,255,0.12)",
+                        : "rgba(17,17,17,0.12)",
                       backgroundColor: isActive
                         ? `${ACCENT}20`
-                        : "rgba(255,255,255,0.05)",
-                      color: isActive ? "#fff" : "#9aa0ac",
+                        : "rgba(17,17,17,0.05)",
+                      color: isActive ? "#111111" : "#6b6963",
                       boxShadow: isActive ? `0 0 12px ${ACCENT}30` : "none",
                       "--tw-ring-color": ACCENT,
                     } as React.CSSProperties

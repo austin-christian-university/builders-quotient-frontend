@@ -37,7 +37,7 @@ export function DisclaimerSlide() {
 
         <motion.h2
           variants={fadeUp}
-          className="font-display font-bold text-[length:var(--text-fluid-2xl)] text-white leading-tight text-balance"
+          className="font-display font-bold text-[length:var(--text-fluid-2xl)] text-ink leading-tight text-balance"
         >
           This is a snapshot, not a verdict.
         </motion.h2>
@@ -55,11 +55,11 @@ export function DisclaimerSlide() {
             What matters most is what you do next.
           </p>
 
-          <p className="text-white/50 text-[length:var(--text-fluid-sm)] italic">
+          <p className="text-ink/50 text-[length:var(--text-fluid-sm)] italic">
             Questions? Reach out to{" "}
             <a
               href="mailto:enrollment@austinchristianu.org"
-              className="underline underline-offset-2 decoration-white/30 hover:decoration-white/60 transition-colors text-white/60 hover:text-white/80"
+              className="underline underline-offset-2 decoration-ink/30 hover:decoration-ink/60 transition-colors text-ink/60 hover:text-ink/80"
             >
               enrollment@austinchristianu.org
             </a>

@@ -80,7 +80,7 @@ export function UploadGate({ children }: { children: ReactNode }) {
               <span className="shrink-0 text-sm tabular-nums text-text-secondary">
                 {i + 1}.
               </span>
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink/10">
                 <motion.div
                   className="h-full rounded-full bg-primary"
                   initial={{ width: 0 }}

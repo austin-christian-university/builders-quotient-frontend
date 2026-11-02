@@ -17,7 +17,7 @@ export function ArchetypeBadge({
 }: ArchetypeBadgeProps) {
   const content = (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border border-border-glass bg-white/5 px-4 py-1.5 backdrop-blur-sm ${className}`}
+      className={`inline-flex items-center gap-2 rounded-full border border-border-glass bg-ink/5 px-4 py-1.5 backdrop-blur-sm ${className}`}
     >
       <span
         className="text-sm font-semibold text-text-primary"

@@ -191,7 +191,7 @@ export function RadarChart({
   const arcRadius = maxRadius + 8;
   const sectorLabelRadius = arcRadius + 20;
   const gridRings = [25, 50, 75, 100];
-  const subtleStroke = "rgba(255,255,255,0.06)";
+  const subtleStroke = "rgba(17,17,17,0.06)";
   const step = 360 / n;
 
   // Scale-compensated font size for category labels
@@ -498,7 +498,7 @@ export function RadarChart({
         <polygon
           data-radar="corpus"
           points={corpusPoints}
-          fill="rgba(255,255,255,0.06)"
+          fill="rgba(17,17,17,0.06)"
           stroke="rgba(255,255,255,0.35)"
           strokeWidth={1.5}
           strokeDasharray="4 4"
@@ -532,7 +532,7 @@ export function RadarChart({
               cy={y}
               r={isActive ? 6 : 4}
               fill={dotColor}
-              stroke="#0a0a0c"
+              stroke="#f4f1ea"
               strokeWidth={2}
             />
           </g>
@@ -577,7 +577,7 @@ export function RadarChart({
               textAnchor={anchor}
               dominantBaseline="middle"
               fontSize={compensatedFontSize}
-              fill={isActive ? "#ffffff" : labelColor}
+              fill={isActive ? "#111111" : labelColor}
               opacity={isActive ? 0.85 : 0.55}
               fontFamily="'Inter Tight', Inter, sans-serif"
               fontWeight={600}
@@ -672,7 +672,7 @@ export function RadarChart({
               dominantBaseline="middle"
               fontSize={tooltipFontSize}
               fontWeight={600}
-              fill="#f5f6fa"
+              fill="#111111"
               fontFamily="Inter, sans-serif"
             >
               {tooltipContent.label}

@@ -16,10 +16,10 @@ export function EntrepreneurCard({
   return (
     <Link
       href={`/entrepreneurs/${id}`}
-      className="group rounded-2xl border border-border-glass bg-bg-elevated p-5 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-white/20 hover:shadow-[0_0_24px_rgb(77_163_255/0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+      className="group rounded-2xl border border-border-glass bg-bg-elevated p-5 transition-all duration-300 ease-[var(--ease-out-expo)] hover:bg-bg-surface hover:border-ink/20 hover:shadow-[0_0_24px_rgb(77_163_255/0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
     >
       <p
-        className="text-base font-semibold text-text-primary group-hover:text-white transition-colors"
+        className="text-base font-semibold text-text-primary group-hover:text-ink transition-colors"
         style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
       >
         {name}
@@ -32,7 +32,7 @@ export function EntrepreneurCard({
           {industries.slice(0, 4).map((industry) => (
             <span
               key={industry}
-              className="rounded-sm bg-white/5 px-2 py-0.5 text-xs text-text-secondary"
+              className="rounded-sm bg-ink/5 px-2 py-0.5 text-xs text-text-secondary"
             >
               {industry}
             </span>

@@ -64,7 +64,7 @@ export function PracticalIntelligenceSection({
             studentScores={piStudent}
             corpusScores={piCorpus}
             maxValue={piChartMax}
-            accentColor="#4da3ff"
+            accentColor="#e8452c"
             onCategoryHover={handleHover}
             activeCategoryIndex={activeIndex}
             containerWidth={containerWidth}
@@ -76,7 +76,7 @@ export function PracticalIntelligenceSection({
             <span className="text-xs text-text-secondary">This Entrepreneur</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border border-white/30 bg-white/5" aria-hidden="true" />
+            <span className="w-3 h-3 rounded-full border border-ink/30 bg-ink/5" aria-hidden="true" />
             <span className="text-xs text-text-secondary">{archetypeName} Average</span>
           </div>
         </div>
@@ -149,7 +149,7 @@ export function CreativeIntelligenceSection({
             studentScores={ciStudent}
             corpusScores={ciCorpus}
             maxValue={ciChartMax}
-            accentColor="#e9b949"
+            accentColor="#111111"
             onCategoryHover={handleHover}
             activeCategoryIndex={activeIndex}
             containerWidth={containerWidth}
@@ -161,7 +161,7 @@ export function CreativeIntelligenceSection({
             <span className="text-xs text-text-secondary">This Entrepreneur</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border border-white/30 bg-white/5" aria-hidden="true" />
+            <span className="w-3 h-3 rounded-full border border-ink/30 bg-ink/5" aria-hidden="true" />
             <span className="text-xs text-text-secondary">{archetypeName} Average</span>
           </div>
         </div>

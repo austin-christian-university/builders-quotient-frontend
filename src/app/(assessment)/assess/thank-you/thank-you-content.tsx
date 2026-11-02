@@ -202,7 +202,7 @@ function PersonalityRadarChart() {
           points={points}
           fill="none"
           stroke="currentColor"
-          className="text-white/[0.06]"
+          className="text-ink/[0.06]"
           strokeWidth={0.75}
         />
       ))}
@@ -216,7 +216,7 @@ function PersonalityRadarChart() {
           x2={a.x}
           y2={a.y}
           stroke="currentColor"
-          className="text-white/[0.06]"
+          className="text-ink/[0.06]"
           strokeWidth={0.75}
         />
       ))}
@@ -534,7 +534,7 @@ export function ThankYouContent({ variant, sessionId }: { variant: Variant; sess
   }, [isReady]);
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center overflow-x-hidden pt-16 pb-28 selection:bg-primary/20 selection:text-white">
+    <div className="flex min-h-dvh flex-col items-center justify-center overflow-x-hidden pt-16 pb-28 selection:bg-primary/20 selection:text-ink">
       <AnimatePresence mode="wait">
         {!isReady ? (
           <SplashSequence

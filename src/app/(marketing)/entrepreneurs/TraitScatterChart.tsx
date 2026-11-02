@@ -19,10 +19,10 @@ interface TraitScatterChartProps {
 
 const CATEGORY_COLORS: Record<string, string> = {
   "Energy & Dynamism": "#5cc8ff",
-  "Confidence & Authority": "#4da3ff",
+  "Confidence & Authority": "#e8452c",
   "Warmth & Interpersonal": "#f28b82",
   "Communication Style": "#b79cff",
-  "Self-Presentation": "#e9b949",
+  "Self-Presentation": "#111111",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -52,7 +52,7 @@ function getCategoryForKey(key: string): string | undefined {
 
 function getColorForKey(key: string): string {
   const category = getCategoryForKey(key);
-  return category ? CATEGORY_COLORS[category] : "#9aa0ac";
+  return category ? CATEGORY_COLORS[category] : "#6b6963";
 }
 
 function scaleX(value: number): number {
@@ -148,7 +148,7 @@ export default function TraitScatterChart({
     ? dotPositions.find((d) => d.key === activeKey) ?? null
     : null;
   const activeCategory = activeTrait ? getCategoryForKey(activeTrait.key) : undefined;
-  const activeColor = activeTrait ? getColorForKey(activeTrait.key) : "#4da3ff";
+  const activeColor = activeTrait ? getColorForKey(activeTrait.key) : "#e8452c";
   const activeTitle = activeTrait
     ? PERSONALITY_DIMENSION_NAMES[activeTrait.key] ?? activeTrait.key
     : "";
@@ -207,7 +207,7 @@ export default function TraitScatterChart({
           width={PLOT_W}
           height={PLOT_H}
           fill="none"
-          stroke="rgba(255,255,255,0.1)"
+          stroke="rgba(17,17,17,0.1)"
           strokeWidth={1}
         />
 
@@ -215,7 +215,7 @@ export default function TraitScatterChart({
           x={6}
           y={MARGIN.top + PLOT_H / 2}
           textAnchor="middle"
-          fill="#9aa0ac"
+          fill="#6b6963"
           fontSize={13}
           fontFamily="Inter, sans-serif"
           transform={`rotate(-90, 6, ${MARGIN.top + PLOT_H / 2})`}
@@ -226,7 +226,7 @@ export default function TraitScatterChart({
           x={MARGIN.left + PLOT_W / 2}
           y={HEIGHT - 1}
           textAnchor="middle"
-          fill="#9aa0ac"
+          fill="#6b6963"
           fontSize={13}
           fontFamily="Inter, sans-serif"
         >
@@ -239,7 +239,7 @@ export default function TraitScatterChart({
             x={MARGIN.left - 8}
             y={scaleY(tick) + 3}
             textAnchor="end"
-            fill="#9aa0ac"
+            fill="#6b6963"
             fontSize={11}
             fontFamily="Inter, sans-serif"
           >
@@ -253,7 +253,7 @@ export default function TraitScatterChart({
             x={scaleX(tick)}
             y={HEIGHT - MARGIN.bottom + 14}
             textAnchor="middle"
-            fill="#9aa0ac"
+            fill="#6b6963"
             fontSize={11}
             fontFamily="Inter, sans-serif"
           >
@@ -277,7 +277,7 @@ export default function TraitScatterChart({
                 cy={cy}
                 r={isActive ? 7 : 5.75}
                 fill={color}
-                stroke={isActive ? "#f5f6fa" : "rgba(10,10,12,0.9)"}
+                stroke={isActive ? "#111111" : "rgba(10,10,12,0.9)"}
                 strokeWidth={isActive ? 1.5 : 1}
                 opacity={isActive ? 1 : 0.9}
                 style={{ transition: "all 150ms ease" }}
@@ -319,7 +319,7 @@ export default function TraitScatterChart({
               y={tooltipY - pillH / 2 + pillPadY + 8 + TOOLTIP_FONT + 4}
               fontSize={TOOLTIP_FONT}
               fontWeight={600}
-              fill="#f5f6fa"
+              fill="#111111"
               fontFamily="Inter, sans-serif"
             >
               {activeTitle}
@@ -329,7 +329,7 @@ export default function TraitScatterChart({
               x={tooltipX - pillW / 2 + pillPadX}
               y={tooltipY - pillH / 2 + pillPadY + 8 + TOOLTIP_FONT + 4 + TOOLTIP_SUB_FONT + lineGap}
               fontSize={TOOLTIP_SUB_FONT}
-              fill="#9aa0ac"
+              fill="#6b6963"
               fontFamily="Inter, sans-serif"
             >
               {`Mean ${Math.round(activeTrait.mean * 100)}% \u00B7 SD ${activeTrait.stddev.toFixed(3)}`}

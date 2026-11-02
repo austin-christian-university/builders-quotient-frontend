@@ -10,7 +10,7 @@ interface IntelligenceNarrativeSlideProps {
   };
 }
 
-const ACCENT = "#4da3ff";
+const ACCENT = "#e8452c";
 
 export function IntelligenceNarrativeSlide({
   data,
@@ -56,7 +56,7 @@ export function IntelligenceNarrativeSlide({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-xs uppercase tracking-[0.3em] mb-2"
-          style={{ color: "#9aa0ac" }}
+          style={{ color: "#6b6963" }}
         >
           Your Intelligence Profile
         </motion.p>
@@ -67,7 +67,7 @@ export function IntelligenceNarrativeSlide({
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-2xl font-semibold"
           style={{
-            color: "#f5f6fa",
+            color: "#111111",
             fontFamily: "'Inter Tight', Inter, sans-serif",
             letterSpacing: "-0.01em",
           }}
@@ -119,8 +119,8 @@ export function IntelligenceNarrativeSlide({
                     }}
                     className="rounded-2xl border p-4 flex flex-col gap-1.5"
                     style={{
-                      background: "rgba(255,255,255,0.03)",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      background: "rgba(17,17,17,0.03)",
+                      borderColor: "rgba(17,17,17,0.08)",
                       backdropFilter: "blur(16px)",
                     }}
                   >
@@ -130,7 +130,7 @@ export function IntelligenceNarrativeSlide({
                     >
                       {block.category}
                     </span>
-                    <p className="text-sm leading-relaxed" style={{ color: "#f5f6fa" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "#111111" }}>
                       {block.text}
                     </p>
                   </motion.div>
@@ -144,7 +144,7 @@ export function IntelligenceNarrativeSlide({
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.4, delay: 0.5 + visibleStrengths.length * 0.35 }}
                   className="text-sm font-semibold uppercase tracking-[0.2em]"
-                  style={{ color: "#e9b949" }}
+                  style={{ color: "#111111" }}
                 >
                   Growth Areas
                 </motion.h3>
@@ -161,18 +161,18 @@ export function IntelligenceNarrativeSlide({
                     }}
                     className="rounded-2xl border p-4 flex flex-col gap-1.5"
                     style={{
-                      background: "rgba(255,255,255,0.03)",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      background: "rgba(17,17,17,0.03)",
+                      borderColor: "rgba(17,17,17,0.08)",
                       backdropFilter: "blur(16px)",
                     }}
                   >
                     <span
                       className="text-xs uppercase tracking-[0.2em] font-semibold"
-                      style={{ color: "#e9b949" }}
+                      style={{ color: "#111111" }}
                     >
                       {block.category}
                     </span>
-                    <p className="text-sm leading-relaxed" style={{ color: "#f5f6fa" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "#111111" }}>
                       {block.text}
                     </p>
                   </motion.div>

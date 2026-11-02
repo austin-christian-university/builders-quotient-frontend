@@ -28,7 +28,7 @@ function SectionCTA({ heading, subtext }: { heading: string; subtext: string }) 
     <section className="relative px-6 py-16 md:py-20">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgb(77_163_255/0.04),transparent)]" aria-hidden="true" />
       <div className="relative mx-auto max-w-2xl text-center">
-        <h2 className="text-xl font-bold tracking-tight bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent pb-1" style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}>
+        <h2 className="text-xl font-bold tracking-tight bg-gradient-to-br from-ink to-ink bg-clip-text text-transparent pb-1" style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}>
           {heading}
         </h2>
         <p className="mt-2 text-sm text-text-secondary/90 font-light">{subtext}</p>
@@ -84,7 +84,7 @@ export default async function EntrepreneurProfilePage({ params }: PageProps) {
               {entrepreneur.industries.map((industry) => (
                 <span
                   key={industry}
-                  className="rounded-sm bg-white/5 px-2.5 py-1 text-xs text-text-secondary"
+                  className="rounded-sm bg-ink/5 px-2.5 py-1 text-xs text-text-secondary"
                 >
                   {industry}
                 </span>
@@ -164,7 +164,7 @@ export default async function EntrepreneurProfilePage({ params }: PageProps) {
         />
         <div className="relative mx-auto max-w-2xl text-center">
           <h2
-            className="text-2xl font-bold tracking-tight bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent pb-1"
+            className="text-2xl font-bold tracking-tight bg-gradient-to-br from-ink to-ink bg-clip-text text-transparent pb-1"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
             See how you compare

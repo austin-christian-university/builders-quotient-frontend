@@ -82,20 +82,20 @@ export function OrbGuide({ script, onContinue, onSkip }: OrbGuideProps) {
         {/* Glowing orbs — static when reduced motion preferred */}
         {prefersReducedMotion ? (
           <>
-            <div className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.1),transparent_70%)] blur-3xl mix-blend-screen opacity-30" />
-            <div className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.05),transparent_70%)] blur-3xl mix-blend-screen opacity-20" />
+            <div className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(232,69,44,0.1),transparent_70%)] blur-3xl mix-blend-screen opacity-30" />
+            <div className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(232,69,44,0.05),transparent_70%)] blur-3xl mix-blend-screen opacity-20" />
           </>
         ) : (
           <>
             <motion.div
               animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] blur-3xl mix-blend-screen"
+              className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(232,69,44,0.15),transparent_70%)] blur-3xl mix-blend-screen"
             />
             <motion.div
               animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.1),transparent_70%)] blur-3xl mix-blend-screen"
+              className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(232,69,44,0.1),transparent_70%)] blur-3xl mix-blend-screen"
             />
           </>
         )}
@@ -192,11 +192,11 @@ export function OrbGuide({ script, onContinue, onSkip }: OrbGuideProps) {
       >
         {playbackState === "idle" && (
           <div className="relative group w-full px-6 sm:px-0 sm:w-auto">
-            <div className="absolute -inset-1 rounded-full bg-white/20 blur opacity-75 group-hover:opacity-100 transition duration-500" />
+            <div className="absolute -inset-1 rounded-full bg-ink/20 blur opacity-75 group-hover:opacity-100 transition duration-500" />
             <Button
               onClick={startPlayback}
               size="lg"
-              className="relative w-full sm:w-auto rounded-full border border-white/10 bg-white/5 px-8 py-5 sm:px-10 sm:py-6 text-sm sm:text-base uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+              className="relative w-full sm:w-auto rounded-full border border-ink/10 bg-ink/5 px-8 py-5 sm:px-10 sm:py-6 text-sm sm:text-base uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-ink/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(17,17,17,0.05)]"
             >
               Begin
             </Button>
@@ -238,12 +238,12 @@ export function OrbGuide({ script, onContinue, onSkip }: OrbGuideProps) {
               transition={{ duration: 0.5 }}
               className="relative group w-full sm:w-auto"
             >
-              {!canContinue ? null : <div className="absolute -inset-1 rounded-full bg-white/20 blur opacity-75 group-hover:opacity-100 transition duration-500" />}
+              {!canContinue ? null : <div className="absolute -inset-1 rounded-full bg-ink/20 blur opacity-75 group-hover:opacity-100 transition duration-500" />}
               <Button
                 onClick={onContinue}
                 disabled={!canContinue}
                 size="lg"
-                className="relative w-full sm:w-auto rounded-full border border-white/10 bg-white/5 px-8 py-5 sm:px-10 sm:py-6 text-sm sm:text-base uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.05)] disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-white/5 disabled:shadow-none"
+                className="relative w-full sm:w-auto rounded-full border border-ink/10 bg-ink/5 px-8 py-5 sm:px-10 sm:py-6 text-sm sm:text-base uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-ink/10 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(17,17,17,0.05)] disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-ink/5 disabled:shadow-none"
               >
                 Continue
               </Button>

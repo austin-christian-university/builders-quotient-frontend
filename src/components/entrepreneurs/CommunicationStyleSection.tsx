@@ -134,7 +134,7 @@ export function CommunicationStyleSection({
             <span
               className="w-3 h-3 rounded-full border"
               style={{
-                backgroundColor: "rgba(255,255,255,0.04)",
+                backgroundColor: "rgba(17,17,17,0.04)",
                 borderColor: "rgba(255,255,255,0.3)",
               }}
               aria-hidden="true"
@@ -166,7 +166,7 @@ export function CommunicationStyleSection({
                   {communicationNarrative.signature_moves.map((move, i) => (
                     <div
                       key={i}
-                      className="rounded-xl border border-border/50 bg-white/[0.02] p-5"
+                      className="rounded-xl border border-border/50 bg-ink/[0.02] p-5"
                     >
                       <h4 className="text-sm font-semibold text-text-primary mb-2">
                         {move.title}
@@ -185,7 +185,7 @@ export function CommunicationStyleSection({
               communicationNarrative.blindspots.length > 0) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {communicationNarrative.strengths.length > 0 && (
-                  <div className="rounded-xl border border-border/50 bg-white/[0.02] p-5 border-t-2 border-t-emerald-400/50">
+                  <div className="rounded-xl border border-border/50 bg-ink/[0.02] p-5 border-t-2 border-t-emerald-400/50">
                     <h4
                       className="text-sm font-semibold text-text-primary mb-2"
                       style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
@@ -198,7 +198,7 @@ export function CommunicationStyleSection({
                   </div>
                 )}
                 {communicationNarrative.blindspots.length > 0 && (
-                  <div className="rounded-xl border border-border/50 bg-white/[0.02] p-5 border-t-2 border-t-amber-400/50">
+                  <div className="rounded-xl border border-border/50 bg-ink/[0.02] p-5 border-t-2 border-t-amber-400/50">
                     <h4
                       className="text-sm font-semibold text-text-primary mb-2"
                       style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}

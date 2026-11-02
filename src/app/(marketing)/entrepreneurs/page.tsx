@@ -83,7 +83,7 @@ export default async function EntrepreneurExplorerPage() {
             Builder&apos;s Quotient Research
           </p>
           <h1
-            className="text-[clamp(2.25rem,5vw,3.75rem)] font-bold leading-[1.1] tracking-tight bg-gradient-to-br from-white via-neutral-100 to-neutral-500/80 bg-clip-text text-transparent pb-2"
+            className="text-[clamp(2.25rem,5vw,3.75rem)] font-bold leading-[1.1] tracking-tight bg-gradient-to-br from-ink via-ink to-ink/80 bg-clip-text text-transparent pb-2"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
             How do the world&apos;s top entrepreneurs think?
@@ -292,7 +292,7 @@ export default async function EntrepreneurExplorerPage() {
         />
         <div className="relative mx-auto max-w-2xl text-center">
           <h2
-            className="text-[clamp(1.875rem,4vw,3rem)] font-bold tracking-tight bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent pb-1"
+            className="text-[clamp(1.875rem,4vw,3rem)] font-bold tracking-tight bg-gradient-to-br from-ink to-ink bg-clip-text text-transparent pb-1"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
             Which archetype are you?
@@ -306,7 +306,7 @@ export default async function EntrepreneurExplorerPage() {
               as={Link}
               href="/assess/overview"
               size="lg"
-              className="relative rounded-full border border-white/10 bg-white/5 px-12 py-6 text-lg uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95"
+              className="relative rounded-full border border-ink/10 bg-ink/5 px-12 py-6 text-lg uppercase tracking-widest text-text-primary backdrop-blur-md transition-all duration-300 hover:bg-ink/10 hover:scale-105 active:scale-95"
             >
               Begin Assessment
             </Button>

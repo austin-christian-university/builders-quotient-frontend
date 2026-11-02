@@ -74,9 +74,9 @@ const FRAG = /* glsl */ `
   }
 
   // Brand palette
-  const vec3 baseColor1 = vec3(0.302, 0.639, 1.0);    // Electric blue #4da3ff
+  const vec3 baseColor1 = vec3(0.302, 0.639, 1.0);    // Electric blue #e8452c
   const vec3 baseColor2 = vec3(0.42, 0.82, 0.98);      // Light cyan
-  const vec3 baseColor3 = vec3(0.122, 0.188, 0.243);   // Navy #1F303E
+  const vec3 baseColor3 = vec3(0.122, 0.188, 0.243);   // Navy #111111
 
   const float innerRadius = 0.6;
   const float noiseScale = 0.65;
@@ -229,7 +229,7 @@ export function AudioOrb({
         hover: { value: 0 },
         rot: { value: 0 },
         hoverIntensity: { value: 1.0 },
-        backgroundColor: { value: new Vec3(0.039, 0.039, 0.047) }, // #0a0a0c
+        backgroundColor: { value: new Vec3(0.039, 0.039, 0.047) }, // #f4f1ea
       },
     });
 
@@ -316,7 +316,7 @@ export function AudioOrb({
   if (prefersReducedMotion || webglFailed) {
     return (
       <div
-        className="h-[180px] w-[180px] rounded-full md:h-[220px] md:w-[220px] bg-[radial-gradient(circle_at_35%_35%,rgba(77,163,255,0.6),rgba(77,163,255,0.15)_60%,rgba(77,163,255,0.05))] shadow-[0_0_60px_rgba(77,163,255,0.3),0_0_120px_rgba(77,163,255,0.1)]"
+        className="h-[180px] w-[180px] rounded-full md:h-[220px] md:w-[220px] bg-[radial-gradient(circle_at_35%_35%,rgba(232,69,44,0.6),rgba(232,69,44,0.15)_60%,rgba(232,69,44,0.05))] shadow-[0_0_60px_rgba(232,69,44,0.3),0_0_120px_rgba(232,69,44,0.1)]"
         aria-hidden="true"
       />
     );

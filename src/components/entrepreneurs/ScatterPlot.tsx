@@ -30,12 +30,12 @@ const PLOT_SIZE = SIZE - PADDING * 2;
 
 // Archetype key -> color mapping (derived from primary blue + secondary gold)
 const ARCHETYPE_COLORS: Record<string, string> = {
-  analytical_exploratory__insight_market: "#4da3ff",
-  analytical_exploratory__insight_process: "#6bb4ff",
+  analytical_exploratory__insight_market: "#e8452c",
+  analytical_exploratory__insight_process: "#d93d25",
   analytical_exploratory__validation_market: "#3d8edf",
   analytical_exploratory__validation_process: "#2d79bf",
-  analytical_decisive__insight_market: "#e9b949",
-  analytical_decisive__insight_process: "#f0ca6a",
+  analytical_decisive__insight_market: "#111111",
+  analytical_decisive__insight_process: "#2a2a2a",
   analytical_decisive__validation_market: "#d4a63e",
   analytical_decisive__validation_process: "#bf9333",
   interpersonal_exploratory__insight_market: "#34d399",
@@ -49,7 +49,7 @@ const ARCHETYPE_COLORS: Record<string, string> = {
 };
 
 function getColor(archetypeKey: string): string {
-  return ARCHETYPE_COLORS[archetypeKey] ?? "#4da3ff";
+  return ARCHETYPE_COLORS[archetypeKey] ?? "#e8452c";
 }
 
 /** Map a mouse/touch event to SVG coordinates. */
@@ -173,7 +173,7 @@ export function ScatterPlot({
           y1={PADDING}
           x2={cx}
           y2={SIZE - PADDING}
-          stroke="rgba(255,255,255,0.08)"
+          stroke="rgba(17,17,17,0.08)"
           strokeWidth={1}
         />
         <line
@@ -181,19 +181,19 @@ export function ScatterPlot({
           y1={cy}
           x2={SIZE - PADDING}
           y2={cy}
-          stroke="rgba(255,255,255,0.08)"
+          stroke="rgba(17,17,17,0.08)"
           strokeWidth={1}
         />
 
         {/* Axis labels */}
-        <text x={PADDING + 4} y={cy - 6} fontSize={13} fill="#9aa0ac" opacity={0.7}>
+        <text x={PADDING + 4} y={cy - 6} fontSize={13} fill="#6b6963" opacity={0.7}>
           {xLabelNegative}
         </text>
         <text
           x={SIZE - PADDING - 4}
           y={cy - 6}
           fontSize={13}
-          fill="#9aa0ac"
+          fill="#6b6963"
           opacity={0.7}
           textAnchor="end"
         >
@@ -203,7 +203,7 @@ export function ScatterPlot({
           x={cx + 6}
           y={PADDING + 14}
           fontSize={13}
-          fill="#9aa0ac"
+          fill="#6b6963"
           opacity={0.7}
         >
           {yLabelPositive}
@@ -212,7 +212,7 @@ export function ScatterPlot({
           x={cx + 6}
           y={SIZE - PADDING - 6}
           fontSize={13}
-          fill="#9aa0ac"
+          fill="#6b6963"
           opacity={0.7}
         >
           {yLabelNegative}
@@ -236,7 +236,7 @@ export function ScatterPlot({
                 cy={sy}
                 r={isHighlighted ? 6 : isActive ? 5 : 3.5}
                 fill={color}
-                stroke={isHighlighted ? "#fff" : "none"}
+                stroke={isHighlighted ? "#111111" : "none"}
                 strokeWidth={isHighlighted ? 2 : 0}
                 opacity={isHighlighted || isActive ? 1 : 0.6}
                 style={{ transition: "r 0.15s ease, opacity 0.15s ease", pointerEvents: "none" }}
@@ -300,7 +300,7 @@ export function ScatterPlot({
                 height={pillH}
                 rx={12}
                 fill="rgba(10,10,12,0.94)"
-                stroke="rgba(255,255,255,0.18)"
+                stroke="rgba(17,17,17,0.18)"
                 strokeWidth={1}
                 style={{ pointerEvents: "none" }}
               />
@@ -309,7 +309,7 @@ export function ScatterPlot({
                 y={pillY + pillH / 2 + 0.5}
                 dominantBaseline="middle"
                 fontSize={11}
-                fill="#f5f6fa"
+                fill="#111111"
                 fontWeight={500}
                 fontFamily="Inter, sans-serif"
                 style={{ pointerEvents: "none" }}
@@ -322,7 +322,7 @@ export function ScatterPlot({
                 y1={pillY + 5}
                 x2={pillX + pillW - arrowBoxW}
                 y2={pillY + pillH - 5}
-                stroke="rgba(255,255,255,0.15)"
+                stroke="rgba(17,17,17,0.15)"
                 strokeWidth={1}
                 style={{ pointerEvents: "none" }}
               />
@@ -351,7 +351,7 @@ export function ScatterPlot({
                   {/* External-link icon: 12x12 */}
                   <path
                     d="M4.5 1.5 H10.5 V7.5"
-                    stroke="#4da3ff"
+                    stroke="#e8452c"
                     strokeWidth={1.4}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -359,14 +359,14 @@ export function ScatterPlot({
                   />
                   <path
                     d="M10.5 1.5 L5 7"
-                    stroke="#4da3ff"
+                    stroke="#e8452c"
                     strokeWidth={1.4}
                     strokeLinecap="round"
                     fill="none"
                   />
                   <path
                     d="M9 6.5 V10.5 H1.5 V3 H5.5"
-                    stroke="#4da3ff"
+                    stroke="#e8452c"
                     strokeWidth={1.4}
                     strokeLinecap="round"
                     strokeLinejoin="round"

@@ -893,7 +893,7 @@ function NarrationDebugBar({
         const drift = count - expectedCount;
 
         const driftColor = drift === 0 ? "#6ee7b7" : Math.abs(drift) <= 1 ? "#fbbf24" : "#f87171";
-        const durColor = Number.isNaN(durMismatch) ? "#9aa0ac" : Math.abs(durMismatch) > 0.1 ? "#fbbf24" : "#6ee7b7";
+        const durColor = Number.isNaN(durMismatch) ? "#6b6963" : Math.abs(durMismatch) > 0.1 ? "#fbbf24" : "#6ee7b7";
 
         el.innerHTML =
           `<span style="color:#6ee7b7;font-weight:600">AUDIO</span>` +
@@ -921,7 +921,7 @@ function NarrationDebugBar({
   return (
     <div
       ref={canvasRef}
-      className="border-t border-white/10 pt-2 mt-4 font-mono text-[10px] text-green-400/80"
+      className="border-t border-ink/10 pt-2 mt-4 font-mono text-[10px] text-green-400/80"
     />
   );
 }
@@ -963,13 +963,13 @@ function ScrollableTextBox({
 
   return (
     <div
-      className="rounded-2xl border border-border-glass ring-1 ring-inset ring-white/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl"
+      className="rounded-2xl border border-border-glass ring-1 ring-inset ring-ink/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl"
       aria-live={ariaLive}
     >
       <div className="relative">
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200 hidden md:block",
+            "pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-ink/[0.08] to-transparent transition-opacity duration-200 hidden md:block",
             canScrollUp ? "opacity-100" : "opacity-0"
           )}
         />
@@ -983,7 +983,7 @@ function ScrollableTextBox({
 
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200 hidden md:block",
+            "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-gradient-to-r from-transparent via-ink/[0.08] to-transparent transition-opacity duration-200 hidden md:block",
             canScrollDown ? "opacity-100" : "opacity-0"
           )}
         />

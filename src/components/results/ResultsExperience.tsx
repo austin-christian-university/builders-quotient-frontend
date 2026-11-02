@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "motion/react";
 import type { ResultsPageData, CategoryScore } from "@/lib/schemas/results";
 import { PI_TEMPLATES, CI_TEMPLATES } from "@/lib/assessment/narrative-templates";
 
-import { ResultsSplashScreen } from "./ResultsSplashScreen";
 import { ArchetypeSlide } from "./slides/ArchetypeSlide";
 import { ReasoningHighlightsSlide } from "./slides/ReasoningHighlightsSlide";
 import { IntelligenceRadarSlide } from "./slides/IntelligenceRadarSlide";
@@ -99,8 +98,8 @@ function NavArrow({ direction, onClick, isDesktop, prominent }: NavArrowProps) {
   const label = isForward ? "Next section" : "Previous section";
 
   const baseStyle = prominent
-    ? "h-11 w-11 rounded-full border border-white/15 bg-white/10 backdrop-blur-md text-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:bg-white/20 hover:text-white/90"
-    : "h-10 w-10 rounded-full border border-white/8 bg-white/5 backdrop-blur-md text-white/40 shadow-[0_2px_12px_rgba(0,0,0,0.2)] hover:bg-white/10 hover:text-white/60";
+    ? "h-11 w-11 rounded-full border border-ink/15 bg-ink/10 backdrop-blur-md text-ink/70 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:bg-ink/20 hover:text-ink/90"
+    : "h-10 w-10 rounded-full border border-ink/8 bg-ink/5 backdrop-blur-md text-ink/40 shadow-[0_2px_12px_rgba(0,0,0,0.2)] hover:bg-ink/10 hover:text-ink/60";
 
   // Bounce: vertical on desktop, horizontal on mobile
   const bounceAxis = isDesktop ? "y" : "x";
@@ -169,7 +168,8 @@ type Props = {
 export function ResultsExperience({ data, token }: Props) {
   const isDesktop = useIsDesktop();
   const reducedMotion = usePrefersReducedMotion();
-  const [splashComplete, setSplashComplete] = useState(false);
+  // The crest splash was removed in the Swiss Ink rebrand; content shows immediately.
+  const splashComplete = true;
   const [currentSection, setCurrentSection] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const slideScrollRef = useRef<HTMLDivElement | null>(null);
@@ -200,10 +200,6 @@ export function ResultsExperience({ data, token }: Props) {
       clearTimeout(timer);
     };
   }, [checkSlideScroll, currentSection, splashComplete]);
-
-  const handleSplashComplete = useCallback(() => {
-    setSplashComplete(true);
-  }, []);
 
   // Analytics: track results viewed (after splash)
   useEffect(() => {
@@ -403,10 +399,6 @@ export function ResultsExperience({ data, token }: Props) {
 
   return (
     <>
-      {!splashComplete && (
-        <ResultsSplashScreen onComplete={handleSplashComplete} />
-      )}
-
       <motion.main
         ref={swipeRef}
         initial={{ opacity: 0 }}

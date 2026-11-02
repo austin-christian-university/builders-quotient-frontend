@@ -134,7 +134,7 @@ export function UploadStatusBar() {
 
               {/* Progress bar (for active uploads) */}
               {hasPendingUploads && !hasFailed && (
-                <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-white/10">
+                <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-ink/10">
                   <motion.div
                     className="h-full rounded-full bg-primary"
                     initial={{ width: 0 }}

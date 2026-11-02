@@ -11,14 +11,14 @@ interface CorpusCommunicationRadarProps {
   corpusAvgPersonalityVector: Record<string, number>;
 }
 
-const ACCENT_COLOR = "#4da3ff";
+const ACCENT_COLOR = "#e8452c";
 
 const SECTOR_COLORS: Record<string, string> = {
   "Energy & Dynamism": "#5cc8ff",
-  "Confidence & Authority": "#4da3ff",
+  "Confidence & Authority": "#e8452c",
   "Warmth & Interpersonal": "#f28b82",
   "Communication Style": "#b79cff",
-  "Self-Presentation": "#e9b949",
+  "Self-Presentation": "#111111",
 };
 
 const SECTOR_FULL_LABELS: Record<string, string> = {

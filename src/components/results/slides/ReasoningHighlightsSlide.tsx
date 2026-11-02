@@ -14,8 +14,8 @@ interface ReasoningHighlightsSlideProps {
 }
 
 const ACCENT_COLOR: Record<"pi" | "ci", string> = {
-  pi: "#4da3ff",
-  ci: "#e9b949",
+  pi: "#e8452c",
+  ci: "#111111",
 };
 
 export function ReasoningHighlightsSlide({
@@ -53,7 +53,7 @@ export function ReasoningHighlightsSlide({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-xs uppercase tracking-[0.3em]"
-          style={{ color: "#9aa0ac" }}
+          style={{ color: "#6b6963" }}
         >
           Your Strengths
         </motion.p>
@@ -101,7 +101,7 @@ export function ReasoningHighlightsSlide({
                     <p
                       className="text-xl font-semibold leading-snug"
                       style={{
-                        color: "#f5f6fa",
+                        color: "#111111",
                         fontFamily: "'Inter Tight', Inter, sans-serif",
                       }}
                     >
@@ -137,7 +137,7 @@ export function ReasoningHighlightsSlide({
             className="inline-block w-2 h-2 rounded-full"
             style={{ backgroundColor: ACCENT_COLOR.pi }}
           />
-          <span className="text-[11px] uppercase tracking-[0.15em]" style={{ color: "#6b7080" }}>
+          <span className="text-[11px] uppercase tracking-[0.15em]" style={{ color: "#8c8a84" }}>
             Practical Intelligence
           </span>
         </div>
@@ -146,7 +146,7 @@ export function ReasoningHighlightsSlide({
             className="inline-block w-2 h-2 rounded-full"
             style={{ backgroundColor: ACCENT_COLOR.ci }}
           />
-          <span className="text-[11px] uppercase tracking-[0.15em]" style={{ color: "#6b7080" }}>
+          <span className="text-[11px] uppercase tracking-[0.15em]" style={{ color: "#8c8a84" }}>
             Creative Intelligence
           </span>
         </div>

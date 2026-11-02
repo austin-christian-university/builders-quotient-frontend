@@ -137,7 +137,7 @@ export default async function ArchetypeDetailPage({ params }: PageProps) {
         />
         <div className="relative mx-auto max-w-2xl text-center">
           <h2
-            className="text-2xl font-bold tracking-tight bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent pb-1"
+            className="text-2xl font-bold tracking-tight bg-gradient-to-br from-ink to-ink bg-clip-text text-transparent pb-1"
             style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
           >
             Are you {/^[aeiou]/i.test(archetype.name.replace(/^The /, "")) ? "an" : "a"} {archetype.name.replace(/^The /, "")}?

@@ -1149,7 +1149,7 @@ export function VignetteExperience({
                       {sessionId.slice(0, 8)} / step {step}
                     </p>
                     <a
-                      className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
+                      className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-ink"
                       href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
                         `Assessment issue \u2014 session ${sessionId.slice(0, 8)} step ${step}`
                       )}`}

@@ -988,7 +988,7 @@ function BackgroundDecoration({ reduced }: { reduced: boolean }) {
             className="absolute left-1/4 top-1/3 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-100 blur-3xl mix-blend-screen"
             style={{
               background:
-                "radial-gradient(ellipse at center, rgba(77,163,255,0.08), transparent 70%)",
+                "radial-gradient(ellipse at center, rgba(232,69,44,0.08), transparent 70%)",
               animation: "orb-breathe 8s ease-in-out infinite",
             }}
           />
@@ -996,7 +996,7 @@ function BackgroundDecoration({ reduced }: { reduced: boolean }) {
             className="absolute right-1/4 top-2/3 h-[500px] w-[500px] translate-x-1/2 -translate-y-1/2 rounded-full opacity-100 blur-3xl mix-blend-screen"
             style={{
               background:
-                "radial-gradient(ellipse at center, rgba(233,185,73,0.05), transparent 70%)",
+                "radial-gradient(ellipse at center, rgba(17,17,17,0.05), transparent 70%)",
               animation: "orb-breathe 10s ease-in-out infinite 2s",
             }}
           />
