@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
-import { AudioOrb } from "./AudioOrb";
+import { VoiceRing } from "./VoiceRing";
 import { OrbSubtitles } from "./OrbSubtitles";
 import type { OrbScript } from "@/lib/assessment/orb-scripts";
 import { motion } from "motion/react";
@@ -124,7 +124,7 @@ export function OrbGuide({ script, onContinue, onSkip }: OrbGuideProps) {
 
       {/* Orb */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4 sm:gap-8 px-6 -translate-y-6 sm:translate-y-0">
-        <AudioOrb
+        <VoiceRing
           audioRef={audioRef}
           isPlaying={isSpeaking}
           prefersReducedMotion={prefersReducedMotion}
