@@ -89,8 +89,8 @@ function PersonalityRadarPreview() {
           points={points}
           fill="none"
           stroke="currentColor"
-          className="text-white/[0.06]"
-          strokeWidth={0.75}
+          className="text-border"
+          strokeWidth={1}
         />
       ))}
       {axes.map((a, i) => (
@@ -101,20 +101,20 @@ function PersonalityRadarPreview() {
           x2={a.x}
           y2={a.y}
           stroke="currentColor"
-          className="text-white/[0.06]"
-          strokeWidth={0.75}
+          className="text-border"
+          strokeWidth={1}
         />
       ))}
       <polygon
         points={dataPoints}
-        className="fill-secondary/15 stroke-secondary/60"
-        strokeWidth={1.5}
-        strokeLinejoin="round"
+        className="fill-ink/[0.06] stroke-ink"
+        strokeWidth={2}
+        strokeLinejoin="miter"
       />
       {personalityDimensions.map((d, i) => {
         const r = (d.value / 100) * maxR;
         const { x, y } = polarToXY(i * angleStep, r);
-        return <circle key={i} cx={x} cy={y} r={2.5} className="fill-secondary" />;
+        return <rect key={i} x={x - 3} y={y - 3} width={6} height={6} className="fill-ink" />;
       })}
       {labels.map((l, i) => (
         <text
@@ -123,7 +123,7 @@ function PersonalityRadarPreview() {
           y={l.y}
           textAnchor={l.anchor}
           dominantBaseline="central"
-          className="fill-text-secondary/60 text-[14px]"
+          className="fill-text-secondary text-[14px]"
         >
           {l.label}
         </text>
@@ -156,85 +156,64 @@ export function PersonalityCTASlide({ token }: PersonalityCTASlideProps) {
   }
 
   return (
-    <section className="flex min-h-full md:h-full flex-col items-center justify-center px-6 py-8 md:py-16 relative md:overflow-hidden">
-      {/* Ambient glow */}
-      <motion.div
-        className="absolute w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(233,185,73,0.12) 0%, rgba(233,185,73,0.04) 40%, transparent 70%)",
-        }}
-        animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.6, 0.4] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-
+    <section className="relative flex min-h-full flex-col justify-center px-5 pt-14 pb-24 md:h-full md:overflow-hidden md:px-8 md:py-16">
       <motion.div
         variants={stagger}
         initial="hidden"
         animate="show"
-        className="z-10 max-w-2xl w-full flex flex-col items-center gap-6 md:gap-8"
+        className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-8 md:grid-cols-2 md:items-center md:gap-12"
       >
-        {/* Eyebrow */}
-        <motion.p
-          variants={fadeUp}
-          className="uppercase tracking-[0.3em] text-xs text-secondary font-medium"
-        >
-          Next step
-        </motion.p>
+        <div className="flex flex-col">
+          {/* Label */}
+          <motion.p variants={fadeUp} className="mb-4 text-sm text-[#8c8a84]">
+            Next step
+          </motion.p>
 
-        {/* Heading */}
-        <motion.h2
-          variants={fadeUp}
-          className="font-display font-bold text-[length:var(--text-fluid-2xl)] text-white leading-tight text-center text-balance"
-        >
-          Complete Your Builder Profile
-        </motion.h2>
-
-        {/* Body */}
-        <motion.p
-          variants={fadeUp}
-          className="text-text-secondary text-[length:var(--text-fluid-base)] leading-relaxed text-center text-balance max-w-md"
-        >
-          Beyond intelligence, great entrepreneurs share a unique blend of personality
-          traits&nbsp;&mdash; grit, risk tolerance, innovativeness, and more. Our
-          personality profile measures 8&nbsp;key dimensions that define great founders.
-        </motion.p>
-
-        {/* Radar preview */}
-        <motion.div variants={fadeUp} className="w-full max-w-[300px]">
-          <PersonalityRadarPreview />
-          <p className="mt-1 text-center text-[10px] uppercase tracking-widest text-text-secondary/40">
-            Example data
-          </p>
-        </motion.div>
-
-        {/* CTA */}
-        <motion.div
-          variants={fadeUp}
-          className="flex flex-col items-center gap-3"
-        >
-          <Button
-            size="lg"
-            onClick={handleStart}
-            disabled={isPending}
-            className="shadow-[0_0_30px_-8px_rgba(233,185,73,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_-8px_rgba(233,185,73,0.7)] rounded-xl"
-            style={{ background: "#e9b949", color: "#0a0a0c" }}
+          {/* Heading */}
+          <motion.h2
+            variants={fadeUp}
+            className="max-w-[14ch] text-[clamp(34px,5vw,56px)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink"
           >
-            {isPending ? (
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-[#0a0a0c]/20 border-t-[#0a0a0c] rounded-full animate-spin" />
-                Starting{"\u2026"}
-              </span>
-            ) : (
-              "Start Personality Profile"
-            )}
-          </Button>
-          <span className="text-[length:var(--text-fluid-xs)] font-medium text-text-secondary/60 uppercase tracking-widest">
-            ~5&nbsp;minutes
-          </span>
-          {error && (
-            <p className="text-red-400 text-sm text-center">{error}</p>
-          )}
+            Complete Your Builder Profile
+          </motion.h2>
+
+          {/* Body */}
+          <motion.p
+            variants={fadeUp}
+            className="mt-5 max-w-[44ch] text-[17px] leading-[1.5] text-[#3d3c39]"
+          >
+            Beyond intelligence, great entrepreneurs share a unique blend of personality
+            traits&nbsp;&mdash; grit, risk tolerance, innovativeness, and more. Our
+            personality profile measures 8&nbsp;key dimensions that define great founders.
+          </motion.p>
+
+          {/* CTA */}
+          <motion.div variants={fadeUp} className="mt-7 flex flex-col items-start gap-3">
+            <div className="flex flex-wrap items-center gap-4">
+              <Button size="lg" onClick={handleStart} disabled={isPending}>
+                {isPending ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin border-2 border-ink/20 border-t-ink" />
+                    Starting{"\u2026"}
+                  </span>
+                ) : (
+                  <>
+                    Start Personality Profile <span aria-hidden="true">&rarr;</span>
+                  </>
+                )}
+              </Button>
+              <span className="text-sm text-text-secondary">~5&nbsp;minutes</span>
+            </div>
+            {error && <p className="text-sm text-[#b3311d]">{error}</p>}
+          </motion.div>
+        </div>
+
+        {/* Radar preview, framed like a sheet */}
+        <motion.div variants={fadeUp} className="w-full border-2 border-ink bg-[#fbfaf6]">
+          <p className="border-b border-ink px-4 py-2.5 text-sm text-text-secondary">Example data</p>
+          <div className="px-4 py-5">
+            <PersonalityRadarPreview />
+          </div>
         </motion.div>
       </motion.div>
     </section>

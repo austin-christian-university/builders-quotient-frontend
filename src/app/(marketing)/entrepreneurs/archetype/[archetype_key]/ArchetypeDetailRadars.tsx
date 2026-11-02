@@ -47,67 +47,61 @@ export function ArchetypeDetailRadars({
   const handleCiHover = useCallback((idx: number | null) => setCiActiveIndex(idx), []);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-8">
       {/* PI Radar */}
       <div>
-        <p
-          className="text-xs uppercase tracking-[0.2em] text-text-secondary/60 mb-4 text-center"
-          style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-        >
+        <h3 className="mb-6 border-b border-ink pb-3 text-lg font-semibold tracking-[-0.02em] text-ink">
           Practical Intelligence
-        </p>
+        </h3>
         <div ref={piContainerRef} className="w-full max-w-md mx-auto">
           <RadarChart
             categories={piLabels}
             studentScores={piStudent}
             corpusScores={piCorpus}
             maxValue={piChartMax}
-            accentColor="#4da3ff"
+            accentColor="#e8452c"
             onCategoryHover={handlePiHover}
             activeCategoryIndex={piActiveIndex}
             containerWidth={piContainerWidth}
           />
         </div>
-        <div className="flex items-center justify-center gap-6 mt-3">
+        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-text-secondary">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-primary" aria-hidden="true" />
-            <span className="text-xs text-text-secondary">This Archetype</span>
+            <span className="h-2.5 w-2.5 bg-vermilion" aria-hidden="true" />
+            This Archetype
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border border-white/30 bg-white/5" aria-hidden="true" />
-            <span className="text-xs text-text-secondary">All Entrepreneurs</span>
+            <span className="h-2.5 w-2.5 border border-ink/40 bg-ink/5" aria-hidden="true" />
+            All Entrepreneurs
           </div>
         </div>
       </div>
 
       {/* CI Radar */}
       <div>
-        <p
-          className="text-xs uppercase tracking-[0.2em] text-text-secondary/60 mb-4 text-center"
-          style={{ fontFamily: "'Inter Tight', Inter, sans-serif" }}
-        >
+        <h3 className="mb-6 border-b border-ink pb-3 text-lg font-semibold tracking-[-0.02em] text-ink">
           Creative Intelligence
-        </p>
+        </h3>
         <div ref={ciContainerRef} className="w-full max-w-md mx-auto">
           <RadarChart
             categories={ciLabels}
             studentScores={ciStudent}
             corpusScores={ciCorpus}
             maxValue={ciChartMax}
-            accentColor="#e9b949"
+            accentColor="#111111"
             onCategoryHover={handleCiHover}
             activeCategoryIndex={ciActiveIndex}
             containerWidth={ciContainerWidth}
           />
         </div>
-        <div className="flex items-center justify-center gap-6 mt-3">
+        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-text-secondary">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-secondary" aria-hidden="true" />
-            <span className="text-xs text-text-secondary">This Archetype</span>
+            <span className="h-2.5 w-2.5 bg-ink" aria-hidden="true" />
+            This Archetype
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border border-white/30 bg-white/5" aria-hidden="true" />
-            <span className="text-xs text-text-secondary">All Entrepreneurs</span>
+            <span className="h-2.5 w-2.5 border border-ink/40 bg-ink/5" aria-hidden="true" />
+            All Entrepreneurs
           </div>
         </div>
       </div>

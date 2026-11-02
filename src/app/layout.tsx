@@ -14,7 +14,8 @@ const inter = Inter({
 const interTight = Inter_Tight({
   variable: "--font-inter-tight-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  // Variable font: one file covers every weight. Listing weights explicitly
+  // made the Vercel Turbopack build fail in next/font/google.
   display: "swap",
 });
 
@@ -56,8 +57,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0c",
-  colorScheme: "dark",
+  themeColor: "#f4f1ea",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -66,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
         className={`${inter.variable} ${interTight.variable} font-sans antialiased`}
       >

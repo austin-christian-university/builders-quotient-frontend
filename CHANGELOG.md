@@ -2,6 +2,23 @@
 
 All notable changes to the Builders Quotient frontend will be documented in this file.
 
+## [0.3.0.0] - 2026-11-02
+
+### Changed
+- The whole app is now Swiss Ink: paper, ink and one vermilion, Inter Tight, square controls and ink hairlines. Marketing pages, the assessment, results and share cards all moved off the dark glass theme.
+- The narrator is Unify's woven ring, drawn in ink and moving with the narration. The WebGL orb and the `ogl` dependency are gone.
+- Every marketing page shares the landing's top bar and footer.
+- Share cards are 9:16 posters with the Grid Q lockup, a giant founder or archetype name and an ink footer band.
+- The founder count on the landing, profile and archetype pages comes from the database (founders with a full reasoning profile, 248 today) instead of a hardcoded 274.
+- Lead-type options on the results form read "Prospective student" / "Something else".
+
+### Removed
+- The optional personality quiz is archived behind `PERSONALITY_QUIZ_ENABLED` (off). About one in five finishers took it and none since September. Its entry points are hidden and its routes redirect; code, data and existing personality results are kept.
+- The results crest splash and the unused crest images.
+
+### Fixed
+- The existing-profile dialog was missing a space after the phone number or email.
+
 ## [0.2.8.0] - 2026-11-02
 
 ### Changed

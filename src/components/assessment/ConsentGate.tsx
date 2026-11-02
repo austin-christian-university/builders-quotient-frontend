@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CONSENT_VERSION, type ConsentData } from "@/lib/schemas/consent";
 
 const legalLinkClass =
-  "text-primary underline underline-offset-4 hover:text-primary/80";
+  "text-ink underline decoration-vermilion underline-offset-4 hover:text-vermilion";
 
 type ConsentGateProps = {
   onAccept: (consent: ConsentData) => void;
@@ -57,52 +57,52 @@ export function ConsentGate({
   const card = (
     <Card className="w-full max-w-2xl">
       <CardHeader>
-        <p className="text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-text-secondary">
+        <p className="text-sm text-text-secondary">
           {eyebrow}
         </p>
-        <h1 className="mt-2 font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-[-0.01em] text-balance">
+        <h1 className="mt-2 font-display text-[clamp(32px,5vw,44px)] font-semibold leading-[0.98] tracking-[-0.045em] text-balance">
           {heading}
         </h1>
       </CardHeader>
 
       <CardContent className="space-y-8">
         {/* Section A: How This Assessment Works */}
-        <section>
-          <h2 className="text-[length:var(--text-fluid-base)] font-semibold text-text-primary">
+        <section className="border-t border-ink pt-4">
+          <h2 className="text-lg font-semibold tracking-[-0.02em] text-ink">
             How This Assessment Works
           </h2>
-          <ul className="mt-3 space-y-2 text-[length:var(--text-fluid-sm)] text-text-secondary">
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+          <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[#3d3c39]">
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Your responses are recorded via webcam (video and audio)
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Recordings are transcribed using automated speech-to-text
               technology
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Your responses are compared against expert scoring rubrics to
               generate your Builders Quotient profile
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               All data is processed solely for assessment scoring and
               comparison&thinsp;&mdash;&thinsp;it is never sold, shared with
               third parties for marketing, or used outside this platform
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               De-identified data may be used for academic research on
               intelligence and entrepreneurship
@@ -111,44 +111,44 @@ export function ConsentGate({
         </section>
 
         {/* Section B: Biometric Data Notice */}
-        <section>
-          <h2 className="text-[length:var(--text-fluid-base)] font-semibold text-text-primary">
+        <section className="border-t border-ink pt-4">
+          <h2 className="text-lg font-semibold tracking-[-0.02em] text-ink">
             Biometric Data Notice
           </h2>
-          <p className="mt-2 text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-accent-gold">
+          <p className="mt-1 text-sm text-text-secondary">
             Required by Texas &amp; Illinois law
           </p>
-          <ul className="mt-3 space-y-2 text-[length:var(--text-fluid-sm)] text-text-secondary">
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+          <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[#3d3c39]">
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               This assessment captures audio recordings from which voiceprint
               data may be derived during transcription
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Video recordings may contain facial geometry data
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Biometric data is used exclusively for assessment scoring and
               identity verification
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Biometric data is retained for no longer than 1&nbsp;year after
               assessment completion and then permanently destroyed
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-primary" aria-hidden="true">
-                &bull;
+            <li className="flex items-start gap-3">
+              <span className="text-ink" aria-hidden="true">
+                &mdash;
               </span>
               Biometric data will never be sold, leased, traded, or otherwise
               shared for profit
@@ -189,7 +189,7 @@ export function ConsentGate({
               id="consent-biometric"
               checked={biometric}
               onChange={setBiometric}
-              className="border border-border-glass"
+              className="border border-border"
             >
               I consent to the collection and processing of biometric
               identifiers (voiceprint, facial geometry) as described in the{" "}
@@ -221,7 +221,7 @@ export function ConsentGate({
             <button
               type="button"
               onClick={onDecline}
-              className="min-h-11 text-[length:var(--text-fluid-sm)] text-text-secondary transition-colors hover:text-text-primary"
+              className="min-h-11 text-sm text-text-secondary underline-offset-4 hover:underline transition-colors hover:text-text-primary"
             >
               I&apos;d rather not continue
             </button>

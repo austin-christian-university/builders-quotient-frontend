@@ -119,7 +119,7 @@ export function PersonalityQuizPage({
   return (
     <motion.div
       ref={containerRef}
-      className="flex flex-col gap-4"
+      className="flex flex-col border-b border-ink"
       initial="hidden"
       animate="visible"
       variants={prefersReducedMotion ? noStagger : stagger}
@@ -129,18 +129,18 @@ export function PersonalityQuizPage({
           key={item.id}
           variants={prefersReducedMotion ? noMotion : fadeUp}
           transition={prefersReducedMotion ? { duration: 0 } : transition}
-          className={cn(
-            "rounded-2xl border p-5 backdrop-blur-xl transition-shadow duration-300 ease-[var(--ease-out-expo)] sm:p-6",
-            i === resolvedActiveIndex
-              ? "border-primary/30 bg-bg-elevated/60 shadow-[0_0_24px_rgb(77_163_255/0.08)]"
-              : "border-border-glass bg-bg-elevated/60"
-          )}
+          className="border-t border-ink py-6"
         >
           <p
             id={`likert-label-${item.id}`}
-            className="mb-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary"
+            className="mb-4 text-[length:var(--text-fluid-base)] leading-snug text-text-primary"
           >
-            <span className="mr-2 tabular-nums text-text-secondary">
+            <span
+              className={cn(
+                "mr-2 tabular-nums",
+                i === resolvedActiveIndex ? "font-semibold text-ink" : "text-text-secondary"
+              )}
+            >
               {pageOffset + i + 1}.
             </span>
             {item.text}

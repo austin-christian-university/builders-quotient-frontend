@@ -24,6 +24,22 @@ import {
 
 // --- Main queries ---
 
+/** Founders with a full reasoning profile (an archetype) — the pool results are matched against. */
+export async function getProfiledEntrepreneurCount(): Promise<number | null> {
+  // The landing prerenders at build time, where the database keys may be absent;
+  // callers fall back to a fixed count and the page revalidates once live.
+  try {
+    const supabase = createServiceClient();
+    const { count, error } = await supabase
+      .from("entrepreneurs")
+      .select("id", { count: "exact", head: true })
+      .not("archetype_key", "is", null);
+    return error ? null : count;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetches all data needed for the Archetype Explorer overview page.
  * Returns null if no entrepreneurs have archetypes.

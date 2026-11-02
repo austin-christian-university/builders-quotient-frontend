@@ -16,7 +16,7 @@ export function ProgressIndicator({
       <div className="mx-auto flex max-w-2xl items-center gap-3">
         {/* Step segments */}
         <div
-          className="flex flex-1 gap-1.5"
+          className="flex flex-1 gap-1"
           role="progressbar"
           aria-valuenow={step}
           aria-valuemin={1}
@@ -31,10 +31,10 @@ export function ProgressIndicator({
               <div
                 key={segmentStep}
                 className={cn(
-                  "h-1.5 flex-1 rounded-full transition-colors duration-500",
-                  isCompleted && "bg-primary",
-                  isCurrent && "bg-secondary",
-                  !isCompleted && !isCurrent && "bg-border-glass"
+                  "h-1 flex-1 transition-colors duration-500",
+                  isCompleted && "bg-ink",
+                  isCurrent && "bg-vermilion",
+                  !isCompleted && !isCurrent && "bg-border"
                 )}
               />
             );
@@ -42,7 +42,7 @@ export function ProgressIndicator({
         </div>
 
         {/* Step counter */}
-        <span className="shrink-0 text-[length:var(--text-fluid-xs)] tabular-nums text-text-secondary">
+        <span className="shrink-0 text-sm font-medium tabular-nums text-ink">
           {step}/{totalSteps}
         </span>
       </div>

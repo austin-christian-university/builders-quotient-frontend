@@ -3,21 +3,26 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-bg-base: #0a0a0c;
-  --color-bg-elevated: #111113;
-  --color-bg-surface: #161618;
+  /* Swiss Ink: paper, ink, one vermilion. */
+  --color-paper: #f4f1ea;
+  --color-ink: #111111;
+  --color-vermilion: #e8452c;
 
-  --color-primary: #4da3ff;
-  --color-primary-hover: #6bb4ff;
-  --color-secondary: #e9b949;
-  --color-secondary-hover: #f0ca6a;
-  --color-navy: #1f303e;
+  --color-bg-base: #f4f1ea;
+  --color-bg-elevated: #fbfaf6;
+  --color-bg-surface: #ece8df;
 
-  --color-text-primary: #f5f6fa;
-  --color-text-secondary: #9aa0ac;
+  --color-primary: #e8452c;
+  --color-primary-hover: #d93d25;
+  --color-secondary: #111111;
+  --color-secondary-hover: #2a2a2a;
+  --color-navy: #111111;
 
-  --color-border: #1f1f23;
-  --color-border-glass: rgb(255 255 255 / 0.1);
+  --color-text-primary: #111111;
+  --color-text-secondary: #6b6963;
+
+  --color-border: #d9d5cb;
+  --color-border-glass: rgb(17 17 17 / 0.14);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -29,7 +34,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter-tight-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-inter-tight-sans), ui-sans-serif, system-ui, sans-serif;
 }
 

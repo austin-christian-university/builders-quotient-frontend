@@ -29,14 +29,14 @@ export function MobileWarningDialog({
     <dialog
       ref={dialogRef}
       onClose={onDismiss}
-      className="m-auto max-w-md rounded-2xl border border-border-glass bg-bg-elevated/60 p-0 backdrop-blur-xl shadow-[0_8px_32px_rgb(0_0_0/0.3),0_2px_8px_rgb(0_0_0/0.2)] backdrop:bg-black/60 backdrop:backdrop-blur-sm"
+      className="m-auto w-[calc(100%-32px)] max-w-md border border-ink bg-bg-elevated p-0 text-ink backdrop:bg-ink/60"
     >
-      <div className="relative px-6 py-8 text-center">
+      <div className="relative px-6 py-8 text-left">
         {/* Close — navigates home */}
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-white/10 hover:text-text-primary"
+          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center text-text-secondary transition-colors hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
           aria-label="Go back to home"
         >
           <svg
@@ -54,7 +54,7 @@ export function MobileWarningDialog({
         </button>
 
         {/* Monitor icon */}
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-secondary/10">
+        <div className="mb-5 flex h-12 w-12 items-center justify-center border border-ink">
           <svg
             width="28"
             height="28"
@@ -64,7 +64,7 @@ export function MobileWarningDialog({
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-secondary"
+            className="text-ink"
             aria-hidden="true"
           >
             <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -73,11 +73,11 @@ export function MobileWarningDialog({
           </svg>
         </div>
 
-        <h2 className="font-display text-[length:var(--text-fluid-xl)] font-bold tracking-[-0.01em] text-text-primary">
+        <h2 className="pr-10 font-display text-[28px] font-semibold leading-[1] tracking-[-0.04em] text-ink">
           Desktop Recommended
         </h2>
 
-        <p className="mt-3 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
+        <p className="mt-3 text-sm leading-relaxed text-[#3d3c39]">
           This assessment requires webcam recording and works best on a larger
           screen. Sections cannot be retaken, so we recommend using a desktop or
           laptop for the best experience.
@@ -92,9 +92,9 @@ export function MobileWarningDialog({
           Continue Anyway
         </Button>
 
-        <p className="mt-4 text-[length:var(--text-fluid-xs)] text-text-secondary">
+        <p className="mt-4 text-sm text-text-secondary">
           For the best experience, visit{" "}
-          <span className="text-primary">bq.austinchristianu.org</span> on a
+          <span className="font-medium text-ink">bq.austinchristianu.org</span> on a
           desktop
         </p>
       </div>

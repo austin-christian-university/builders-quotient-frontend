@@ -674,9 +674,6 @@ export function WarmupExperience() {
       {/* Non-orb phases: full-screen layout */}
       {!isOrbPhase && state.phase !== "done" && (
         <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-bg-base">
-          {/* Ambient background decoration */}
-          <BackgroundDecoration reduced={prefersReducedMotion} />
-
           {/* Spacer for journey map */}
           <div className="h-14 shrink-0" />
 
@@ -766,7 +763,7 @@ export function WarmupExperience() {
                                   animate={{ opacity: 1 }}
                                   className="flex flex-col items-center gap-3"
                                 >
-                                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true" />
+                                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink border-t-transparent" aria-hidden="true" />
                                   <p className="text-text-secondary">Preparing next prompt&#8230;</p>
                                 </motion.div>
                               )}
@@ -811,7 +808,7 @@ export function WarmupExperience() {
                                   animate={{ opacity: 1 }}
                                   className="flex flex-col items-center gap-3"
                                 >
-                                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true" />
+                                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink border-t-transparent" aria-hidden="true" />
                                   <p className="text-text-secondary">Preparing final prompt&#8230;</p>
                                 </motion.div>
                               )}
@@ -896,7 +893,7 @@ export function WarmupExperience() {
                     >
                       <Card className="w-full max-w-md">
                         <CardHeader>
-                          <h1 className="font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-[-0.01em]">
+                          <h1 className="font-display text-[length:var(--text-fluid-2xl)] font-semibold leading-[1.05] tracking-[-0.04em]">
                             No problem at all.
                           </h1>
                         </CardHeader>
@@ -953,7 +950,7 @@ function StreamErrorAlert({
   return (
     <div
       role="alert"
-      className="mt-6 w-full max-w-lg rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[length:var(--text-fluid-sm)] text-red-300"
+      className="mt-6 w-full max-w-lg border border-vermilion border-l-4 bg-paper px-4 py-3 text-[length:var(--text-fluid-sm)] text-ink"
     >
       <p>
         {error ||
@@ -963,54 +960,17 @@ function StreamErrorAlert({
         <button
           type="button"
           onClick={onRetry}
-          className="underline underline-offset-2 hover:text-text-primary"
+          className="font-semibold underline underline-offset-2 hover:text-vermilion"
         >
           Retry
         </button>
         <Link
           href="/assess/setup"
-          className="underline underline-offset-2 hover:text-text-primary"
+          className="font-semibold underline underline-offset-2 hover:text-vermilion"
         >
           Return to Equipment Check
         </Link>
       </div>
-    </div>
-  );
-}
-
-function BackgroundDecoration({ reduced }: { reduced: boolean }) {
-  return (
-    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      {/* Ambient gradient orbs */}
-      {!reduced && (
-        <>
-          <div
-            className="absolute left-1/4 top-1/3 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-100 blur-3xl mix-blend-screen"
-            style={{
-              background:
-                "radial-gradient(ellipse at center, rgba(77,163,255,0.08), transparent 70%)",
-              animation: "orb-breathe 8s ease-in-out infinite",
-            }}
-          />
-          <div
-            className="absolute right-1/4 top-2/3 h-[500px] w-[500px] translate-x-1/2 -translate-y-1/2 rounded-full opacity-100 blur-3xl mix-blend-screen"
-            style={{
-              background:
-                "radial-gradient(ellipse at center, rgba(233,185,73,0.05), transparent 70%)",
-              animation: "orb-breathe 10s ease-in-out infinite 2s",
-            }}
-          />
-        </>
-      )}
-      {/* Dot grid texture */}
-      <div
-        className="absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, currentColor 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }}
-      />
     </div>
   );
 }

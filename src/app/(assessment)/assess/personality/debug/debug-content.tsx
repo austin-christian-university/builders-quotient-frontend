@@ -73,7 +73,7 @@ export function DebugContent({
         {summary && (
           <>
             {/* Global Indices */}
-            <div className="rounded-2xl border border-white/10 bg-surface-elevated p-5">
+            <div className="rounded-2xl border border-ink/10 bg-surface-elevated p-5">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-text-secondary">
                 Global Indices
               </h2>
@@ -85,7 +85,7 @@ export function DebugContent({
                   <p className="font-display text-2xl font-bold tabular-nums">
                     {summary.globalIndex.toFixed(2)}
                   </p>
-                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-ink/10">
                     <div
                       className="h-full rounded-full bg-accent-blue"
                       style={{
@@ -102,7 +102,7 @@ export function DebugContent({
                   <p className="font-display text-2xl font-bold tabular-nums">
                     {summary.gritMean.toFixed(2)}
                   </p>
-                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-ink/10">
                     <div
                       className="h-full rounded-full bg-accent-gold"
                       style={{
@@ -118,7 +118,7 @@ export function DebugContent({
             </div>
 
             {/* Quality Flags */}
-            <div className="rounded-2xl border border-white/10 bg-surface-elevated p-5">
+            <div className="rounded-2xl border border-ink/10 bg-surface-elevated p-5">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-text-secondary">
                 Quality Flags
               </h2>
@@ -153,7 +153,7 @@ export function DebugContent({
         )}
 
         {/* Facet Scores */}
-        <div className="rounded-2xl border border-white/10 bg-surface-elevated p-5">
+        <div className="rounded-2xl border border-ink/10 bg-surface-elevated p-5">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-text-secondary">
             Facet Scores
           </h2>
@@ -181,7 +181,7 @@ export function DebugContent({
                   </div>
                 </div>
                 <div
-                  className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10"
+                  className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink/10"
                   role="progressbar"
                   aria-valuenow={Math.round(row.rescaled_score)}
                   aria-valuemin={0}
@@ -201,7 +201,7 @@ export function DebugContent({
         </div>
 
         {/* Raw JSON */}
-        <div className="rounded-2xl border border-white/10 bg-surface-elevated p-5">
+        <div className="rounded-2xl border border-ink/10 bg-surface-elevated p-5">
           <button
             type="button"
             onClick={() => setJsonExpanded((v) => !v)}

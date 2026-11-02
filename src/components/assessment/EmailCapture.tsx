@@ -35,8 +35,8 @@ function Spinner() {
 }
 
 const leadTypeOptions: { value: LeadType; label: string }[] = [
-  { value: "prospective_student", label: "I\u2019m a prospective student" },
-  { value: "general_interest", label: "I\u2019m anybody else" },
+  { value: "prospective_student", label: "Prospective student" },
+  { value: "general_interest", label: "Something else" },
 ];
 
 export function EmailCapture() {
@@ -136,30 +136,14 @@ export function EmailCapture() {
     <div className="flex min-h-dvh items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg">
         {/* Achievement header */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-secondary/30 bg-secondary/10">
-            <svg
-              className="h-8 w-8 text-secondary"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.5 12.75l6 6 9-13.5"
-              />
-            </svg>
-          </div>
-          <p className="text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-secondary">
+        <div className="mb-10 border-t border-ink pt-6">
+          <p className="text-sm text-text-secondary">
             Assessment Complete
           </p>
-          <h1 className="mt-2 font-display text-[length:var(--text-fluid-2xl)] font-bold tracking-[-0.01em]">
+          <h1 className="mt-4 font-display text-[clamp(36px,8vw,56px)] font-semibold leading-[0.98] tracking-[-0.05em]">
             Get Your Results
           </h1>
-          <p className="mt-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-secondary">
+          <p className="mt-5 text-[length:var(--text-fluid-base)] leading-relaxed text-[#3d3c39]">
             Our algorithms take some time to process your results.
             Enter your details to receive your personalized Builders Quotient
             profile via email and text within the next 24&nbsp;hours.
@@ -167,12 +151,12 @@ export function EmailCapture() {
         </div>
 
         {/* Form */}
-        <form action={formAction} className="space-y-4" noValidate>
+        <form action={formAction} className="space-y-5" noValidate>
           {/* General error */}
           {generalError && (
             <div
               role="alert"
-              className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+              className="border border-[#b3261e] px-4 py-3 text-sm text-[#b3261e]"
             >
               {generalError}
             </div>
@@ -206,7 +190,7 @@ export function EmailCapture() {
               <p
                 id="phone-error"
                 role="alert"
-                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-red-400"
+                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-[#b3261e]"
               >
                 {phoneError}
               </p>
@@ -247,7 +231,7 @@ export function EmailCapture() {
               <p
                 id="email-error"
                 role="alert"
-                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-red-400"
+                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-[#b3261e]"
               >
                 {emailError}
               </p>
@@ -281,7 +265,7 @@ export function EmailCapture() {
               <p
                 id="firstName-error"
                 role="alert"
-                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-red-400"
+                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-[#b3261e]"
               >
                 {firstNameError}
               </p>
@@ -310,7 +294,7 @@ export function EmailCapture() {
               <p
                 id="leadType-error"
                 role="alert"
-                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-red-400"
+                className="mt-1.5 text-[length:var(--text-fluid-sm)] text-[#b3261e]"
               >
                 {leadTypeError}
               </p>
@@ -318,19 +302,19 @@ export function EmailCapture() {
           </fieldset>
 
           {/* Marketing consent */}
-          <div className="divide-y divide-border-glass rounded-xl border border-border-glass bg-bg-elevated/60">
+          <div className="divide-y divide-border border-y border-ink">
             <Checkbox
               id="smsMarketingConsent"
               name="smsMarketingConsent"
               value="true"
               checked={smsConsent}
               onChange={setSmsConsent}
-              className="p-4"
+              className="py-4"
             >
               <span className="text-[length:var(--text-fluid-xs)] leading-relaxed">
                 Text me updates about ACU programs and enrollment
                 opportunities.{" "}
-                <span className="text-text-secondary/60">
+                <span className="text-text-secondary">
                   Approx. 2&nbsp;msgs/month.
                   Msg&nbsp;&amp;&nbsp;data rates may apply. Reply STOP to
                   unsubscribe, HELP for help.
@@ -344,7 +328,7 @@ export function EmailCapture() {
               value="true"
               checked={emailConsent}
               onChange={setEmailConsent}
-              className="p-4"
+              className="py-4"
             >
               <span className="text-[length:var(--text-fluid-xs)] leading-relaxed">
                 Keep me in the loop on ACU programs and events via email.
@@ -372,18 +356,18 @@ export function EmailCapture() {
           </Button>
 
           {/* Legal links */}
-          <p className="text-center text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
+          <p className="text-[length:var(--text-fluid-xs)] leading-relaxed text-text-secondary">
             By submitting, you agree to our{" "}
             <a
               href="/terms"
-              className="text-text-primary underline underline-offset-4 transition-colors hover:text-primary"
+              className="text-text-primary underline decoration-1 underline-offset-4 hover:decoration-2"
             >
               Terms of Service
             </a>{" "}
             and{" "}
             <a
               href="/privacy"
-              className="text-text-primary underline underline-offset-4 transition-colors hover:text-primary"
+              className="text-text-primary underline decoration-1 underline-offset-4 hover:decoration-2"
             >
               Privacy Policy
             </a>
@@ -468,7 +452,7 @@ function DuplicateModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isLinking) onClose();
       }}
@@ -480,18 +464,18 @@ function DuplicateModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="duplicate-modal-title"
-        className="mx-4 w-full max-w-md rounded-2xl border border-border-glass bg-bg-elevated/95 p-6 shadow-2xl backdrop-blur-xl"
+        className="mx-4 w-full max-w-md border border-ink bg-paper p-6"
       >
         <h2
           id="duplicate-modal-title"
-          className="font-display text-lg font-semibold tracking-[-0.01em] text-text-primary"
+          className="font-display text-2xl font-semibold leading-tight tracking-[-0.035em] text-text-primary"
         >
           Existing Profile Found
         </h2>
         <p className="mt-2 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
           The {matchedField === "email" ? "email address" : "phone number"}{" "}
-          <strong className="text-text-primary">{matchedValue}</strong> is
-          already linked to an existing profile. We&apos;ll add this attempt to
+          <strong className="text-text-primary">{matchedValue}</strong>{" "}
+          is already linked to an existing profile. We&apos;ll add this attempt to
           that profile and send you a new results link &mdash; your earlier
           results stay exactly where they are, at their own link.
         </p>
@@ -499,7 +483,7 @@ function DuplicateModal({
         {linkError && (
           <div
             role="alert"
-            className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+            className="mt-4 border border-[#b3261e] px-4 py-3 text-sm text-[#b3261e]"
           >
             {linkError}
           </div>
@@ -590,16 +574,20 @@ function LeadTypeRadioGroup({
             tabIndex={isSelected || (!value && i === 0) ? 0 : -1}
             onClick={() => onChange(option.value)}
             className={[
-              "min-h-[3rem] rounded-xl px-4 py-3",
-              "text-[length:var(--text-fluid-sm)] font-medium leading-snug",
-              "transition-all duration-200 ease-[var(--ease-out-expo)]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
+              "flex min-h-12 items-center gap-3 px-4 py-3 text-left",
+              "font-display text-[15px] font-semibold tracking-[-0.01em] leading-tight",
+              "transition-colors duration-150",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
               "cursor-pointer",
               isSelected
-                ? "border border-primary/60 bg-primary/10 text-text-primary shadow-[0_0_16px_rgb(77_163_255/0.2)]"
-                : "border border-border-glass bg-bg-elevated/60 text-text-secondary hover:border-white/20 hover:bg-white/5",
+                ? "border border-ink bg-ink text-paper"
+                : "border border-ink bg-transparent text-ink hover:bg-ink/5",
             ].join(" ")}
           >
+            <span
+              aria-hidden="true"
+              className={`h-3 w-3 shrink-0 border ${isSelected ? "border-vermilion bg-vermilion" : "border-ink"}`}
+            />
             {option.label}
           </button>
         );

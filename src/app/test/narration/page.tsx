@@ -186,7 +186,7 @@ export default function NarrationTestPage() {
         </div>
 
         {/* Rendered narration */}
-        <div className="rounded-2xl border border-border-glass ring-1 ring-inset ring-white/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl">
+        <div className="rounded-2xl border border-border-glass ring-1 ring-inset ring-ink/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl">
           <div className="relative">
             <div
               ref={scrollContainerRef}

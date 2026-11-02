@@ -100,7 +100,7 @@ export function OrbSubtitles({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: lingering ? 0.4 : 0.15, ease: "easeOut" }}
-          className="text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary/80 font-light"
+          className="text-[length:var(--text-fluid-base)] font-medium leading-relaxed tracking-[-0.01em] text-ink"
         >
           {cueText}
         </motion.p>

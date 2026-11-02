@@ -5,8 +5,8 @@ import { type ComponentProps, type ElementType } from "react";
 const buttonVariants = cva(
   [
     "inline-flex items-center justify-center gap-2",
-    "rounded-full font-display font-semibold",
-    "transition-all duration-300 ease-[var(--ease-out-expo)]",
+    "rounded-none font-display font-semibold",
+    "transition-colors duration-150",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base",
     "disabled:pointer-events-none disabled:opacity-50",
     "touch-action-manipulation",
@@ -15,23 +15,20 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
-          "bg-primary text-bg-base",
-          "hover:bg-primary-hover hover:shadow-[0_0_24px_rgb(77_163_255/0.4)]",
-          "active:scale-[0.97]",
+          "border border-primary bg-primary text-ink",
+          "hover:border-primary-hover hover:bg-primary-hover",
         ],
         secondary: [
-          "bg-secondary text-bg-base",
-          "hover:bg-secondary-hover hover:shadow-[0_0_24px_rgb(233_185_73/0.4)]",
-          "active:scale-[0.97]",
+          "border border-ink bg-ink text-paper",
+          "hover:bg-secondary-hover",
         ],
         outline: [
-          "border border-border-glass bg-transparent text-text-primary",
-          "hover:bg-white/5 hover:border-white/20",
-          "active:scale-[0.97]",
+          "border border-ink bg-transparent text-ink",
+          "hover:bg-ink hover:text-paper",
         ],
         ghost: [
           "bg-transparent text-text-secondary",
-          "hover:text-text-primary hover:bg-white/5",
+          "hover:text-text-primary hover:bg-ink/5",
         ],
       },
       size: {

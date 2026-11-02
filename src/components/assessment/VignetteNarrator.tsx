@@ -893,7 +893,7 @@ function NarrationDebugBar({
         const drift = count - expectedCount;
 
         const driftColor = drift === 0 ? "#6ee7b7" : Math.abs(drift) <= 1 ? "#fbbf24" : "#f87171";
-        const durColor = Number.isNaN(durMismatch) ? "#9aa0ac" : Math.abs(durMismatch) > 0.1 ? "#fbbf24" : "#6ee7b7";
+        const durColor = Number.isNaN(durMismatch) ? "#6b6963" : Math.abs(durMismatch) > 0.1 ? "#fbbf24" : "#6ee7b7";
 
         el.innerHTML =
           `<span style="color:#6ee7b7;font-weight:600">AUDIO</span>` +
@@ -921,12 +921,12 @@ function NarrationDebugBar({
   return (
     <div
       ref={canvasRef}
-      className="border-t border-white/10 pt-2 mt-4 font-mono text-[10px] text-green-400/80"
+      className="border-t border-ink/10 pt-2 mt-4 font-mono text-[10px] text-green-400/80"
     />
   );
 }
 
-// --- ScrollableTextBox: glass card with scroll indicators ---
+// --- ScrollableTextBox: hairline-ruled text panel with scroll indicators ---
 
 function ScrollableTextBox({
   scrollContainerRef,
@@ -963,27 +963,27 @@ function ScrollableTextBox({
 
   return (
     <div
-      className="rounded-2xl border border-border-glass ring-1 ring-inset ring-white/[0.05] bg-bg-elevated/60 p-6 backdrop-blur-xl"
+      className="border border-ink p-5 md:p-6"
       aria-live={ariaLive}
     >
       <div className="relative">
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200 hidden md:block",
+            "pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-border transition-opacity duration-200 hidden md:block",
             canScrollUp ? "opacity-100" : "opacity-0"
           )}
         />
 
         <div
           ref={scrollContainerRef}
-          className="md:max-h-[50vh] select-none space-y-3 md:overflow-y-auto md:pr-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
+          className="md:max-h-[50vh] select-none space-y-3 md:overflow-y-auto md:pr-3 text-[length:var(--text-fluid-base)] leading-relaxed text-text-primary scrollbar-thin scrollbar-track-transparent scrollbar-thumb-ink/20"
         >
           {children}
         </div>
 
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-opacity duration-200 hidden md:block",
+            "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-border transition-opacity duration-200 hidden md:block",
             canScrollDown ? "opacity-100" : "opacity-0"
           )}
         />
@@ -1008,9 +1008,9 @@ function PromptSection({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="select-none rounded-2xl border border-secondary/30 bg-secondary/5 p-5 mt-4"
+      className="select-none mt-4 border-t border-ink pt-4"
     >
-      <p className="mb-1 text-[length:var(--text-fluid-xs)] font-medium uppercase tracking-[0.3em] text-secondary">
+      <p className="mb-1.5 text-sm text-text-secondary">
         {label}
       </p>
       {text && (

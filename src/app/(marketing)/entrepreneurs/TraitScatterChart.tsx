@@ -17,12 +17,15 @@ interface TraitScatterChartProps {
   }[];
 }
 
+// Swiss Ink palette: ink, vermilion, two greys, and a hollow (paper-filled)
+// mark for the fifth category. Every dot carries an ink hairline so the light
+// grey and hollow marks stay visible on paper.
 const CATEGORY_COLORS: Record<string, string> = {
-  "Energy & Dynamism": "#5cc8ff",
-  "Confidence & Authority": "#4da3ff",
-  "Warmth & Interpersonal": "#f28b82",
-  "Communication Style": "#b79cff",
-  "Self-Presentation": "#e9b949",
+  "Energy & Dynamism": "#8c8a84",
+  "Confidence & Authority": "#e8452c",
+  "Warmth & Interpersonal": "#c8c4ba",
+  "Communication Style": "#f4f1ea",
+  "Self-Presentation": "#111111",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -52,7 +55,7 @@ function getCategoryForKey(key: string): string | undefined {
 
 function getColorForKey(key: string): string {
   const category = getCategoryForKey(key);
-  return category ? CATEGORY_COLORS[category] : "#9aa0ac";
+  return category ? CATEGORY_COLORS[category] : "#6b6963";
 }
 
 function scaleX(value: number): number {
@@ -148,7 +151,6 @@ export default function TraitScatterChart({
     ? dotPositions.find((d) => d.key === activeKey) ?? null
     : null;
   const activeCategory = activeTrait ? getCategoryForKey(activeTrait.key) : undefined;
-  const activeColor = activeTrait ? getColorForKey(activeTrait.key) : "#4da3ff";
   const activeTitle = activeTrait
     ? PERSONALITY_DIMENSION_NAMES[activeTrait.key] ?? activeTrait.key
     : "";
@@ -184,7 +186,7 @@ export default function TraitScatterChart({
   }
 
   return (
-    <div className="relative w-full max-w-md mx-auto" style={{ overflow: "visible" }}>
+    <div className="relative w-full max-w-md" style={{ overflow: "visible" }}>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
@@ -207,7 +209,7 @@ export default function TraitScatterChart({
           width={PLOT_W}
           height={PLOT_H}
           fill="none"
-          stroke="rgba(255,255,255,0.1)"
+          stroke="#d9d5cb"
           strokeWidth={1}
         />
 
@@ -215,7 +217,7 @@ export default function TraitScatterChart({
           x={6}
           y={MARGIN.top + PLOT_H / 2}
           textAnchor="middle"
-          fill="#9aa0ac"
+          fill="#6b6963"
           fontSize={13}
           fontFamily="Inter, sans-serif"
           transform={`rotate(-90, 6, ${MARGIN.top + PLOT_H / 2})`}
@@ -226,7 +228,7 @@ export default function TraitScatterChart({
           x={MARGIN.left + PLOT_W / 2}
           y={HEIGHT - 1}
           textAnchor="middle"
-          fill="#9aa0ac"
+          fill="#6b6963"
           fontSize={13}
           fontFamily="Inter, sans-serif"
         >
@@ -239,7 +241,7 @@ export default function TraitScatterChart({
             x={MARGIN.left - 8}
             y={scaleY(tick) + 3}
             textAnchor="end"
-            fill="#9aa0ac"
+            fill="#6b6963"
             fontSize={11}
             fontFamily="Inter, sans-serif"
           >
@@ -253,7 +255,7 @@ export default function TraitScatterChart({
             x={scaleX(tick)}
             y={HEIGHT - MARGIN.bottom + 14}
             textAnchor="middle"
-            fill="#9aa0ac"
+            fill="#6b6963"
             fontSize={11}
             fontFamily="Inter, sans-serif"
           >
@@ -270,16 +272,15 @@ export default function TraitScatterChart({
           return (
             <g key={trait.key} style={{ pointerEvents: "none" }}>
               {isActive && (
-                <circle cx={cx} cy={cy} r={12} fill={color} opacity={0.18} />
+                <circle cx={cx} cy={cy} r={12} fill="none" stroke="#111111" strokeWidth={1} />
               )}
               <circle
                 cx={cx}
                 cy={cy}
                 r={isActive ? 7 : 5.75}
                 fill={color}
-                stroke={isActive ? "#f5f6fa" : "rgba(10,10,12,0.9)"}
+                stroke="#111111"
                 strokeWidth={isActive ? 1.5 : 1}
-                opacity={isActive ? 1 : 0.9}
                 style={{ transition: "all 150ms ease" }}
               />
             </g>
@@ -294,21 +295,18 @@ export default function TraitScatterChart({
               y={tooltipY - pillH / 2}
               width={pillW}
               height={pillH}
-              rx={10}
-              fill="rgba(17,17,19,0.96)"
-              stroke={`${activeColor}55`}
+              fill="#f4f1ea"
+              stroke="#111111"
               strokeWidth={1}
             />
             {/* Eyebrow (category) */}
             <text
               x={tooltipX - pillW / 2 + pillPadX}
               y={tooltipY - pillH / 2 + pillPadY + 8}
-              fontSize={9.5}
-              fontWeight={600}
-              fill={activeColor}
+              fontSize={10}
+              fontWeight={500}
+              fill="#6b6963"
               fontFamily="'Inter Tight', Inter, sans-serif"
-              letterSpacing="0.08em"
-              style={{ textTransform: "uppercase" }}
             >
               {activeCategory ? CATEGORY_LABELS[activeCategory] : "Trait"}
             </text>
@@ -319,7 +317,7 @@ export default function TraitScatterChart({
               y={tooltipY - pillH / 2 + pillPadY + 8 + TOOLTIP_FONT + 4}
               fontSize={TOOLTIP_FONT}
               fontWeight={600}
-              fill="#f5f6fa"
+              fill="#111111"
               fontFamily="Inter, sans-serif"
             >
               {activeTitle}
@@ -329,7 +327,7 @@ export default function TraitScatterChart({
               x={tooltipX - pillW / 2 + pillPadX}
               y={tooltipY - pillH / 2 + pillPadY + 8 + TOOLTIP_FONT + 4 + TOOLTIP_SUB_FONT + lineGap}
               fontSize={TOOLTIP_SUB_FONT}
-              fill="#9aa0ac"
+              fill="#6b6963"
               fontFamily="Inter, sans-serif"
             >
               {`Mean ${Math.round(activeTrait.mean * 100)}% \u00B7 SD ${activeTrait.stddev.toFixed(3)}`}
@@ -338,11 +336,11 @@ export default function TraitScatterChart({
         )}
       </svg>
 
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-text-secondary/65">
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-text-secondary">
         {Object.entries(CATEGORY_COLORS).map(([category, color]) => (
           <div key={category} className="flex items-center gap-2">
             <span
-              className="inline-block h-2.5 w-2.5 rounded-full"
+              className="inline-block h-2.5 w-2.5 rounded-full border border-ink"
               style={{ backgroundColor: color }}
             />
             <span>{CATEGORY_LABELS[category]}</span>

@@ -37,67 +37,31 @@ function OverviewContent() {
       };
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
-        {/* Ambient background */}
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute inset-0 bg-bg-base" />
-
-          {prefersReducedMotion ? (
-            <>
-              <div className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] opacity-30 blur-3xl mix-blend-screen" />
-              <div className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] opacity-20 blur-3xl mix-blend-screen" />
-            </>
-          ) : (
-            <>
-              <motion.div
-                animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.4, 0.3] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute left-[-10%] top-[-20%] h-[70vh] w-[70vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(77,163,255,0.15),transparent_70%)] blur-3xl mix-blend-screen"
-              />
-              <motion.div
-                animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
-                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-[-20%] right-[-10%] h-[60vh] w-[60vw] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(233,185,73,0.1),transparent_70%)] blur-3xl mix-blend-screen"
-              />
-            </>
-          )}
-
-          {/* Dot grid */}
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: "radial-gradient(circle, rgb(255 255 255) 1px, transparent 1px)",
-              backgroundSize: "32px 32px",
-            }}
-          />
-
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-bg-base/50 to-bg-base" />
-        </div>
-
+    <div className="min-h-screen bg-bg-base text-ink">
+      <section className="mx-auto flex min-h-screen max-w-[1240px] items-center px-[clamp(20px,4vw,48px)] py-16">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="relative z-10 mx-auto max-w-3xl text-center"
+          className="w-full border-t border-ink pt-6"
         >
           <motion.p
             variants={itemVariants}
-            className="mb-6 font-medium uppercase tracking-[0.3em] text-[length:var(--text-fluid-xs)] text-secondary"
+            className="mb-[clamp(20px,3vw,36px)] text-sm text-[#8c8a84]"
           >
             Builders Quotient Assessment
           </motion.p>
 
           <motion.h1
             variants={itemVariants}
-            className="font-display text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1] tracking-[-0.02em] text-text-primary"
+            className="max-w-[14ch] font-display text-[clamp(44px,8vw,112px)] font-semibold leading-[0.9] tracking-[-0.055em] text-ink"
           >
             What to Expect
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="mx-auto mt-8 max-w-2xl text-[clamp(1rem,1.8vw,1.25rem)] leading-relaxed text-text-secondary"
+            className="mt-[clamp(24px,3vw,40px)] max-w-[44ch] text-[clamp(18px,1.6vw,21px)] leading-[1.45] text-[#3d3c39]"
           >
             You&apos;re about to step into real business scenarios drawn from the
             lives of actual entrepreneurs &mdash; no textbooks, no multiple
@@ -106,7 +70,7 @@ function OverviewContent() {
 
           <motion.p
             variants={itemVariants}
-            className="mt-8 text-[length:var(--text-fluid-sm)] font-medium text-text-secondary"
+            className="mt-8 border-t border-border pt-4 text-sm font-medium tabular-nums text-ink"
           >
             ~20 min &middot; 4 scenarios &middot; Camera required
           </motion.p>
@@ -119,7 +83,7 @@ function OverviewContent() {
 
           <motion.p
             variants={itemVariants}
-            className="mt-4 text-[length:var(--text-fluid-xs)] text-text-secondary/60"
+            className="mt-4 text-sm text-text-secondary"
           >
             Camera &amp; microphone required
           </motion.p>

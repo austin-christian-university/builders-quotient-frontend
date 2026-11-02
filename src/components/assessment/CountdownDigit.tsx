@@ -23,8 +23,7 @@ export function CountdownDigit({
   if (prefersReducedMotion) {
     return (
       <span
-        className="select-none text-[clamp(6rem,20vw,10rem)] font-bold leading-none tracking-tight text-text-primary"
-        style={{ textShadow: "0 0 40px rgba(77, 163, 255, 0.35)" }}
+        className="select-none text-[clamp(6rem,20vw,10rem)] font-semibold leading-none tracking-[-0.055em] text-ink"
       >
         {number}
       </span>
@@ -40,8 +39,7 @@ export function CountdownDigit({
         exit={{ opacity: 0, scale: 0.85 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         onAnimationComplete={() => onEnterComplete?.(number)}
-        className="select-none text-[clamp(6rem,20vw,10rem)] font-bold leading-none tracking-tight text-text-primary"
-        style={{ textShadow: "0 0 40px rgba(77, 163, 255, 0.35)" }}
+        className="select-none text-[clamp(6rem,20vw,10rem)] font-semibold leading-none tracking-[-0.055em] text-ink"
       >
         {number}
       </motion.span>

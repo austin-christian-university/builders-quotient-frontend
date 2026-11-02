@@ -16,15 +16,15 @@ interface CommunicationRadarSlideProps {
   };
 }
 
-const ACCENT_COLOR = "#2dd4bf";
+const ACCENT_COLOR = "#e8452c";
 
-/** Colors for the 5 meta-category sector arcs */
+/** Ink-to-grey ramp for the 5 meta-category sector arcs (vermilion is the profile line) */
 const SECTOR_COLORS: Record<string, string> = {
-  "Energy & Dynamism": "#2dd4bf",
-  "Confidence & Authority": "#63b3ed",
-  "Warmth & Interpersonal": "#f87171",
-  "Communication Style": "#a78bfa",
-  "Self-Presentation": "#fbbf24",
+  "Energy & Dynamism": "#111111",
+  "Confidence & Authority": "#4a4844",
+  "Warmth & Interpersonal": "#6b6963",
+  "Communication Style": "#8c8a84",
+  "Self-Presentation": "#b5b1a7",
 };
 
 /** Full arc labels */
@@ -80,29 +80,23 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
     : undefined;
 
   return (
-    <section className="min-h-full md:h-full flex flex-col md:overflow-hidden px-6 py-8 md:py-16">
+    <section className="min-h-full md:h-full flex flex-col md:overflow-hidden px-5 py-14 md:px-10 md:py-16">
       {/* Header */}
-      <div className="shrink-0 text-center">
+      <div className="shrink-0 w-full max-w-3xl mx-auto">
         <motion.p
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-xs uppercase tracking-[0.3em] mb-2 text-center"
-          style={{ color: "#9aa0ac" }}
+          className="border-t border-ink pt-3 text-sm text-[#8c8a84]"
         >
           Communication Style
         </motion.p>
 
         <motion.h2
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-2xl font-semibold text-center"
-          style={{
-            color: "#f5f6fa",
-            fontFamily: "'Inter Tight', Inter, sans-serif",
-            letterSpacing: "-0.01em",
-          }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-3 font-display text-[clamp(28px,3.6vw,44px)] font-semibold leading-[0.98] tracking-[-0.045em] text-ink"
         >
           How You Present &amp; Connect
         </motion.h2>
@@ -110,10 +104,10 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
 
       {/* Chart — flexes to fill available space */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="flex-1 min-h-0 flex items-center justify-center py-2"
+        className="flex-1 min-h-0 flex items-center justify-center py-3"
       >
         <div ref={containerRef} className="w-full max-w-lg mx-auto max-h-full px-2">
           <RadarChart
@@ -135,29 +129,25 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.7 }}
-          className="flex items-center justify-center gap-6 mt-2"
+          className="w-full max-w-3xl mx-auto flex flex-wrap items-center justify-start gap-x-6 gap-y-1 border-t border-ink pt-3 mt-2"
           aria-label="Chart legend"
         >
           <div className="flex items-center gap-2">
             <span
-              className="w-3 h-3 rounded-full"
+              className="inline-block w-4 h-[3px]"
               style={{ backgroundColor: ACCENT_COLOR }}
               aria-hidden="true"
             />
-            <span className="text-sm" style={{ color: "#9aa0ac" }}>
+            <span className="text-[13px] text-[#6b6963]">
               Your Profile
             </span>
           </div>
           <div className="flex items-center gap-2">
             <span
-              className="w-3 h-3 rounded-full border"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.04)",
-                borderColor: "rgba(255,255,255,0.3)",
-              }}
+              className="inline-block w-4 border-t-[1.5px] border-dashed border-[#8c8a84]"
               aria-hidden="true"
             />
-            <span className="text-sm" style={{ color: "#9aa0ac" }}>
+            <span className="text-[13px] text-[#6b6963]">
               Entrepreneur Average
             </span>
           </div>
@@ -167,8 +157,8 @@ export function CommunicationRadarSlide({ data }: CommunicationRadarSlideProps) 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.9, ease: "easeOut" }}
-          className="text-center mt-2 text-base"
-          style={{ color: "rgba(154,160,172,0.85)" }}
+          className="w-full max-w-3xl mx-auto mt-2 text-sm text-left"
+          style={{ color: "#8c8a84" }}
         >
           <span className="hidden [@media(hover:hover)]:inline">Hover or click any point to see the dimension</span>
           <span className="[@media(hover:hover)]:hidden">Tap any point to see the dimension</span>
