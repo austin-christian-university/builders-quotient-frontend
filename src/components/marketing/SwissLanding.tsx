@@ -82,6 +82,9 @@ function SwissLanding() {
             <a className={s.navLink} href="#how">How it works</a>
             <a className={s.navLink} href="#results">Results</a>
             <a className={s.navLink} href="#faq">FAQ</a>
+            <Link className={s.navExplore} href="/entrepreneurs">
+              Entrepreneurs
+            </Link>
             <Link className={`${s.btn} ${s.small}`} href={ASSESS_HREF}>
               Begin
             </Link>
@@ -107,10 +110,6 @@ function SwissLanding() {
             </p>
             <div className={s.cta}>
               <BeginButton />
-              <p className={s.meta}>~20 min · Camera required · Retake anytime</p>
-              <Link className={s.ex} href="/entrepreneurs">
-                Or explore how 274 entrepreneurs think
-              </Link>
             </div>
           </div>
         </section>
@@ -278,7 +277,6 @@ function SwissLanding() {
             </p>
             <div className={s.go}>
               <BeginButton />
-              <p className={s.meta}>~20 min · Camera required · Retake anytime</p>
             </div>
           </div>
           <div className={s.foot}>

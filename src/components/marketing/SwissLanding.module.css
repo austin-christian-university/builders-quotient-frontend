@@ -84,12 +84,23 @@
 .links a {
   text-decoration: none;
 }
-.navLink:hover {
+.navLink:hover,
+.navExplore:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 @media (max-width: 820px) {
   .navLink {
+    display: none;
+  }
+}
+@media (max-width: 420px) {
+  .links {
+    gap: 16px;
+  }
+}
+@media (max-width: 359px) {
+  .nav .brand span {
     display: none;
   }
 }
@@ -173,18 +184,6 @@
   grid-column: 7 / span 6;
   margin-top: clamp(32px, 4vw, 56px);
   align-self: end;
-}
-.meta {
-  font-size: 14px;
-  color: var(--grey);
-  margin-top: 14px;
-}
-.ex {
-  display: inline-block;
-  margin-top: 18px;
-  font-size: 15px;
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 @media (max-width: 820px) {
   .presented,

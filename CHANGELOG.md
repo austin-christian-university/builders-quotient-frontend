@@ -5,7 +5,7 @@ All notable changes to the Builders Quotient frontend will be documented in this
 ## [0.2.8.0] - 2026-11-02
 
 ### Changed
-- New brand: Swiss Ink. The landing page is rebuilt on paper, ink and one vermilion, with a new "Grid Q" mark — a square Q whose tail is a single red diagonal. Same copy, links and legal footer as before.
+- New brand: Swiss Ink. The landing page is rebuilt on paper, ink and one vermilion, with a new "Grid Q" mark — a square Q whose tail is a single red diagonal. The "explore 274 entrepreneurs" link moves into the top bar as "Entrepreneurs", and the "~20 min · Camera required" line under the CTAs is gone.
 - The 3.5 s crest splash screen is gone; the landing page renders immediately and is now a server component.
 - New favicon, Apple touch icon and Open Graph share image in the Swiss Ink style.
 - The assessment, results and /entrepreneurs pages keep the old dark look for now; they move to Swiss Ink in a follow-up.
