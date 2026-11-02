@@ -12,12 +12,9 @@ const STEPS = [
 ] as const;
 
 const GETS = [
-  ["What do you do under pressure?", "How you diagnose and decide when the clock is running."],
-  [
-    "Where do you see opportunity when you're short on everything?",
-    "How you find openings with little money, time or people.",
-  ],
-  ["Which founder should you be studying?", "The real entrepreneur whose decisions look most like yours."],
+  ["How you hold up", "Your problem-solving when the pressure's on."],
+  ["What you see", "The openings you find with almost nothing."],
+  ["Who to study", "A real entrepreneur who thinks like you."],
 ] as const;
 
 // The public sample profile at /results/test-jordan-maker, summarised.
@@ -126,21 +123,16 @@ function SwissLanding() {
         <Section n="01" label="About">
           <h2>A new kind of exam.</h2>
           <p className={s.lede}>
-            Three things every builder should know about themselves before they start.
+            No multiple choice. Real business moments, answered on camera, in your own words.
           </p>
-          <div className={s.gets}>
-            {GETS.map(([title, body], i) => (
-              <div className={s.get} key={title}>
-                <div className={s.n}>{String(i + 1).padStart(2, "0")}</div>
-                <h3>{title}</h3>
-                <p>{body}</p>
-              </div>
+          <ul className={s.gets}>
+            {GETS.map(([title, body]) => (
+              <li key={title}>
+                <b>{title}</b>
+                <span>{body}</span>
+              </li>
             ))}
-          </div>
-          <p className={s.note}>
-            A psychometric assessment from Austin Christian University. No multiple choice —
-            real scenarios, answered in your own words.
-          </p>
+          </ul>
         </Section>
 
         <Section n="02" label="The data">
