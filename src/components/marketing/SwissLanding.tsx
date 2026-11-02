@@ -12,8 +12,12 @@ const STEPS = [
 ] as const;
 
 const GETS = [
-  ["Your archetype", "One of sixteen builder types, from how you actually reason."],
-  ["Who thinks like you", "The real entrepreneurs whose decisions look most like yours."],
+  ["What do you do under pressure?", "How you diagnose and decide when the clock is running."],
+  [
+    "Where do you see opportunity when you're short on everything?",
+    "How you find openings with little money, time or people.",
+  ],
+  ["Which founder should you be studying?", "The real entrepreneur whose decisions look most like yours."],
 ] as const;
 
 // The public sample profile at /results/test-jordan-maker, summarised.
@@ -122,9 +126,7 @@ function SwissLanding() {
         <Section n="01" label="About">
           <h2>A new kind of exam.</h2>
           <p className={s.lede}>
-            Watch real business moments and say on camera what you&apos;d do. Builder&apos;s
-            Quotient compares your reasoning with how 274 successful entrepreneurs actually
-            handled them — and tells you who you think like.
+            Three things every builder should know about themselves before they start.
           </p>
           <div className={s.gets}>
             {GETS.map(([title, body], i) => (
