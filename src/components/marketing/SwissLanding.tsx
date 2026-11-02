@@ -14,7 +14,6 @@ const STEPS = [
 const GETS = [
   ["Your archetype", "One of sixteen builder types, from how you actually reason."],
   ["Who thinks like you", "The real entrepreneurs whose decisions look most like yours."],
-  ["Where you're strong", "Your strengths and growth areas, across practical and creative intelligence."],
 ] as const;
 
 // The public sample profile at /results/test-jordan-maker, summarised.
@@ -121,7 +120,7 @@ function SwissLanding() {
         </section>
 
         <Section n="01" label="About">
-          <h2>Know how you think before you build.</h2>
+          <h2>A new kind of exam.</h2>
           <p className={s.lede}>
             Watch real business moments and say on camera what you&apos;d do. Builder&apos;s
             Quotient compares your reasoning with how 274 successful entrepreneurs actually
