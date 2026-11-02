@@ -39,12 +39,14 @@ function ExploreCard({
   buttonLabel,
   href,
   external,
+  primary,
 }: {
   heading: string;
   body: string;
   buttonLabel: string;
   href: string;
   external?: boolean;
+  primary?: boolean;
 }) {
   return (
     <motion.div
@@ -64,7 +66,7 @@ function ExploreCard({
         <Button
           as="a"
           href={href}
-          variant="outline"
+          variant={primary ? "primary" : "outline"}
           size="md"
           className="w-full sm:w-auto"
           {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
@@ -225,7 +227,7 @@ function StudentVariant() {
           You&rsquo;re All Set
         </h1>
         <p className="mt-6 max-w-xl text-[clamp(17px,1.5vw,19px)] leading-relaxed text-[#3d3c39]">
-          Thanks for taking the Builders Quotient. We&rsquo;ll get your scores back to you soon. While you wait, let&rsquo;s dive deeper:
+          Thanks for taking the Builders Quotient. We&rsquo;ll get your scores back to you soon. In the meantime, explore what we&rsquo;re building at&nbsp;ACU.
         </p>
       </motion.div>
 
@@ -284,9 +286,6 @@ function StudentVariant() {
         id="explore"
         className="scroll-mt-8"
       >
-        <p className="mb-8 text-[length:var(--text-fluid-sm)] leading-relaxed text-text-secondary">
-          While you&rsquo;re here, explore what we&rsquo;re building at&nbsp;ACU.
-        </p>
         <div className="grid gap-x-6 gap-y-12 md:grid-cols-2">
           <ExploreCard
             heading="Discover ACU"
@@ -296,11 +295,12 @@ function StudentVariant() {
             external
           />
           <ExploreCard
-            heading="Explore Curriculum"
-            body="See the programs and courses designed to build the next generation of entrepreneurs."
-            buttonLabel="View Curriculum"
-            href={ACU_URLS.curriculum}
+            heading="Apply to ACU"
+            body="Start your application to Austin Christian University."
+            buttonLabel="Apply"
+            href={ACU_URLS.apply}
             external
+            primary
           />
         </div>
       </motion.div>
@@ -317,7 +317,7 @@ function StudentVariant() {
   );
 }
 
-// --- General variant (three explore cards) ---
+// --- General variant (Discover ACU + Apply) ---
 
 function GeneralVariant() {
   return (
@@ -341,7 +341,7 @@ function GeneralVariant() {
 
       {/* Explore cards */}
       <motion.div variants={fadeUp} transition={transition}>
-        <div className="grid gap-x-6 gap-y-12 md:grid-cols-3">
+        <div className="grid gap-x-6 gap-y-12 md:grid-cols-2">
           <ExploreCard
             heading="Discover ACU"
             body="Learn what makes Austin Christian University different &mdash; and why we built the Builders Quotient in the first place."
@@ -350,18 +350,12 @@ function GeneralVariant() {
             external
           />
           <ExploreCard
-            heading="Explore Curriculum"
-            body="See the programs and courses designed to build the next generation of entrepreneurs."
-            buttonLabel="View Curriculum"
-            href={ACU_URLS.curriculum}
+            heading="Apply to ACU"
+            body="Start your application to Austin Christian University."
+            buttonLabel="Apply"
+            href={ACU_URLS.apply}
             external
-          />
-          <ExploreCard
-            heading="Startups &amp; Projects"
-            body="Our accelerator connects students with real startups from day&nbsp;one."
-            buttonLabel="The Accelerator"
-            href={ACU_URLS.startups}
-            external
+            primary
           />
         </div>
       </motion.div>
@@ -409,11 +403,12 @@ function DefaultVariant() {
             external
           />
           <ExploreCard
-            heading="Explore Curriculum"
-            body="See the programs designed to build the next generation of entrepreneurs."
-            buttonLabel="View Curriculum"
-            href={ACU_URLS.curriculum}
+            heading="Apply to ACU"
+            body="Start your application to Austin Christian University."
+            buttonLabel="Apply"
+            href={ACU_URLS.apply}
             external
+            primary
           />
         </div>
       </motion.div>
